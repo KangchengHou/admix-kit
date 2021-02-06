@@ -24,8 +24,3 @@ def read_haplo(path: str) -> np.ndarray:
         np.ndarray: (n_haplo, n_snp) local ancestry file
     """
     return read_int_mat(path)
-
-
-    
-    
-

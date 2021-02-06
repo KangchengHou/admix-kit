@@ -36,7 +36,35 @@ def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
         rls_list.append((block_anc, block_phgeno, block_legend))
     return rls_list
 
-def convert_anc_count(phgeno, anc):
+def convert_anc_count(phgeno: np.ndarray, anc: np.ndarray) -> np.ndarray:
+    """
+    Convert from ancestry and phased genotype to number of minor alles for each ancestry
+    version 2, it should lead to exact the same results as `convert_anc_count`
+
+    Args:
+        phgeno (np.ndarray): (n_indiv, 2 x n_snp), the first half columns contain the first haplotype,
+            the second half columns contain the second haplotype
+        anc (np.ndarray): n_indiv x 2n_snp, match `phgeno`
+
+    Returns:
+        np.ndarray: n_indiv x 2n_snp, the first half columns stores the number of minor alleles 
+        from the first ancestry, the second half columns stores the number of minor
+        alleles from the second ancestry
+    """
+    n_indiv = anc.shape[0]
+    n_snp = anc.shape[1] // 2
+    n_anc = 2
+    geno = np.zeros_like(phgeno)
+    for haplo_i in range(2):
+        haplo_slice = slice(haplo_i * n_snp, (haplo_i + 1) * n_snp)
+        haplo_phgeno = phgeno[:, haplo_slice]
+        haplo_anc = anc[:, haplo_slice]
+        for anc_i in range(n_anc):
+            geno[:, (anc_i * n_snp) : ((anc_i + 1) * n_snp)][haplo_anc == anc_i] += haplo_phgeno[haplo_anc == anc_i]
+
+    return geno
+
+def convert_anc_count2(phgeno, anc):
     """
     Convert from ancestry and phased genotype to number of minor alles for each ancestry
 
@@ -63,42 +91,6 @@ def convert_anc_count(phgeno, anc):
             for anc_i in range(2):
                 anc_snp_index = np.where(anc[haplo_i, :] == anc_i)[0]
                 geno[indiv_i, anc_snp_index + anc_i * n_snp] += phgeno[haplo_i, anc_snp_index]
-    return geno
-
-def convert_anc_count2(phgeno, anc):
-    """
-    Convert from ancestry and phased genotype to number of minor alles for each ancestry
-    version 2, it should lead to exact the same results as `convert_anc_count`
-
-    anc = np.random.randint(0, 2, size=(10, 6))
-    phgeno = np.random.randint(0, 2, size=(10, 6))
-    count1 = admix.convert_anc_count(phgeno=phgeno, anc=anc)
-    count2 = convert_anc_count2(phgeno = phgeno, anc=anc)
-    assert np.all(count1 == count2)
-
-    Args
-    ----
-    phgeno: n_indiv x 2n_snp, the first half columns contain the first haplotype,
-        the second half columns contain the second haplotype
-    anc: n_indiv x 2n_snp, match `phgeno`
-
-    Returns
-    ----
-    geno: n_indiv x 2n_snp, the first half columns stores the number of minor alleles 
-        from the first ancestry, the second half columns stores the number of minor
-        alleles from the second ancestry
-    """
-    n_indiv = anc.shape[0]
-    n_snp = anc.shape[1] // 2
-    n_anc = 2
-    geno = np.zeros_like(phgeno)
-    for haplo_i in range(2):
-        haplo_slice = slice(haplo_i * n_snp, (haplo_i + 1) * n_snp)
-        haplo_phgeno = phgeno[:, haplo_slice]
-        haplo_anc = anc[:, haplo_slice]
-        for anc_i in range(n_anc):
-            geno[:, (anc_i * n_snp) : ((anc_i + 1) * n_snp)][haplo_anc == anc_i] += haplo_phgeno[haplo_anc == anc_i]
-
     return geno
 
 
