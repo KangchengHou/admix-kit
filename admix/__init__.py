@@ -1,3 +1,3 @@
-from . import data, simulate
+from . import data, simulate, ancestry
 
-__all__ = ["data", "simulate"]
+__all__ = ["data", "simulate", "ancestry"]
