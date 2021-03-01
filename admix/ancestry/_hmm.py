@@ -3,6 +3,48 @@ from ._utils import normalize, log_mask_zero, log_normalize
 from . import _hmmc
 
 
+def decode_viterbi(
+    log_start: np.ndarray, log_trans: np.ndarray, log_obs: np.ndarray
+) -> np.ndarray:
+    """General Viterbi decoding algorithm
+
+    Args:
+        log_start (np.ndarray): [description]
+        log_trans (np.ndarray): [description]
+        log_obs (np.ndarray): [description]
+
+    Returns:
+        np.ndarray: [description]
+    """
+    n_seq = log_obs.shape[0]
+    n_state = len(log_start)
+
+    viterbi_lattice = np.zeros((n_seq, n_state))
+    state_sequence = np.zeros(n_seq)
+    work_buffer = np.zeros(n_state)
+
+    # initialization
+    viterbi_lattice[0, :] = log_start + log_obs[0, :]
+
+    # induction
+    for t in range(1, n_seq):
+        for i in range(n_state):
+            for j in range(n_state):
+                work_buffer[j] = log_trans[t - 1, j, i] + viterbi_lattice[t - 1, j]
+            viterbi_lattice[t, i] = np.max(work_buffer) + log_obs[t, i]
+
+    # Observation traceback
+    state_sequence[n_seq - 1] = where_from = np.argmax(viterbi_lattice[n_seq - 1, :])
+    logprob = viterbi_lattice[n_seq - 1, where_from]
+
+    for t in range(n_seq - 2, -1, -1):
+        for i in range(n_state):
+            work_buffer[i] = viterbi_lattice[t, i] + log_trans[t, i, where_from]
+        state_sequence[t] = where_from = np.argmax(work_buffer)
+
+    return state_sequence
+
+
 class WindowHMM:
     """HMM for Local Ancestry in Admixed Populations (LAMP)
     Parameters
@@ -49,8 +91,8 @@ class WindowHMM:
         n_snp: int,
         n_proto: int,
         X: np.ndarray = None,
-        trans_prior: float = 0.1,
-        emit_prior: float = 0.1,
+        trans_prior: float = 0.00006,
+        emit_prior: float = 0.001,
         founder_bias: float = 0.9,
     ):
         """Initialize
@@ -74,13 +116,16 @@ class WindowHMM:
             assert self.n_snp == X.shape[1]
             self._init_from_X(X)
 
-    def _init_from_X(self, X: np.ndarray):
+    def _init_from_X(self, X: np.ndarray, add_noise: bool = True):
         """Initilize with reference data
 
         Args:
             X (np.ndarray): [input dataset]
         """
-        start = np.exp(np.random.uniform(low=-1.0, high=1.0, size=self.n_proto))
+        if add_noise:
+            start = np.exp(np.random.uniform(low=-1.0, high=1.0, size=self.n_proto))
+        else:
+            start = np.ones(self.n_proto)
         start /= np.sum(start)
         trans = np.zeros((self.n_snp - 1, self.n_proto, self.n_proto))
         for i in range(self.n_snp - 1):
@@ -90,23 +135,30 @@ class WindowHMM:
                 / (self.n_proto - 1)
             )
             tmp[np.diag_indices(self.n_proto)] = self.founder_bias
-            tmp *= np.exp(
-                np.random.uniform(low=-1.0, high=1.0, size=(self.n_proto, self.n_proto))
-            )
+            if add_noise:
+                tmp *= np.exp(
+                    np.random.uniform(
+                        low=-1.0, high=1.0, size=(self.n_proto, self.n_proto)
+                    )
+                )
             trans[i, :, :] = normalize(tmp, axis=1)
 
         tmp = (np.sum(X, axis=0) + 1) / (X.shape[0] + 2)
         emit = np.zeros((self.n_snp, self.n_proto))
         for i in range(self.n_proto):
-            tmp1 = tmp * np.exp(np.random.uniform(-1, 1, size=self.n_snp))
-            tmp2 = (1 - tmp) * np.exp(np.random.uniform(-1, 1, size=self.n_snp))
+            if add_noise:
+                tmp1 = tmp * np.exp(np.random.uniform(-1, 1, size=self.n_snp))
+                tmp2 = (1 - tmp) * np.exp(np.random.uniform(-1, 1, size=self.n_snp))
+            else:
+                tmp1 = tmp
+                tmp2 = 1 - tmp
             emit[:, i] = tmp1 / (tmp1 + tmp2)
 
         self._start = start
         self._trans = trans
         self._emit = emit
 
-    def fit(self, X: np.ndarray, max_iter: int = 20, rel_tol: float = 0.01):
+    def fit(self, X: np.ndarray, max_iter: int = 100, rel_tol: float = 0.01):
         """Estimate model parameters.
         An initialization step is performed before entering the
         EM algorithm. If you want to avoid this step for a subset of
@@ -131,7 +183,7 @@ class WindowHMM:
             self._init_suff_stats()
             # E-step
 
-            ########### compressed code
+            ########### compressed code ###########
             # total_logprob = _hmmc._fit_iter(
             #     self.n_snp,
             #     self.n_proto,
@@ -145,7 +197,6 @@ class WindowHMM:
             #     self._suff_stats["emit"],
             # )
 
-            ############# PREVIOUS CODE
             total_logprob = 0.0
             for indiv_i in range(n_indiv):
                 log_obs = self._compute_log_lkl(X[indiv_i, :])
@@ -165,6 +216,7 @@ class WindowHMM:
             self._do_mstep()
             if (prev_total_logprob - total_logprob) / prev_total_logprob < rel_tol:
                 break
+            prev_total_logprob = total_logprob
 
         return self
 
@@ -213,9 +265,10 @@ class WindowHMM:
 
     def _init_suff_stats(self):
         self._suff_stats = {
-            "start": np.zeros(self.n_proto),
-            "trans": np.zeros((self.n_snp - 1, self.n_proto, self.n_proto)),
-            "emit": np.zeros((self.n_snp, self.n_proto, 2)),
+            "start": np.ones(self.n_proto) * self.trans_prior,
+            "trans": np.ones((self.n_snp - 1, self.n_proto, self.n_proto))
+            * self.trans_prior,
+            "emit": np.ones((self.n_snp, self.n_proto, 2)) * self.emit_prior,
         }
 
     def _accum_suff_stats(self, X, log_obs, posteriors, fwd_lattice, bwd_lattice):
@@ -244,7 +297,6 @@ class WindowHMM:
 
     def _do_mstep(self):
 
-        # TODO: add prior
         self._start = self._suff_stats["start"] / sum(self._suff_stats["start"])
 
         self._trans = np.zeros((self.n_snp - 1, self.n_proto, self.n_proto))
@@ -378,28 +430,6 @@ class WindowHMM:
 
         return logprob, state_sequence
 
-    # def _init_fit(self, random=True):
-    #     if "s" in self.init_param:
-    #         if random:
-    #             self.start_prob_ = normalize(np.random.rand(self.n_proto))
-    #         else:
-    #             self.start_prob_ = np.full(self.n_proto, 1 / self.n_proto)
-    #     if "t" in self.init_param:
-    #         if random:
-    #             self.transition_prob_list_ = [
-    #                 normalize(np.random.rand(self.n_proto, self.n_proto), axis=1)
-    #                 for snp_i in range(self.n_snp - 1)
-    #             ]
-    #         else:
-    #             self.transition_prob_list_ = [
-    #                 np.full((self.n_proto, self.n_proto), 1 / self.n_proto)
-    #                 for snp_i in range(self.n_snp - 1)
-    #             ]
-    #     if "e" in self.init_param:
-    #         self.emission_prob_list_ = [
-    #             np.random.rand(self.n_proto) for snp_i in range(self.n_snp)
-    #         ]
-
     def _compute_posteriors(
         self, fwd_lattice: np.ndarray, bwd_lattice: np.ndarray
     ) -> np.ndarray:
@@ -426,13 +456,3 @@ class WindowHMM:
         logprob = np.zeros((self.n_snp, self.n_proto))
         _hmmc._compute_log_lkl(self.n_snp, self.n_proto, X, self._emit, logprob)
         return logprob
-        assert len(X) == self.n_snp
-
-        logprob = []
-        for snp_i in range(self.n_snp):
-            if X[snp_i] == 1:
-                emit_prob = self._emit[snp_i]
-            else:
-                emit_prob = 1 - self._emit[snp_i]
-            logprob.append(log_mask_zero(emit_prob))
-        return np.vstack(logprob)
