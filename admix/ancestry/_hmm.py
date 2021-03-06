@@ -8,13 +8,19 @@ def decode_viterbi(
 ) -> np.ndarray:
     """General Viterbi decoding algorithm
 
-    Args:
-        log_start (np.ndarray): [description]
-        log_trans (np.ndarray): [description]
-        log_obs (np.ndarray): [description]
+    Parameters
+    ----------
+    log_start : np.ndarray
+        [description]
+    log_trans : np.ndarray
+        [description]
+    log_obs : np.ndarray
+        [description]
 
-    Returns:
-        np.ndarray: [description]
+    Returns
+    -------
+    np.ndarray
+        [description]
     """
     n_seq = log_obs.shape[0]
     n_state = len(log_start)
@@ -96,13 +102,20 @@ class WindowHMM:
         founder_bias: float = 0.9,
     ):
         """Initialize
-
-        Args:
-            X (np.ndarray): input dataset
-            n_proto (int): Number of prototypical states
-            trans_prior (float, optional): transition prior. Defaults to 0.1.
-            emit_prior (float, optional): emission prior. Defaults to 0.1.
-            founder_bias (float, optional): founder bias. Defaults to 0.9.
+        Parameters
+        ----------
+        n_snp : int
+            Number of SNPs
+        n_proto : int
+            Number of prototypical states
+        X : np.ndarray, optional
+            input dataset, by default None
+        trans_prior : float, optional
+            transition prior, by default 0.00006
+        emit_prior : float, optional
+            emission prior, by default 0.001
+        founder_bias : float, optional
+            founder bias, by default 0.9
         """
 
         self.n_snp = n_snp
@@ -164,14 +177,21 @@ class WindowHMM:
         EM algorithm. If you want to avoid this step for a subset of
         the parameters, pass proper ``init_params`` keyword argument
         to estimator's constructor.
+
         Parameters
         ----------
-        X : array-like, shape (n_indiv, n_snp)
+        X : np.ndarray
+            shape (n_indiv, n_snp)
             Feature matrix of individual samples.
+        max_iter : int, optional
+            max number of iterations, by default 100
+        rel_tol : float, optional
+            relative tolerance, by default 0.01
+
         Returns
         -------
-        self : object
-            Returns self.
+        [type]
+            [description]
         """
 
         assert self.n_snp == X.shape[1]

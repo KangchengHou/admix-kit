@@ -2,6 +2,7 @@ import numpy as np
 from typing import List
 from ._hmm import WindowHMM, decode_viterbi
 from tqdm import tqdm
+from scipy.special import logsumexp
 
 
 class Lamp(object):
@@ -73,8 +74,8 @@ class Lamp(object):
                         X=ref_chunk,
                         emit_prior=self.emit_prior,
                         trans_prior=self.trans_prior,
-                    ).fit()
-                    self.smooth_hmm_array[window_i, anc_i] = hmm
+                    )
+                    self.smooth_hmm_array[window_i][anc_i] = hmm.fit(X=ref_chunk)
 
     def predict(self, sample_hap: np.ndarray) -> None:
         assert sample_hap.shape[1] == self.n_snp
@@ -112,6 +113,77 @@ class Lamp(object):
             )
             for window_i in range(self.n_window):
                 inferred_anc[sample_i, self.snp_index[window_i]] = decoded[window_i]
-        # TODO: incorporate smoothing procedure
-        assert not self.smooth
+
+        if self.smooth:
+            inferred_anc = self._smooth(sample_hap, inferred_anc)
+
         return obs_prob, inferred_anc
+
+    def _smooth(self, sample_hap: np.ndarray, inferred_anc) -> None:
+        n_sample = sample_hap.shape[0]
+        smoothed_anc = inferred_anc.copy()
+        for window_i in range(self.n_window - 1):
+
+            snp_index = self.smooth_snp_index[window_i]
+            fwd_array = np.zeros((len(snp_index), 2))
+            bwd_array = np.zeros((len(snp_index), 2))
+
+            bp = self.snp_index[window_i][-1]
+            # index of break point in smooth_snp_index
+            bp_index = np.where(bp == snp_index)[0].item()
+            for sample_i in range(n_sample):
+                # check ancestry change for each sample
+                bp_anc = [inferred_anc[sample_i, bp], inferred_anc[sample_i, bp + 1]]
+
+                if bp_anc[0] != bp_anc[1]:
+                    # adjusting ancestry change point
+                    fwd_array.fill(0.0)
+                    bwd_array.fill(0.0)
+
+                    hap_chunk = sample_hap[sample_i, snp_index]
+
+                    # fill in forward / backward
+                    for anc_i in range(2):
+                        hmm = self.smooth_hmm_array[window_i][bp_anc[anc_i]]
+
+                        framelogprob = hmm._compute_log_lkl(hap_chunk)
+
+                        alpha, fwd_cond_prob = hmm._do_forward_pass(framelogprob)
+                        beta, bwd_cond_prob = hmm._do_backward_pass(framelogprob)
+                        log_alpha = np.cumsum(fwd_cond_prob)[:, np.newaxis] + np.log(
+                            alpha
+                        )
+                        log_beta = np.concatenate(
+                            [np.cumsum(bwd_cond_prob[::-1])[::-1][1:], [0]]
+                        )[:, np.newaxis] + np.log(beta)
+
+                        fwd_array[:, anc_i] = logsumexp(log_alpha, axis=1)
+                        bwd_array[:, anc_i] = logsumexp(log_beta, axis=1)
+
+                    # do adjusting
+                    best_prob = np.finfo("d").min
+                    best_i = -1
+                    for snp_i in range(10, len(snp_index) - 10):
+                        rprob = np.log(
+                            self.recomb_rate
+                            * (
+                                self.snp_pos[snp_index[snp_i]]
+                                - self.snp_pos[snp_index[snp_i] - 1]
+                            )
+                        )
+                        if (
+                            fwd_array[snp_i, 0] + bwd_array[snp_i, 1] + rprob
+                            > best_prob
+                        ):
+                            best_i = snp_i
+                            best_prob = (
+                                fwd_array[snp_i, 0] + bwd_array[snp_i, 1] + rprob
+                            )
+
+                    if best_i < bp_index:
+                        for snp_i in range(snp_index[best_i], snp_index[bp_index]):
+                            smoothed_anc[sample_i, snp_i] = bp_anc[1]
+                    else:
+                        for snp_i in range(snp_index[bp_index], snp_index[best_i]):
+                            smoothed_anc[sample_i, snp_i] = bp_anc[0]
+        return smoothed_anc
