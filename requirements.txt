@@ -3,3 +3,4 @@ pandas
 pysnptools
 scipy
 statsmodels
+smart_open
