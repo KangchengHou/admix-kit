@@ -64,7 +64,7 @@ class Lamp(object):
                 self.hmm_array[window_i][anc_i] = hmm.fit(X=ref_chunk)
 
         if self.smooth:
-            for window_i in range(self.n_window - 1):
+            for window_i in tqdm(range(self.n_window - 1)):
                 snp_index = self.smooth_snp_index[window_i]
                 for anc_i in range(self.n_anc):
                     ref_chunk = ref_list[anc_i][:, snp_index]

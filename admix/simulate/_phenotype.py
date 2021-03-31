@@ -84,56 +84,76 @@ def simulate_phenotype_case_control_1snp(
     return rls_list
 
 
-# def simulate_phenotype_continuous(
-#     hap: np.ndarray,
-#     lanc: np.ndarray,
-#     h2g: float,
-#     n_causal: int = None,
-#     ganc: np.ndarray = None,
-#     ganc_effect: float = None,
-#     cov=0.0,
-#     n_sim=30,
-# ):
-#     """
-#     Simulate phenotype for admixture population [continuous]
+def simulate_phenotype_continuous(
+    hap: np.ndarray,
+    lanc: np.ndarray,
+    h2g: float,
+    n_causal: int = None,
+    ganc: np.ndarray = None,
+    ganc_effect: float = None,
+    cov=0.0,
+    n_sim=10,
+):
+    """Simulate phenotype for admixture population [continuous]
 
-#     Args
-#     ----
-#     anc: #indiv x 2#snp, the first half columns contain the ancestry for the first haplotype,
-#                              the second half columns contain the ancestry for the second haplotype
-#     haplo: #indiv x 2#snp, matches `anc`
-#     h2g: heritability
-#     n_causal: number of causal variants
-#     n_sim: number of simulation
+    Parameters
+    ----------
+    hap : np.ndarray
+        phased genotype (n_indiv, 2 * n_snp), the first `n_snp` elements are
+        for the first haplotype, the second are for the second haplotype
+    lanc : np.ndarray
+        local ancestry (n_indiv, 2 * n_snp), same as `hap`
+    h2g : float
+        desired heritability
+    n_causal : int, optional
+        number of causal variables, by default None
+    ganc : np.ndarray, optional
+        vector of global ancestry, by default None
+    ganc_effect : float, optional
+        global ancestry effect, by default None
+    cov : float, optional
+        covariance of genetic effect, by default 0.0
+    n_sim : int, optional
+        number of simulations, by default 30
 
-#     Returns
-#     ----
-#     beta: (2 * n_snp, n_sim) matrix
-#     phe: (n_indiv, n_sim) matrix
-#     """
+    Returns
+    -------
+    beta : np.ndarray
+        simulated effect sizes (2 * n_snp, n_sim)
+    phe_g: np.ndarray
+        simulated genetic component of phenotypes (n_indiv, n_sim)
+    phe: np.ndarray
+        simulated phenotype (n_indiv, n_sim)
+    """
 
-#     geno = convert_anc_count(phgeno, anc)
-#     n_snp = geno.shape[1] // 2
+    geno = convert_anc_count(hap, lanc)
+    n_indiv = geno.shape[0]
+    n_snp = geno.shape[1] // 2
 
-#     beta1 = np.zeros((n_snp, n_sim))
-#     beta2 = np.zeros((n_snp, n_sim))
-#     for i_sim in range(n_sim):
-#         cau = sorted(np.random.choice(np.arange(n_snp), size=n_causal, replace=False))
-#         beta = np.random.multivariate_normal(
-#             mean=[0.0, 0.0], cov=[[1.0, cov], [cov, 1.0]], size=n_causal
-#         )
-#         beta1[cau, i_sim] = beta[:, 0]
-#         beta2[cau, i_sim] = beta[:, 1]
+    if ganc is not None:
+        assert len(ganc) == n_indiv
 
-#     beta = np.vstack([beta1, beta2])
+    beta1 = np.zeros((n_snp, n_sim))
+    beta2 = np.zeros((n_snp, n_sim))
+    for i_sim in range(n_sim):
+        cau = sorted(np.random.choice(np.arange(n_snp), size=n_causal, replace=False))
+        beta = np.random.multivariate_normal(
+            mean=[0.0, 0.0], cov=[[1.0, cov], [cov, 1.0]], size=n_causal
+        )
+        beta1[cau, i_sim] = beta[:, 0]
+        beta2[cau, i_sim] = beta[:, 1]
 
-#     phe_g = np.dot(geno, beta)
-#     phe_e = np.zeros_like(phe_g)
+    beta = np.vstack([beta1, beta2])
 
-#     for sim_i in range(n_sim):
-#         var_g = np.var(phe_g[:, sim_i])
-#         var_e = var_g * ((1.0 / h2g) - 1)
-#         phe_e[:, sim_i] = np.random.normal(loc=0.0, scale=np.sqrt(var_e), size=n_indiv)
+    phe_g = np.dot(geno, beta)
+    phe_e = np.zeros_like(phe_g)
 
-#     phe = phe_g + phe_e
-#     return beta, phe_g, phe
+    for sim_i in range(n_sim):
+        var_g = np.var(phe_g[:, sim_i])
+        var_e = var_g * ((1.0 / h2g) - 1)
+        phe_e[:, sim_i] = np.random.normal(loc=0.0, scale=np.sqrt(var_e), size=n_indiv)
+
+    phe = phe_g + phe_e
+    if ganc is not None:
+        phe += np.dot(ganc[:, np.newaxis], ganc_effect * np.ones((1, n_sim)))
+    return beta, phe_g, phe
