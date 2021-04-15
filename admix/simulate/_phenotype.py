@@ -1,8 +1,5 @@
-from typing import Union
 from scipy.optimize import fsolve
 import numpy as np
-from scipy import stats
-from scipy.special import logsumexp
 from scipy.special import logit, expit
 from ..data import convert_anc_count
 from typing import List
