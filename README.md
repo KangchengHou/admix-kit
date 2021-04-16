@@ -1,5 +1,12 @@
 # admix-tools
 
+## Install
+```
+git clone https://github.com/KangchengHou/admix-tools
+cd admix-tools
+pip install -r requirements.txt; pip install -e .
+```
+
 ## Examples
 We provide several convenient command, but these functions should be highly customizable.
 Simulate phenotype with local ancestry aware genetic architecture.

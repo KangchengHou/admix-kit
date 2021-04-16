@@ -29,7 +29,7 @@ def simulate_lanc(n_hap: int, n_snp: int, chunk_size: int) -> np.ndarray:
         this_local_anc = np.concatenate(
             [
                 np.zeros(start_loc[i]),
-                np.repeat(np.mod(np.arange(n_chunk), 2), chunk_size),
+                np.repeat(np.mod(np.arange(n_chunk) + 1, 2), chunk_size),
             ]
         )
         lanc[i, :] = this_local_anc[0:n_snp]
