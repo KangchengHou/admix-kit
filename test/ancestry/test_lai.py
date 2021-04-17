@@ -9,41 +9,44 @@ import h5py
 from admix.ancestry import WindowHMM, Lamp
 import os
 import admix
+import json
 
 
 def test_correct():
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-    file = h5py.File(join(THIS_DIR, "data/test_correct.hdf5"), "r")
+    with open(join(THIS_DIR, "data/test_correct.json")) as f:
+        data = json.load(f)
 
-    X = file["X"][:].astype(np.int8)
+    X = np.array(data["X"], dtype=np.int8)
 
     model = WindowHMM(
-        file["model.n_snp"][()],
-        file["model.n_proto"][()],
+        data["model.n_snp"],
+        data["model.n_proto"],
         emit_prior=0.0,
         trans_prior=0.0,
     )
     model._init_from_X(X)
-    model._start = file["model.start_prob"][:]
-    model._trans = file["model.trans_prob"][:]
-    model._emit = file["model.emit_prob"][:]
+    model._start = np.array(data["model.start_prob"])
+    model._trans = np.array(data["model.trans_prob"])
+    model._emit = np.array(data["model.emit_prob"])
 
     model.fit(X, max_iter=10, rel_tol=1e-6)
 
-    assert np.allclose(model._start, file["fit.start_prob"][:])
-    assert np.allclose(model._trans, file["fit.trans_prob"][:])
-    assert np.allclose(model._emit, file["fit.emit_prob"][:])
+    assert np.allclose(model._start, np.array(data["fit.start_prob"]))
+    assert np.allclose(model._trans, np.array(data["fit.trans_prob"]))
+    assert np.allclose(model._emit, np.array(data["fit.emit_prob"]))
 
-    # ------
-    # THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-    # THIS_DIR = "/Users/kangchenghou/work/admix-tools/test/ancestry/"
-    # hap = admix.data.read_hap(join(THIS_DIR, "data/admix.hap"))
-    # lanc = admix.data.read_lanc(join(THIS_DIR, "data/admix.lanc"))
-    # afr_hap = admix.data.read_hap(join(THIS_DIR, "data/AFR.hap"))
-    # eur_hap = admix.data.read_hap(join(THIS_DIR, "data/EUR.hap"))
 
-    # rls = admix.ancestry.infer_local_ancestry(hap, [afr_hap, eur_hap])
-    # # some basic comparison between the `rls` and `lanc`
+# ------
+# THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+# THIS_DIR = "/Users/kangchenghou/work/admix-tools/test/ancestry/"
+# hap = admix.data.read_hap(join(THIS_DIR, "data/admix.hap"))
+# lanc = admix.data.read_lanc(join(THIS_DIR, "data/admix.lanc"))
+# afr_hap = admix.data.read_hap(join(THIS_DIR, "data/AFR.hap"))
+# eur_hap = admix.data.read_hap(join(THIS_DIR, "data/EUR.hap"))
+
+# rls = admix.ancestry.infer_local_ancestry(hap, [afr_hap, eur_hap])
+# # some basic comparison between the `rls` and `lanc`
 
 
 def speed():
