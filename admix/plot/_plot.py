@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 from matplotlib import collections as mc
 import pandas as pd
@@ -30,8 +29,6 @@ def plot_local_anc(lanc: np.ndarray):
     cmap = plt.get_cmap("tab10")
 
     for i, (label, group) in enumerate(df_plot.groupby("label")):
-        print(i, label)
-
         lc = mc.LineCollection(
             [lines[l_i] for l_i in group.index],
             linewidths=2,
