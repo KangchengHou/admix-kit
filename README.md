@@ -7,21 +7,6 @@ cd admix-tools
 pip install -r requirements.txt; pip install -e .
 ```
 
-## Examples
-We provide several convenient command, but these functions should be highly customizable.
-Simulate phenotype with local ancestry aware genetic architecture.
-```bash
-# download test data
-python admix.py simulate-pheno-case-control \
-     --hap test.hap \
-     --lanc test.lanc \
-     --n_causal 1 \
-     --odds_ratio 1.0 \
-     --n_sim 30 \
-     --out_prefix test.
-     # {out_prefix}.{sim_i}.txt
-```
-
 ## Data format
 - `.lanc`: local ancestry file (n_indiv * 2, n_snp)
 - `.hap`: haplotype file (n_indiv * 2, n_snp)
