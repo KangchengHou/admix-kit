@@ -3,6 +3,31 @@ import re
 from smart_open import open
 
 
+def allele_count_per_anc(hap: np.ndarray, lanc: np.ndarray, n_anc: int):
+    """Get allele count per ancestry
+
+    Parameters
+    ----------
+    hap : np.ndarray
+        haplotype (n_indiv, n_snp, n_anc)
+    lanc : np.ndarray
+        local ancestry (n_indiv, n_snp, n_anc)
+    """
+    assert np.all(hap.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
+    assert hap.ndim == 3, "`hap` and `lanc` should have three dimension"
+    n_indiv, n_snp, n_haplo = hap.shape
+    assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
+    geno = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
+
+    for i_haplo in range(n_haplo):
+        haplo_hap = hap[:, :, i_haplo]
+        haplo_lanc = lanc[:, :, i_haplo]
+        for i_anc in range(n_anc):
+            geno[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+
+    return geno
+
+
 def read_int_mat(path, filter_non_numeric=False):
     """
     Read a matrix of integer with [0-9], and with no delimiter.
