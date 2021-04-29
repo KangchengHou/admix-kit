@@ -5,3 +5,5 @@ scipy
 smart_open
 matplotlib
 seaborn
+zarr
+dask

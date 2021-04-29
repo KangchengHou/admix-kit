@@ -3,7 +3,7 @@ import re
 from smart_open import open
 
 
-def read_int_mat(path, filter_non_numeric=False):
+def read_digit_mat(path, filter_non_numeric=False):
     """
     Read a matrix of integer with [0-9], and with no delimiter.
 
@@ -29,7 +29,7 @@ def read_int_mat(path, filter_non_numeric=False):
     return mat
 
 
-def write_int_mat(path, mat):
+def write_digit_mat(path, mat):
     """
     Read a matrix of integer with [0-9], and with no delimiter.
 

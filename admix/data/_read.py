@@ -1,7 +1,7 @@
 import pandas as pd
 from pysnptools.snpreader import Bed
 import numpy as np
-from ._utils import read_int_mat, write_int_mat
+from ._utils import read_digit_mat, write_digit_mat
 
 
 def read_lanc(path: str) -> np.ndarray:
@@ -13,7 +13,7 @@ def read_lanc(path: str) -> np.ndarray:
     Returns:
         np.ndarray: (n_haplo, n_snp) local ancestry file
     """
-    return read_int_mat(path)
+    return read_digit_mat(path)
 
 
 def read_hap(path: str) -> np.ndarray:
@@ -25,7 +25,7 @@ def read_hap(path: str) -> np.ndarray:
     Returns:
         np.ndarray: (n_haplo, n_snp) local ancestry file
     """
-    return read_int_mat(path)
+    return read_digit_mat(path)
 
 
 def read_geno(prefix: str):
@@ -41,7 +41,7 @@ def read_geno(prefix: str):
     [type]
         [description]
     """
-    hap = read_int_mat(prefix + ".hap.gz")
+    hap = read_digit_mat(prefix + ".hap.gz")
     legend = pd.read_csv(prefix + ".legend.gz", delim_whitespace=True)
     sample = pd.read_csv(prefix + ".sample.gz", delim_whitespace=True)
     return {"hap": hap, "legend": legend, "sample": sample}

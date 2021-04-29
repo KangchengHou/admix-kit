@@ -14,8 +14,12 @@ pip install -r requirements.txt; pip install -e .
 - `.legend`: SNP information, deliminated by space.
 - `.sample`: Sample information
 - `.pheno`: phenotype file
+
 TODO: We provide utility function to transform common file type into these format.
 
+This tool is processing the matrix. For convenience, we just use the following internally. We use zarr to store the results.
+- lanc: (n_indiv, n_snp, 2)
+- hap: (n_indiv, n_snp, 2)
 
 ## Development guide
 - All source code is in `admix` folder. 
