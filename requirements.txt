@@ -6,4 +6,4 @@ seaborn
 zarr
 dask
 tqdm
-git+ssh://git@github.com/KangchengHou/lamp-ld.git#egg=pylampld
+git+https://github.com/KangchengHou/lamp-ld.git#egg=pylampld
