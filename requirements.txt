@@ -1,8 +1,6 @@
 numpy
 pandas
-pysnptools
 scipy
-smart_open
 matplotlib
 seaborn
 zarr
