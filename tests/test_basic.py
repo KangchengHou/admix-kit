@@ -31,7 +31,7 @@ def test_basic():
 
 
 def test_utils():
-    # test convert anc count
+    # tests convert anc count
     lanc = np.array([[[0, 0], [0, 0], [0, 0]]])
     hap = np.array([[[0, 1], [1, 1], [0, 0]]])
     allele_per_anc = admix.data.compute_allele_per_anc(hap=hap, lanc=lanc, n_anc=2).compute()

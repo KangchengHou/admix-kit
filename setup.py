@@ -8,8 +8,6 @@ from setuptools import setup
 if LooseVersion(setuptools.__version__) < "36.2":
     raise ImportError("setuptools>=36.2 is required")
 
-
-
 setup(
     name="admix-tools",
     version="0.1",
