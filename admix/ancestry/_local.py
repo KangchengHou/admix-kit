@@ -20,11 +20,11 @@ def estimate_local_ancestry(
 
     n_anc = len(ref_list)
     n_snp = hap.shape[1]
-    lampld = LampLD(
+    model = LampLD(
         n_snp=n_snp,
         n_anc=n_anc,
         n_proto=n_proto
     )
 
-    lampld.fit(ref_list=ref_list)
-    inferred = lamp.predict(hap)
+    model.fit(ref_list=ref_list)
+    inferred = model.predict(hap)
