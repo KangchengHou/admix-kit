@@ -10,9 +10,6 @@ jobs:
         python-version: [3.8]
     steps:
     - uses: actions/checkout@v2
-      with:
-        repository: kangchenghou/lamp-ld
-        token: ${{ secrets.ACCESS_TOKEN }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
