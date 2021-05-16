@@ -15,6 +15,9 @@ def compute_allele_per_anc(hap, lanc, n_anc: int):
     assert hap.ndim == 3, "`hap` and `lanc` should have three dimension"
     n_indiv, n_snp, n_haplo = hap.shape
     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
+    # make sure the chunk size along the haploid axis to be 2
+    hap = hap.rechunk({2: 2})
+    lanc = lanc.rechunk({2: 2})
 
     def helper(hap_chunk, lanc_chunk, n_anc):
         n_indiv, n_snp, n_haplo = hap_chunk.shape
@@ -29,6 +32,11 @@ def compute_allele_per_anc(hap, lanc, n_anc: int):
 
     geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), hap, lanc)
     return geno
+
+def compute_grm(geno):
+    pass
+
+
 
 
 def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
