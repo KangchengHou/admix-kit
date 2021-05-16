@@ -41,3 +41,32 @@ def test_utils():
     lanc = da.from_zarr(path_zarr, "lanc")
     hap = da.from_zarr(path_zarr, "hap")
     allele_per_anc = admix.data.compute_allele_per_anc(hap=hap, lanc=lanc, n_anc=2)
+
+def test_lamp():
+    from pylampld import LampLD
+    admix_lanc = da.from_zarr(get_data_path("admix.zarr"), "lanc")
+    admix_hap = da.from_zarr(get_data_path("admix.zarr"), "hap")
+
+    eur_hap = da.from_zarr(get_data_path("eur.zarr")).compute()
+    afr_hap = da.from_zarr(get_data_path("afr.zarr")).compute()
+    eur_hap = np.vstack([eur_hap[:, :, 0], eur_hap[:, :, 1]])
+    afr_hap = np.vstack([afr_hap[:, :, 0], afr_hap[:, :, 1]])
+    ref_list = [eur_hap, afr_hap]
+    n_anc = len(ref_list)
+    n_snp = admix_hap.shape[1]
+    model = LampLD(
+        n_snp=n_snp,
+        n_anc=n_anc,
+        n_proto=6,
+        window_size=300
+    )
+    pos = np.loadtxt(get_data_path("pos.txt"), dtype=int)
+    model.set_pos(pos)
+    model.fit(ref_list)
+
+    est = np.dstack([model.infer_lanc(admix_hap[:, :, 0]),
+                     model.infer_lanc(admix_hap[:, :, 1])])
+    acc = (est == admix_lanc).mean().compute()
+    assert acc > 0.9
+    print(f"Accuracy: {acc:.2f}")
+
