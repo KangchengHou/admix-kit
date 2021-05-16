@@ -16,9 +16,7 @@ We recommend using Zarr to manage the dataset. Each Zarr file will have the foll
 TODO: We provide utility function to transform common file type into these format.
 
 We use text files to store other files.
-This tool is processing the matrix. For convenience, we just use the following internally. We use zarr to store the results.
-- lanc: (n_indiv, n_snp, 2)
-- hap: (n_indiv, n_snp, 2)
+
 
 ## Development guide
 - All source code is in `admix` folder. 
@@ -27,3 +25,4 @@ This tool is processing the matrix. For convenience, we just use the following i
   we may make it a folder with a `__init__.py` exporting all the functions.
   
 ## TODO
+First release: complete pipeline for simulating and estimating genetic correlation.
