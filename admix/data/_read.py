@@ -1,5 +1,4 @@
 import pandas as pd
-from pysnptools.snpreader import Bed
 import numpy as np
 from ._utils import read_digit_mat, write_digit_mat
 
