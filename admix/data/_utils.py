@@ -1,6 +1,5 @@
 import numpy as np
 import re
-from smart_open import open
 
 
 def allele_count_per_anc(hap: np.ndarray, lanc: np.ndarray, n_anc: int):
