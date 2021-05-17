@@ -1,46 +1,39 @@
 import pandas as pd
 import numpy as np
-from ._utils import read_digit_mat, write_digit_mat
+import re
 
-
-def read_lanc(path: str) -> np.ndarray:
-    """Read local ancestry
-
-    Args:
-        path (str): path to the local ancestry
-
-    Returns:
-        np.ndarray: (n_haplo, n_snp) local ancestry file
+def read_digit_mat(path, filter_non_numeric=False):
     """
-    return read_digit_mat(path)
+    Read a matrix of integer with [0-9], and with no delimiter.
 
+    Args
+    ----
 
-def read_hap(path: str) -> np.ndarray:
-    """Read haplotypes
-
-    Args:
-        path (str): path to the haplotypes
-
-    Returns:
-        np.ndarray: (n_haplo, n_snp) local ancestry file
     """
-    return read_digit_mat(path)
+    if filter_non_numeric:
+        with open(path) as f:
+            mat = np.array(
+                [
+                    np.array([int(c) for c in re.sub("[^0-9]", "", line.strip())])
+                    for line in f.readlines()
+                ],
+                dtype=np.int8,
+            )
+    else:
+        with open(path) as f:
+            mat = np.array(
+                [np.array([int(c) for c in line.strip()]) for line in f.readlines()],
+                dtype=np.int8,
+            )
+    return mat
 
 
-def read_geno(prefix: str):
-    """Read genotype
-
-    Parameters
-    ----------
-    path : str
-        path to the genotype
-
-    Returns
-    -------
-    [type]
-        [description]
+def write_digit_mat(path, mat):
     """
-    hap = read_digit_mat(prefix + ".hap.gz")
-    legend = pd.read_csv(prefix + ".legend.gz", delim_whitespace=True)
-    sample = pd.read_csv(prefix + ".sample.gz", delim_whitespace=True)
-    return {"hap": hap, "legend": legend, "sample": sample}
+    Read a matrix of integer with [0-9], and with no delimiter.
+
+    Args
+    ----
+
+    """
+    np.savetxt(path, mat, fmt="%d", delimiter="")

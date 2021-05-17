@@ -1,8 +1,8 @@
 import numpy as np
 import re
+import dask.array as da
 
-
-def allele_count_per_anc(hap: np.ndarray, lanc: np.ndarray, n_anc: int):
+def compute_allele_per_anc(hap, lanc, n_anc: int):
     """Get allele count per ancestry
 
     Parameters
@@ -16,52 +16,33 @@ def allele_count_per_anc(hap: np.ndarray, lanc: np.ndarray, n_anc: int):
     assert hap.ndim == 3, "`hap` and `lanc` should have three dimension"
     n_indiv, n_snp, n_haplo = hap.shape
     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
-    geno = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
 
-    for i_haplo in range(n_haplo):
-        haplo_hap = hap[:, :, i_haplo]
-        haplo_lanc = lanc[:, :, i_haplo]
-        for i_anc in range(n_anc):
-            geno[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+    if isinstance(hap, da.Array):
+        assert isinstance(lanc, da.Array)
+        # make sure the chunk size along the haploid axis to be 2
+        hap = hap.rechunk({2: 2})
+        lanc = lanc.rechunk({2: 2})
+    else:
+        assert isinstance(hap, np.ndarray) & isinstance(lanc, np.ndarray)
 
+    def helper(hap_chunk, lanc_chunk, n_anc):
+        n_indiv, n_snp, n_haplo = hap_chunk.shape
+        geno = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
+
+        for i_haplo in range(n_haplo):
+            haplo_hap = hap_chunk[:, :, i_haplo]
+            haplo_lanc = lanc_chunk[:, :, i_haplo]
+            for i_anc in range(n_anc):
+                geno[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+        return geno
+
+    geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), hap, lanc)
     return geno
 
-
-def read_digit_mat(path, filter_non_numeric=False):
-    """
-    Read a matrix of integer with [0-9], and with no delimiter.
-
-    Args
-    ----
-
-    """
-    if filter_non_numeric:
-        with open(path) as f:
-            mat = np.array(
-                [
-                    np.array([int(c) for c in re.sub("[^0-9]", "", line.strip())])
-                    for line in f.readlines()
-                ],
-                dtype=np.int8,
-            )
-    else:
-        with open(path) as f:
-            mat = np.array(
-                [np.array([int(c) for c in line.strip()]) for line in f.readlines()],
-                dtype=np.int8,
-            )
-    return mat
+def compute_grm(geno):
+    pass
 
 
-def write_digit_mat(path, mat):
-    """
-    Read a matrix of integer with [0-9], and with no delimiter.
-
-    Args
-    ----
-
-    """
-    np.savetxt(path, mat, fmt="%d", delimiter="")
 
 
 def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):

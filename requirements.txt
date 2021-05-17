@@ -1,9 +1,9 @@
 numpy
 pandas
-pysnptools
 scipy
-smart_open
 matplotlib
 seaborn
 zarr
 dask
+tqdm
+git+https://github.com/KangchengHou/lamp-ld.git#egg=pylampld
