@@ -1,7 +1,6 @@
 from ._utils import (
-    convert_anc_count,
-    convert_anc_count2,
     compute_allele_per_anc,
+    compute_admix_grm
 )
 
 from ._read import (
@@ -10,8 +9,6 @@ from ._read import (
 )
 
 __all__ = [
-    "convert_anc_count",
-    "convert_anc_count2",
     "read_digit_mat",
     "write_digit_mat",
     "compute_allele_per_anc",

@@ -7,6 +7,7 @@ import zarr
 
 
 def get_data_path(fn):
+    return os.path.join("./tests/test-data", fn)
     return os.path.join(os.path.dirname(__file__), 'test-data', fn)
 
 
@@ -41,6 +42,23 @@ def test_utils():
     lanc = da.from_zarr(path_zarr, "lanc")
     hap = da.from_zarr(path_zarr, "hap")
     allele_per_anc = admix.data.compute_allele_per_anc(hap=hap, lanc=lanc, n_anc=2)
+
+def test_compute_grm():
+    path_zarr = get_data_path("admix.zarr")
+    lanc = da.from_zarr(path_zarr, "lanc")
+    hap = da.from_zarr(path_zarr, "hap")
+    allele_per_anc = admix.data.compute_allele_per_anc(hap=hap, lanc=lanc, n_anc=2).astype(float)
+
+def test_simulate():
+    from admix.simulate import simulate_continuous_phenotype, simulate_continuous_phenotype_grm
+    from admix.data import compute_admix_grm
+    path_zarr = get_data_path("admix.zarr")
+    lanc = da.from_zarr(path_zarr, "lanc")
+    hap = da.from_zarr(path_zarr, "hap")
+    beta, phe_g, phe = simulate_continuous_phenotype(hap=hap, lanc=lanc, var_g=1.0, gamma=1.0, var_e=1.0)
+
+    K1, K2 = compute_admix_grm(hap, lanc, n_anc=2)
+    ys = simulate_continuous_phenotype_grm(K1=K1, K2=K2, var_g=1.0, gamma=1.0, var_e=1.0)
 
 def test_lamp():
     from pylampld import LampLD

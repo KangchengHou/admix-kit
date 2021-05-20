@@ -1,7 +1,6 @@
 from scipy.optimize import fsolve
 import numpy as np
 from scipy.special import logit, expit
-from ..data import convert_anc_count
 from typing import List
 
 

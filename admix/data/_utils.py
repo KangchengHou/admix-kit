@@ -39,11 +39,26 @@ def compute_allele_per_anc(hap, lanc, n_anc: int):
     geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), hap, lanc)
     return geno
 
-def compute_grm(geno):
-    pass
+def compute_admix_grm(hap, lanc, n_anc, center=True):
+    assert n_anc == 2, "only two-way admixture is implemented"
+    assert np.all(hap.shape == lanc.shape)
 
+    allele_per_anc = compute_allele_per_anc(hap, lanc, n_anc=n_anc).astype(
+        float
+    )
+    n_indiv, n_snp = allele_per_anc.shape[0:2]
+    mean_per_anc = allele_per_anc.mean(axis=0)
 
+    a1, a2 = allele_per_anc[:, :, 0], allele_per_anc[:, :, 1]
+    if center:
+        a1 = a1 - mean_per_anc[:, 0]
+        a2 = a2 - mean_per_anc[:, 1]
 
+    K1 = np.dot(a1, a1.T) / n_snp + np.dot(a2, a2.T) / n_snp
+
+    cross_term = np.dot(a1, a2.T) / n_snp
+    K2 = cross_term + cross_term.T
+    return [K1, K2]
 
 def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
     assert len(legend) == anc.shape[1]
