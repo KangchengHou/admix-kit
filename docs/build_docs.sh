@@ -16,9 +16,6 @@ set -x
 # INSTALL DEPENDS #
 ###################
 
-#sudo apt-get update
-#sudo apt-get -y install git rsync python3-sphinx python3-sphinx-rtd-theme python3-stemmer python3-git python3-pip python3-virtualenv python3-setuptools
-#python3 -m pip install --upgrade rinohtype pygments
 pip install --upgrade sphinx sphinx-rtd-theme rinohtype pygments
 #####################
 # DECLARE VARIABLES #

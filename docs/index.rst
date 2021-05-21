@@ -7,19 +7,13 @@ Welcome to admix-tools's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :hidden:
 
-Indices and tables
-==================
+   tutorials
+   installation
+   api/index
+   references
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-Functions
-=========
-.. autofunction:: io.open
-.. autofunction:: admix.simulate.simulate_continuous_phenotype
 
 
