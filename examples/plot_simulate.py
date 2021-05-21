@@ -16,7 +16,7 @@ n_indiv = 1000
 n_snp = 1000
 
 # %%
-# We use function :meth:`~admix.simulate.simulate_lanc`, :meth:`admix.simulate.simulate_hap` to simulate a few individuals
+# We use function :meth:`~admix.simulate.simulate_lanc`, :meth:`~admix.simulate.simulate_hap` to simulate a few individuals
 lanc = simulate_lanc(n_indiv, n_snp, 100)
 hap = simulate_hap(n_indiv, n_snp)
 

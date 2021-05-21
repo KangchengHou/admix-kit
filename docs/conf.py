@@ -53,6 +53,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 sphinx_gallery_conf = {
      'examples_dirs': '../examples',   # path to your example scripts
      'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
+     'backreferences_dir': 'gen_modules/backreferences',
+     'doc_module': ('admix', 'numpy')
 }
 
 # -- Options for HTML output -------------------------------------------------

@@ -42,6 +42,8 @@ Genotype
 ~~~~~~~~~~~~~~~
 TODO: relevant functions to simulate genotypes
 
-Local ancestry
-~~~~~~~~~~~~~~~~~
-TODO: relevant functions to simualte local ancestries
+.. autosummary::
+   :toctree: .
+
+    simulate.simulate_lanc
+    simulate.simulate_hap
