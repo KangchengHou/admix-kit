@@ -9,26 +9,20 @@ jobs:
       matrix:
         python-version: [ 3.8 ]
     runs-on: ubuntu-latest
-    container: debian:buster-slim
+    container: debian:stable-slim
     steps:
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        apt-get update
-        apt-get install -y git
-        git clone "https://token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" .
         python -m pip install --upgrade pip
+        pip install -r requirements.txt
         pip install -e .
-      shell: bash
-
     - name: Execute script to build our documentation and update pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        ls -lh docs/build_docs.sh
         bash docs/build_docs.sh
