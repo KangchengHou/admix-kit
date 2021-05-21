@@ -11,11 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster-slim
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: prereq
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
