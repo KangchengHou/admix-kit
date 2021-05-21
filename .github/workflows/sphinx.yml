@@ -9,7 +9,6 @@ jobs:
       matrix:
         python-version: [ 3.8 ]
     runs-on: ubuntu-latest
-    container: debian:stable-slim
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
