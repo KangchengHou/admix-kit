@@ -11,6 +11,12 @@ def compute_allele_per_anc(hap, lanc, n_anc: int):
         haplotype (n_indiv, n_snp, n_anc)
     lanc : np.ndarray
         local ancestry (n_indiv, n_snp, n_anc)
+    n_anc: int
+        number of local ancestries
+
+    Returns
+    -------
+    Return allele counts per ancestries
     """
     assert np.all(hap.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
     assert hap.ndim == 3, "`hap` and `lanc` should have three dimension"
