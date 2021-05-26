@@ -2,12 +2,12 @@ import numpy as np
 import re
 import dask.array as da
 
-def compute_allele_per_anc(hap, lanc, n_anc: int):
+def compute_allele_per_anc(ds):
     """Get allele count per ancestry
 
     Parameters
     ----------
-    hap : np.ndarray
+    geno : np.ndarray
         haplotype (n_indiv, n_snp, n_anc)
     lanc : np.ndarray
         local ancestry (n_indiv, n_snp, n_anc)
@@ -18,38 +18,44 @@ def compute_allele_per_anc(hap, lanc, n_anc: int):
     -------
     Return allele counts per ancestries
     """
-    assert np.all(hap.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
-    assert hap.ndim == 3, "`hap` and `lanc` should have three dimension"
-    n_indiv, n_snp, n_haplo = hap.shape
+    geno, lanc = ds.data_vars["geno"].data, ds.data_vars["lanc"].data
+    n_anc = ds.attrs["n_anc"]
+    assert np.all(geno.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
+    assert geno.ndim == 3, "`hap` and `lanc` should have three dimension"
+    n_indiv, n_snp, n_haplo = geno.shape
     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
 
-    if isinstance(hap, da.Array):
+    if isinstance(geno, da.Array):
         assert isinstance(lanc, da.Array)
         # make sure the chunk size along the haploid axis to be 2
-        hap = hap.rechunk({2: 2})
+        geno = geno.rechunk({2: 2})
         lanc = lanc.rechunk({2: 2})
     else:
-        assert isinstance(hap, np.ndarray) & isinstance(lanc, np.ndarray)
+        assert isinstance(geno, np.ndarray) & isinstance(lanc, np.ndarray)
 
-    def helper(hap_chunk, lanc_chunk, n_anc):
-        n_indiv, n_snp, n_haplo = hap_chunk.shape
+    def helper(geno_chunk, lanc_chunk, n_anc):
+        n_indiv, n_snp, n_haplo = geno_chunk.shape
         geno = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
 
         for i_haplo in range(n_haplo):
-            haplo_hap = hap_chunk[:, :, i_haplo]
+            haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
             for i_anc in range(n_anc):
                 geno[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
         return geno
 
-    geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), hap, lanc)
+    geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc)
     return geno
 
-def compute_admix_grm(hap, lanc, n_anc, center=True):
-    assert n_anc == 2, "only two-way admixture is implemented"
-    assert np.all(hap.shape == lanc.shape)
+def compute_admix_grm(ds, center=True):
 
-    allele_per_anc = compute_allele_per_anc(hap, lanc, n_anc=n_anc).astype(
+    geno = ds["geno"].data
+    lanc = ds["lanc"].data
+    n_anc = ds.attrs["n_anc"]
+    assert n_anc == 2, "only two-way admixture is implemented"
+    assert np.all(geno.shape == lanc.shape)
+
+    allele_per_anc = compute_allele_per_anc(ds).astype(
         float
     )
     n_indiv, n_snp = allele_per_anc.shape[0:2]

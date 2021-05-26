@@ -26,8 +26,7 @@ def simulate_continuous_phenotype_grm(
 
 
 def simulate_continuous_phenotype(
-        hap: np.ndarray,
-        lanc: np.ndarray,
+        ds,
         var_g: float,
         var_e: float,
         gamma: float,
@@ -68,7 +67,7 @@ def simulate_continuous_phenotype(
     phe
         simulated phenotype (n_indiv, n_sim)
     """
-    allele_per_anc = compute_allele_per_anc(hap, lanc, n_anc=n_anc)
+    allele_per_anc = compute_allele_per_anc(ds)
     n_indiv, n_snp = allele_per_anc.shape[0:2]
 
     if n_causal is None:

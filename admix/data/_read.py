@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
+from smart_open import open
 
 def read_digit_mat(path, filter_non_numeric=False):
     """

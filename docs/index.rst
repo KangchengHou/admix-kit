@@ -6,8 +6,8 @@ Welcome to admix-tools documentation!
    :hidden:
 
    installation
-   api/index
    auto_examples/index
+   api/index
    references
 
 

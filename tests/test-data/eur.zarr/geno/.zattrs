@@ -1,0 +1,8 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "indiv",
+        "snp",
+        "haploid"
+    ],
+    "coordinates": "position snp_a0 snp_a1"
+}

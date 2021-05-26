@@ -6,4 +6,5 @@ seaborn
 zarr
 dask
 tqdm
+smart-open
 git+https://github.com/bogdanlab/lamp-ld.git#egg=pylampld
