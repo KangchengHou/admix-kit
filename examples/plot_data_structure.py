@@ -1,6 +1,7 @@
 """
 Data structures
 ===========================
+
 We show the central data stuctures used in this package.
 
 In the analysis of individuals from admixed population, we store (1) genotypes, (2) local ancestries
