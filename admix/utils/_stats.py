@@ -63,12 +63,12 @@ def cov(geno, mean_std, chunk_size=500):
             if col_stop > num_snps:
                 col_stop = num_snps
 
-            std_row_geno = imputed_std(
+            std_row_geno = impute_std(
                 geno[:, row_start:row_stop].read().val,
                 mean_std["mean"][row_start:row_stop].values,
                 mean_std["std"][row_start:row_stop].values,
             )
-            std_col_geno = imputed_std(
+            std_col_geno = impute_std(
                 geno[:, col_start:col_stop].read().val,
                 mean_std["mean"][col_start:col_stop].values,
                 mean_std["std"][col_start:col_stop].values,
