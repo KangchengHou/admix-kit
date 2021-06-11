@@ -1,14 +1,27 @@
-Welcome to admix-tools documentation!
-=======================================
+admix-tools' documentation
+===========================
 
 .. toctree::
+   :glob:
    :maxdepth: 1
-   :hidden:
+   :caption: Tutorials:
+   
+   auto_examples/plot_tutorial
 
-   installation
-   auto_examples/index
+.. toctree::
+   :glob:
+   :maxdepth: 2
+   :caption: Examples:
+
+   auto_examples/plot_simulate
+   auto_examples/plot_data_structure
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Package reference
+
    api/index
-   references
 
 
 

@@ -5,8 +5,8 @@ Simulation of genotype, local ancestry and phenotype
 We start by simulating genotype, local ancestry and phenotype
 """
 
-from admix.simulate import simulate_hap, simulate_lanc, simulate_continuous_phenotype
-from admix.plot import plot_local_anc
+import admix
+from admix.simulate import simulate_hap, simulate_lanc
 import matplotlib.pyplot as plt
 
 # %%
@@ -24,7 +24,7 @@ print(lanc.shape)
 print(hap.shape)
 
 
-ax = plot_local_anc(lanc[0:10, :])
+ax = admix.plot.lanc(lanc[0:10, :])
 plt.show()
 
 

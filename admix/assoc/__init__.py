@@ -18,6 +18,7 @@ def marginal(
     cov: List[str] = None,
     method: str = "ATT",
     family: str = "gaussian",
+    verbose: bool = False,
 ):
     """Marginal association testing for one SNP at a time
 
@@ -68,7 +69,7 @@ def marginal(
     if method == "ATT":
         geno = np.sum(dset["geno"].data, axis=2)
         pvalues = []
-        for i_snp in tqdm(range(n_snp)):
+        for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
             model = sm.GLM(
                 pheno[mask_indiv], design[mask_indiv, :], family=glm_family
@@ -81,7 +82,7 @@ def marginal(
         lanc = np.sum(dset["lanc"].data, axis=2)
 
         pvalues = []
-        for i_snp in tqdm(range(n_snp)):
+        for i_snp in tqdm(range(n_snp), disable=not verbose):
 
             design = np.hstack(
                 [
@@ -103,7 +104,7 @@ def marginal(
         allele_per_anc = compute_allele_per_anc(dset).compute()
 
         pvalues = []
-        for i_snp in tqdm(range(n_snp)):
+        for i_snp in tqdm(range(n_snp), disable=not verbose):
             # number of african alleles, covariates
             design_null = np.hstack(
                 [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
@@ -126,7 +127,7 @@ def marginal(
     elif method == "ADM":
         lanc = np.sum(dset["lanc"].data, axis=2)
         pvalues = []
-        for i_snp in tqdm(range(n_snp)):
+        for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
             model = sm.GLM(
                 pheno[mask_indiv], design[mask_indiv, :], family=sm.families.Gaussian()
