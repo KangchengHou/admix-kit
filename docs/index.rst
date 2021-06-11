@@ -1,4 +1,4 @@
-admix-tools' documentation
+admix-tools documentation
 ===========================
 
 .. toctree::
@@ -22,6 +22,3 @@ admix-tools' documentation
    :caption: Package reference
 
    api/index
-
-
-

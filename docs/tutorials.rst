@@ -1,8 +1,0 @@
-Tutorials
-=========
-
-
-Data structures
----------------
-
-Zarr
