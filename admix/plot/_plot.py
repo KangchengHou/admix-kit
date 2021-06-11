@@ -4,7 +4,10 @@ from matplotlib import collections as mc
 import pandas as pd
 
 
-def plot_local_anc(lanc: np.ndarray):
+def lanc(lanc: np.ndarray, ax=None):
+    if ax is None:
+        ax = plt.gca()
+
     start = []
     stop = []
     label = []
@@ -25,7 +28,7 @@ def plot_local_anc(lanc: np.ndarray):
     df_plot = pd.DataFrame({"start": start, "stop": stop, "label": label, "row": row})
 
     lines = [[(r.start, r.row), (r.stop, r.row)] for _, r in df_plot.iterrows()]
-    fig, ax = plt.subplots()
+
     cmap = plt.get_cmap("tab10")
 
     for i, (label, group) in enumerate(df_plot.groupby("label")):
@@ -43,24 +46,9 @@ def plot_local_anc(lanc: np.ndarray):
     ax.set_ylabel("Haplotype")
     ax.set_yticks([])
     ax.set_yticklabels([])
-    return ax
-    #   p <- ggplot(df_plot) +
-    #     geom_segment(aes(
-    #       x = start,
-    #       y = row,
-    #       xend = stop,
-    #       yend = row,
-    #       colour = as.factor(label),
-    #     ),
-    #     size = 2) +  scale_colour_brewer(palette = "Set1") + theme_classic() +
-    #     labs(x = "Position",
-    #          y = "Haplotype",
-    #          color = "Ancestry")
-    #   return(p)
-    # }
 
 
-def plot_admixture(a, labels=None, label_orders=None, ax=None):
+def admixture(a, labels=None, label_orders=None, ax=None):
     n_indiv, n_pop = a.shape
 
     # reorder based on labels
@@ -70,7 +58,9 @@ def plot_admixture(a, labels=None, label_orders=None, ax=None):
         unique_labels = np.unique(labels)
 
         if label_orders is not None:
-            assert set(label_orders) == set(unique_labels), "label_orders must cover all unique labels"
+            assert set(label_orders) == set(
+                unique_labels
+            ), "label_orders must cover all unique labels"
             unique_labels = label_orders
         cumsum = 0
         for label in unique_labels:
@@ -86,21 +76,27 @@ def plot_admixture(a, labels=None, label_orders=None, ax=None):
     bottom = np.zeros(n_indiv)
 
     for i_pop in range(n_pop):
-        ax.bar(np.arange(n_indiv), height=a[:, i_pop], width=1, bottom=bottom, facecolor=cmap(i_pop),
-               edgecolor=cmap(i_pop))
+        ax.bar(
+            np.arange(n_indiv),
+            height=a[:, i_pop],
+            width=1,
+            bottom=bottom,
+            facecolor=cmap(i_pop),
+            edgecolor=cmap(i_pop),
+        )
         bottom += a[:, i_pop]
 
-    ax.tick_params(axis='both', left=False, labelleft=False)
+    ax.tick_params(axis="both", left=False, labelleft=False)
 
     if labels is not None:
         seps = sorted(np.unique(np.concatenate([r for r in dict_label_range.values()])))
         for x in seps[1:-1]:
-            ax.vlines(x - 0.5, ymin=0, ymax=1, color='black')
+            ax.vlines(x - 0.5, ymin=0, ymax=1, color="black")
 
         ax.set_xticks([np.mean(dict_label_range[label]) for label in dict_label_range])
         ax.set_xticklabels([label for label in dict_label_range])
     else:
         ax.get_xaxis().set_ticks([])
-    for pos in ['top', 'right', 'bottom', 'left']:
+    for pos in ["top", "right", "bottom", "left"]:
         ax.spines[pos].set_visible(False)
     return ax

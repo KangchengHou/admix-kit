@@ -1,6 +1,4 @@
-from ._plot import plot_local_anc
+from ._plot import lanc, admixture
 
 
-__all__ = [
-    "plot_local_anc",
-]
+__all__ = ["lanc", "admixture"]

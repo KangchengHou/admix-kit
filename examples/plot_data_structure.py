@@ -18,16 +18,16 @@ We make use of `xarray` to deal with all the data in an unified way, specificall
 store these. Below is a typical structure.
 """
 
-import xarray as xr
-from admix.simulate import simulate_hap, simulate_lanc, simulate_continuous_phenotype
-from admix.plot import plot_local_anc
-import matplotlib.pyplot as plt
+# import xarray as xr
+# from admix.simulate import simulate_hap, simulate_lanc, continuous_phenotype
+# from admix.plot import lanc
+# import matplotlib.pyplot as plt
 
-n_indiv = 100
-n_snp = 1000
+# n_indiv = 100
+# n_snp = 1000
 
-hap = simulate_hap(n_indiv, n_snp)
-lanc = simulate_lanc(n_indiv, n_snp, 100)
+# hap = simulate_hap(n_indiv, n_snp)
+# lanc = simulate_lanc(n_indiv, n_snp, 100)
 
-print(hap.shape)
-print(lanc.shape)
+# print(hap.shape)
+# print(lanc.shape)

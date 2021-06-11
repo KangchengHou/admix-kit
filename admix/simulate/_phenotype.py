@@ -6,14 +6,7 @@ from typing import List
 import dask.array as da
 
 
-def simulate_continuous_phenotype_grm(
-        K1,
-        K2,
-        var_g,
-        var_e,
-        gamma,
-        n_sim=10
-):
+def continuous_phenotype_grm(K1, K2, var_g, var_e, gamma, n_sim=10):
     n_indiv = K1.shape[0]
     cov = var_g * K1 + gamma * K2 + var_e * da.diag(da.ones(n_indiv))
     # simulate phenotype
@@ -25,16 +18,15 @@ def simulate_continuous_phenotype_grm(
     return ys
 
 
-def simulate_continuous_phenotype(
-        ds,
-        var_g: float,
-        var_e: float,
-        gamma: float,
-        n_causal: int = None,
-        ganc: np.ndarray = None,
-        ganc_effect: float = None,
-        n_sim=10,
-        n_anc=2
+def continuous_phenotype(
+    dset,
+    var_g: float,
+    var_e: float,
+    gamma: float = None,
+    n_causal: int = None,
+    ganc: np.ndarray = None,
+    ganc_effect: float = None,
+    n_sim=10,
 ):
     """Simulate phenotype for admixture population [continuous]
 
@@ -67,9 +59,14 @@ def simulate_continuous_phenotype(
     phe
         simulated phenotype (n_indiv, n_sim)
     """
-    allele_per_anc = compute_allele_per_anc(ds)
+    n_anc = dset.n_anc
+    allele_per_anc = compute_allele_per_anc(dset)
     n_indiv, n_snp = allele_per_anc.shape[0:2]
 
+    if gamma is None:
+        # covariance of effects across ancestries set to 1
+        # if `gamma` is not specfied.
+        gamma = var_g
     if n_causal is None:
         n_causal = n_snp
 
@@ -96,7 +93,7 @@ def simulate_continuous_phenotype(
     phe = phe_g + phe_e
     if ganc is not None:
         phe += da.dot(ganc[:, np.newaxis], ganc_effect * np.ones((1, n_sim)))
-    return beta, phe_g.compute(), phe.compute()
+    return betas, phe_g.compute(), phe.compute()
 
 
 def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
