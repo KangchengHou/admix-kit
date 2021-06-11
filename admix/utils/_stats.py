@@ -1,16 +1,14 @@
 import numpy as np
-from pysnptools.snpreader import Bed
-from scipy import linalg
-from os.path import join
 import pandas as pd
-import pickle
-import os
 import scipy
+from scipy import stats
 
-'''
+"""
 implement commonly used statistics procedure for genetics,
 better support batched operations
-'''
+"""
+
+
 def impute_std(geno, mean=None, std=None):
     """
     impute the mean and then standardize
@@ -28,6 +26,7 @@ def impute_std(geno, mean=None, std=None):
         std_geno = (geno - mean) / std
     return std_geno
 
+
 def mean_std(geno, chunk_size=500):
     row_count = geno.row_count
     col_count = geno.col_count
@@ -41,8 +40,9 @@ def mean_std(geno, chunk_size=500):
         nanidx = np.where(np.isnan(sub_geno))
         sub_geno[nanidx] = sub_mean[nanidx[1]]
         std[i : i + chunk_size] = np.std(sub_geno, axis=0)
-    df = pd.DataFrame({'mean': mean, 'std': std})
+    df = pd.DataFrame({"mean": mean, "std": std})
     return df
+
 
 def cov(geno, mean_std, chunk_size=500):
     """
@@ -63,26 +63,34 @@ def cov(geno, mean_std, chunk_size=500):
             if col_stop > num_snps:
                 col_stop = num_snps
 
-            std_row_geno = std_impute(geno[:, row_start : row_stop].read().val,
-                                    mean_std['mean'][row_start : row_stop].values,
-                                    mean_std['std'][row_start : row_stop].values)
-            std_col_geno = std_impute(geno[:, col_start : col_stop].read().val,
-                                    mean_std['mean'][col_start : col_stop].values,
-                                    mean_std['std'][col_start : col_stop].values)
+            std_row_geno = imputed_std(
+                geno[:, row_start:row_stop].read().val,
+                mean_std["mean"][row_start:row_stop].values,
+                mean_std["std"][row_start:row_stop].values,
+            )
+            std_col_geno = imputed_std(
+                geno[:, col_start:col_stop].read().val,
+                mean_std["mean"][col_start:col_stop].values,
+                mean_std["std"][col_start:col_stop].values,
+            )
 
-            cov[np.ix_(np.arange(row_start, row_stop),
-                       np.arange(col_start, col_stop))] = \
-            np.dot(std_row_geno.T, std_col_geno) / (std_row_geno.shape[0])
+            cov[
+                np.ix_(np.arange(row_start, row_stop), np.arange(col_start, col_stop))
+            ] = np.dot(std_row_geno.T, std_col_geno) / (std_row_geno.shape[0])
     return cov
+
 
 def quad_form(x, A):
     return np.dot(np.dot(x.T, A), x)
 
+
 def zsc2pval(zsc):
     return 1 - scipy.stats.norm.cdf(zsc)
 
+
 def pval2zsc(pval):
     return -scipy.stats.norm.ppf(pval)
+
 
 def chi2_to_logpval(chi2, dof=1):
     return stats.chi2.logsf(chi2, dof)
