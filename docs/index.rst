@@ -6,16 +6,19 @@ admix-tools documentation
    :maxdepth: 1
    :caption: Tutorials:
    
-   auto_examples/plot_tutorial
+   auto_examples/plot_overview
+   prepare_data
+   
 
 .. toctree::
    :glob:
    :maxdepth: 2
-   :caption: Examples:
-
-   auto_examples/plot_simulate
+   :caption: Modules:
+   prepare_data
    auto_examples/plot_data_structure
-
+   auto_examples/plot_local_ancestry_inference
+   auto_examples/plot_simulate
+   
 
 .. toctree::
    :maxdepth: 2

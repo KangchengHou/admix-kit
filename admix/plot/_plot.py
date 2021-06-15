@@ -4,6 +4,10 @@ from matplotlib import collections as mc
 import pandas as pd
 
 
+def manhattan(pvals):
+    pass
+
+
 def lanc(lanc: np.ndarray, ax=None):
     if ax is None:
         ax = plt.gca()

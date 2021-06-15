@@ -1,5 +1,5 @@
 """
-Tutorial for an overview of admix-tools
+An overview of admix-tools
 =======================================
 
 We start with a toy dataset, which contains genotypes of admixed individuals with 
