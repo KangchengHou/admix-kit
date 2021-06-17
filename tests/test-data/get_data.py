@@ -28,8 +28,12 @@ n_snp = admix_lanc.shape[1]
 
 
 def get_subset(hap, n_snp, n_haplo):
-    return np.dstack((hap[:, 0:n_snp][np.arange(0, n_haplo, 2)],
-                      hap[:, 0:n_snp][np.arange(1, n_haplo, 2)]))
+    return np.dstack(
+        (
+            hap[:, 0:n_snp][np.arange(0, n_haplo, 2)],
+            hap[:, 0:n_snp][np.arange(1, n_haplo, 2)],
+        )
+    )
 
 
 admix_hap = get_subset(admix_hap, n_snp, n_admix_haplo)
@@ -42,42 +46,50 @@ afr_hap = get_subset(afr_hap, n_snp, n_anc_haplo)
 ds_admix = xr.Dataset(
     data_vars={
         "geno": (("indiv", "snp", "haploid"), admix_hap),
-        "lanc": (("indiv", "snp", "haploid"), admix_lanc)
+        "lanc": (("indiv", "snp", "haploid"), admix_lanc),
     },
 )
-ds_admix = ds_admix.assign_coords({"snp": legend.id.values,
-                                   "snp_position": ("snp", legend.position.values),
-                                   "snp_eur_freq": ("snp", legend.EUR.values),
-                                   "snp_afr_freq": ("snp", legend.AFR.values),
-                                   "snp_a0": ("snp", legend.a0.values),
-                                   "snp_a1": ("snp", legend.a1.values)}).assign_attrs(
-    n_anc=2,
-    description="Simulated African American individuals")
+ds_admix = ds_admix.assign_coords(
+    {
+        "snp": legend.id.values.astype(str),
+        "indiv": ["admix_" + str(i) for i in np.arange(ds_admix.dims["indiv"])],
+        "position@snp": ("snp", legend.position.values),
+        "eur_freq@snp": ("snp", legend.EUR.values),
+        "afr_freq@snp": ("snp", legend.AFR.values),
+        "a0@snp": ("snp", legend.a0.values.astype(str)),
+        "a1@snp": ("snp", legend.a1.values.astype(str)),
+    }
+).assign_attrs(n_anc=2, description="Simulated African American individuals")
 
 ds_eur = xr.Dataset(
     data_vars={
         "geno": (("indiv", "snp", "haploid"), eur_hap),
     },
-    coords={"snp": legend.id.values,
-            "position": ("snp", legend.position.values),
-            "snp_a0": ("snp", legend.a0.values),
-            "snp_a1": ("snp", legend.a1.values)},
-    attrs={"n_anc": 1,
-           "description": "Simulated EUR"}
+    coords={
+        "snp": legend.id.values.astype(str),
+        "indiv": ["eur_" + str(i) for i in np.arange(eur_hap.shape[0])],
+        "position@snp": ("snp", legend.position.values),
+        "a0@snp": ("snp", legend.a0.values.astype(str)),
+        "a1@snp": ("snp", legend.a1.values.astype(str)),
+    },
+    attrs={"n_anc": 1, "description": "Simulated EUR"},
 )
 
 ds_afr = xr.Dataset(
     data_vars={
         "geno": (("indiv", "snp", "haploid"), afr_hap),
     },
-    coords={"snp": legend.id.values,
-            "position": ("snp", legend.position.values),
-            "snp_a0": ("snp", legend.a0.values),
-            "snp_a1": ("snp", legend.a1.values)},
-    attrs={"n_anc": 1,
-           "description": "Simulated AFR"}
+    coords={
+        "snp": legend.id.values.astype(str),
+        "indiv": ["afr_" + str(i) for i in np.arange(afr_hap.shape[0])],
+        "position@snp": ("snp", legend.position.values),
+        "a0@snp": ("snp", legend.a0.values.astype(str)),
+        "a1@snp": ("snp", legend.a1.values.astype(str)),
+    },
+    attrs={"n_anc": 1, "description": "Simulated AFR"},
 )
 
-ds_admix.to_zarr("admix.zarr", mode='w')
-ds_eur.to_zarr("eur.zarr", mode='w')
-ds_afr.to_zarr("afr.zarr", mode='w')
+
+ds_admix.to_zarr("admix.zip", mode="w")
+ds_eur.to_zarr("eur.zip", mode="w")
+ds_afr.to_zarr("afr.zip", mode="w")

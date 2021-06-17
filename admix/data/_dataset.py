@@ -22,7 +22,7 @@ def load_toy() -> List[xr.Dataset]:
 
     module_path = dirname(__file__)
     test_data_path = join(module_path, "../../tests/test-data")
-    dset_eur = xr.open_zarr(join(test_data_path, "eur.zarr"))
-    dset_afr = xr.open_zarr(join(test_data_path, "afr.zarr"))
-    dset_admix = xr.open_zarr(join(test_data_path, "admix.zarr"))
+    dset_eur = xr.open_zarr(join(test_data_path, "eur.zip"))
+    dset_afr = xr.open_zarr(join(test_data_path, "afr.zip"))
+    dset_admix = xr.open_zarr(join(test_data_path, "admix.zip"))
     return dset_admix, dset_eur, dset_afr
