@@ -32,4 +32,3 @@ import xarray as xr
 
 # Genotype can be accessed using ``.geno``
 # Local ancestry can be accessed using ``.lanc``
-#

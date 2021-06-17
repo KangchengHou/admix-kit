@@ -11,8 +11,6 @@ admix-tools documentation
    assoc_test
    
 
-   
-
 .. toctree::
    :glob:
    :maxdepth: 2
