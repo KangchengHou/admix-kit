@@ -3,7 +3,8 @@ import re
 import dask.array as da
 import pandas as pd
 import xarray as xr
-
+import warnings
+from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 
 def make_dataset(
     geno, snp: pd.DataFrame, indiv: pd.DataFrame, meta: dict = None, lanc=None
@@ -33,14 +34,30 @@ def make_dataset(
         data_vars["lanc"] = (("indiv", "snp", "haploid"), lanc)
 
     coords = {}
-    # fill individual information
-    coords["snp"] = snp.index
+    # fill SNP information
+    coords["snp"] = snp.index.values
+    if not is_string_dtype(coords["snp"]):
+        warnings.warn("Transforming snp index to str")
+    coords["snp"] = coords["snp"].astype(str)
+        
     for col in snp.columns:
-        coords[f"{col}@snp"] = ("snp", snp[col])
-
-    coords["indiv"] = indiv.index
+        vals = snp[col].values 
+        if is_string_dtype(snp[col]):
+            vals = snp[col].values.astype(str)
+            
+        coords[f"{col}@snp"] = ("snp", vals)
+        
+    # fill in individual information
+    coords["indiv"] = indiv.index.values
+    if not is_string_dtype(coords["indiv"]):
+        warnings.warn("Transforming indiv index to str")
+    coords["indiv"] = coords["indiv"].astype(str)
+    
     for col in indiv.columns:
-        coords[f"{col}@indiv"] = ("indiv", indiv[col])
+        vals = indiv[col].values
+        if is_string_dtype(indiv[col]):
+            vals = vals.astype(str)
+        coords[f"{col}@indiv"] = ("indiv", vals)
 
     dset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=meta)
     return dset
