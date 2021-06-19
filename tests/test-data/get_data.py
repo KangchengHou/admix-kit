@@ -90,6 +90,6 @@ ds_afr = xr.Dataset(
 )
 
 
-ds_admix.to_zarr("admix.zip", mode="w")
-ds_eur.to_zarr("eur.zip", mode="w")
-ds_afr.to_zarr("afr.zip", mode="w")
+ds_admix.chunk(chunks={"snp": "auto"}).to_zarr("admix.zip", mode="w")
+ds_eur.chunk(chunks={"snp": "auto"}).to_zarr("eur.zip", mode="w")
+ds_afr.chunk(chunks={"snp": "auto"}).to_zarr("afr.zip", mode="w")
