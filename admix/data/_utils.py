@@ -1,6 +1,49 @@
 import numpy as np
 import re
 import dask.array as da
+import pandas as pd
+import xarray as xr
+
+
+def make_dataset(
+    geno, snp: pd.DataFrame, indiv: pd.DataFrame, meta: dict = None, lanc=None
+):
+    """Make up a dataset
+
+    Parameters
+    ----------
+    geno : (#indiv, #snp, 2) array_like
+        Genotype count matrix
+    snp : pd.DataFrame
+        Index is identifier to SNP
+        each column corresponds to an attribute
+    indiv : pd.DataFrame
+        Index is identifier to individuals
+        each column corresponds to an attribute
+    meta : dict, optional
+        Meta information about the dataset
+    lanc : (#indiv, #snp, 2) array_like, optional
+        Local ancestry
+    """
+    # fill `data_vars`
+    data_vars = {
+        "geno": (("indiv", "snp", "haploid"), geno),
+    }
+    if lanc is not None:
+        data_vars["lanc"] = (("indiv", "snp", "haploid"), lanc)
+
+    coords = {}
+    # fill individual information
+    coords["snp"] = snp.index
+    for col in snp.columns:
+        coords[f"{col}@snp"] = ("snp", snp[col])
+
+    coords["indiv"] = indiv.index
+    for col in indiv.columns:
+        coords[f"{col}@indiv"] = ("indiv", indiv[col])
+
+    dset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=meta)
+    return dset
 
 
 def compute_allele_per_anc(ds):
