@@ -13,9 +13,7 @@ european and african ancestries. We will go through the following:
 
 # %%
 import admix
-import xarray as xr
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -99,7 +97,7 @@ assoc = admix.assoc.marginal(
     dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
     pheno="pheno",
     method="ATT",
-    family="gaussian",
+    family="linear",
 )
 
 # %%

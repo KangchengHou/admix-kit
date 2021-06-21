@@ -1,7 +1,6 @@
 import statsmodels.api as sm
 import numpy as np
 import pandas as pd
-from os.path import join
 from scipy import stats
 import xarray as xr
 from typing import List
@@ -9,7 +8,7 @@ from tqdm import tqdm
 from admix.data import compute_allele_per_anc
 
 
-__all__ = ["marginal"]
+__all__ = ["marginal", "linear_reg"]
 
 
 def marginal(
@@ -17,7 +16,7 @@ def marginal(
     pheno: str,
     cov: List[str] = None,
     method: str = "ATT",
-    family: str = "gaussian",
+    family: str = "linear",
     verbose: bool = False,
 ):
     """Marginal association testing for one SNP at a time
@@ -33,7 +32,7 @@ def marginal(
     method : str, optional
         [description], by default "ATT"
     family : str, optional
-        [description], by default "gaussian"
+        [description], by default "linear"
 
     Returns
     -------
@@ -48,9 +47,9 @@ def marginal(
         [description]
     """
 
-    if family == "gaussian":
+    if family == "linear":
         glm_family = sm.families.Gaussian()
-    elif family == "binomial":
+    elif family == "logistic":
         glm_family = sm.families.Binomial()
     else:
         raise NotImplementedError
@@ -139,6 +138,48 @@ def marginal(
         raise NotImplementedError
 
     return pd.DataFrame({"SNP": dset.snp.values, "P": pvalues}).set_index("SNP")
+
+
+def linear_reg(X: np.ndarray, y: np.ndarray, cov: np.ndarray) -> np.ndarray:
+    """Implement linear regression for numpy matrix
+
+    Refer to `f_regression_cov` in FaST-LMM package
+    TODO: check `f_regression_cov_alt` in FaST-LMM package to see the difference
+    TODO: double check math to see the difference.
+    TODO: what happens when the covariates perfectly correlate?
+
+    Args:
+        X (np.ndarray): (n_indiv, n_snp) genotype matrix
+        y (np.ndarray): (n_indiv, ) phenotype matrix
+        cov (np.ndarray): (n_indiv, n_cov) covariance matrix
+
+    Returns:
+        np.ndarray: p-values for each SNP
+    """
+
+    n_snp = X.shape[1]
+
+    assert cov.shape[0] > cov.shape[1]
+
+    cov_pinv = np.linalg.pinv(cov)
+    X -= np.dot(cov, (np.dot(cov_pinv, X)))
+    y -= np.dot(cov, (np.dot(cov_pinv, y)))
+
+    # compute the correlation
+    corr = np.dot(y, X)
+    corr /= np.asarray(np.sqrt((X ** 2).sum(axis=0))).ravel()
+    corr /= np.asarray(np.sqrt((y ** 2).sum())).ravel()
+
+    # convert to p-value
+    dof = (X.shape[0] - 1 - cov.shape[1]) / (1)  # (df_fm / (df_rm - df_fm))
+    F = corr ** 2 / (1 - corr ** 2) * dof
+    pv = stats.f.sf(F, 1, dof)
+    return pv
+
+
+def logistic_reg(X, y, cov):
+
+    pass
 
 
 # def mixscore_wrapper(pheno, anc, geno, theta,

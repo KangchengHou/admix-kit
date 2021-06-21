@@ -13,5 +13,7 @@ pip install -r requirements.txt; pip install -e .
 ```
 
 ## TODO
+- Derive F-test in the presence of covariates
+- Complete GWAS demonstration and pipelines.
 - Add helper function to take vcf file and RFmix local ancestry file and spit out zarr.
 - First release: complete pipeline for simulating and estimating genetic correlation.

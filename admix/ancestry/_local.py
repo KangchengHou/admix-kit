@@ -59,7 +59,7 @@ def lanc(
     ]
 
     model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=6, window_size=300)
-    model.set_pos(sample_dset["snp_position"].values)
+    model.set_pos(sample_dset["position@snp"].values)
     model.fit(ref_list)
 
     est = np.dstack(
