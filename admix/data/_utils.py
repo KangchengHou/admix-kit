@@ -112,28 +112,47 @@ def compute_allele_per_anc(ds, return_mask=False):
         return allele_per_anc
 
 
-def compute_admix_grm(ds, center=True):
+def compute_admix_grm(ds, center: bool = True, mask: bool = True):
+    """Calculate ancestry specific GRM matrix
 
+    Parameters
+    ----------
+    center: bool
+        whether to center the `allele_per_ancestry` matrix
+        in the calculation
+    mask: bool
+        whether to mask the missing values when perform the
+        centering
+
+    """
     geno = ds["geno"].data
     lanc = ds["lanc"].data
     n_anc = ds.attrs["n_anc"]
     assert n_anc == 2, "only two-way admixture is implemented"
     assert np.all(geno.shape == lanc.shape)
 
-    allele_per_anc = compute_allele_per_anc(ds).astype(float)
-    n_indiv, n_snp = allele_per_anc.shape[0:2]
-    mean_per_anc = allele_per_anc.mean(axis=0)
+    apa = compute_allele_per_anc(ds, return_mask=mask).astype(float)
 
-    a1, a2 = allele_per_anc[:, :, 0], allele_per_anc[:, :, 1]
+    n_indiv, n_snp = apa.shape[0:2]
+
     if center:
-        a1 = a1 - mean_per_anc[:, 0]
-        a2 = a2 - mean_per_anc[:, 1]
+        if mask:
+            # only calculate at nonmissing entries
+            mean_apa = np.ma.getdata(np.mean(apa, axis=0).compute())
+            apa = apa - mean_apa
+            apa = da.ma.getdata(apa)
+        else:
+            # calculate at all entries
+            mean_apa = np.mean(da.ma.getdata(apa), axis=0).compute()
+            apa = da.ma.getdata(apa) - mean_apa
+
+    a1, a2 = apa[:, :, 0], apa[:, :, 1]
 
     K1 = np.dot(a1, a1.T) / n_snp + np.dot(a2, a2.T) / n_snp
 
     cross_term = np.dot(a1, a2.T) / n_snp
     K2 = cross_term + cross_term.T
-    return [K1, K2]
+    return K1, K2
 
 
 def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
