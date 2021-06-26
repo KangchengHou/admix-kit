@@ -44,7 +44,10 @@ def test_utils():
     allele_per_anc = admix.data.compute_allele_per_anc(ds).compute()
     assert np.all(allele_per_anc == [[[1, 0], [2, 0], [0, 0]]])
     ds = load_toy()[0]
-    allele_per_anc = admix.data.compute_allele_per_anc(ds)
+    apa1 = admix.data.compute_allele_per_anc(ds, return_mask=False)
+    apa2 = admix.data.compute_allele_per_anc(ds, return_mask=True)
+    assert np.all(apa1 == np.ma.getdata(apa2)).compute()
+    assert np.all(apa1.compute()[da.ma.getmaskarray(apa2)] == 0)
 
 
 def test_compute_grm():
@@ -85,3 +88,25 @@ def test_lamp():
     acc = (est == ds_admix["lanc"].values).mean()
     assert acc > 0.9
     print(f"Accuracy: {acc:.2f}")
+
+
+def test_assoc():
+    """
+    TODO: add basic testing to association testing modules.
+    """
+    from admix.simulate import continuous_phenotype
+
+    admix_dset, eur_dset, afr_dset = admix.data.load_toy()
+    beta, phe_g, pheno = continuous_phenotype(
+        admix_dset, var_g=1.0, gamma=1.0, var_e=1.0
+    )
+    i_sim = 0
+    sim_beta = beta[:, :, i_sim]
+    sim_pheno = pheno[:, i_sim]
+
+    assoc = admix.assoc.marginal(
+        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
+        pheno="pheno",
+        method="ATT",
+        family="linear",
+    )

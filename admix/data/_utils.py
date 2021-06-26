@@ -6,6 +6,7 @@ import xarray as xr
 import warnings
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 
+
 def make_dataset(
     geno, snp: pd.DataFrame, indiv: pd.DataFrame, meta: dict = None, lanc=None
 ):
@@ -39,20 +40,20 @@ def make_dataset(
     if not is_string_dtype(coords["snp"]):
         warnings.warn("Transforming snp index to str")
     coords["snp"] = coords["snp"].astype(str)
-        
+
     for col in snp.columns:
-        vals = snp[col].values 
+        vals = snp[col].values
         if is_string_dtype(snp[col]):
             vals = snp[col].values.astype(str)
-            
+
         coords[f"{col}@snp"] = ("snp", vals)
-        
+
     # fill in individual information
     coords["indiv"] = indiv.index.values
     if not is_string_dtype(coords["indiv"]):
         warnings.warn("Transforming indiv index to str")
     coords["indiv"] = coords["indiv"].astype(str)
-    
+
     for col in indiv.columns:
         vals = indiv[col].values
         if is_string_dtype(indiv[col]):
@@ -63,17 +64,15 @@ def make_dataset(
     return dset
 
 
-def compute_allele_per_anc(ds):
+def compute_allele_per_anc(ds, return_mask=False):
     """Get allele count per ancestry
 
     Parameters
     ----------
-    geno : np.ndarray
-        haplotype (n_indiv, n_snp, n_anc)
-    lanc : np.ndarray
-        local ancestry (n_indiv, n_snp, n_anc)
-    n_anc: int
-        number of local ancestries
+    ds: xr.Dataset
+        Containing geno, lanc, n_anc
+    return_mask: bool
+        whether to return a masked array
 
     Returns
     -------
@@ -96,17 +95,21 @@ def compute_allele_per_anc(ds):
 
     def helper(geno_chunk, lanc_chunk, n_anc):
         n_indiv, n_snp, n_haplo = geno_chunk.shape
-        geno = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
+        apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
 
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
             for i_anc in range(n_anc):
-                geno[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
-        return geno
+                apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+        return apa
 
-    geno = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc)
-    return geno
+    allele_per_anc = da.map_blocks(lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc)
+    if return_mask:
+        mask = np.dstack([np.all(lanc != i_anc, axis=2) for i_anc in range(n_anc)])
+        return da.ma.masked_array(allele_per_anc, mask=mask, fill_value=0)
+    else:
+        return allele_per_anc
 
 
 def compute_admix_grm(ds, center=True):
