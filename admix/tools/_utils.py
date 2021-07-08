@@ -7,7 +7,7 @@ import warnings
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 
 
-def allele_per_anc(ds, return_mask=False):
+def allele_per_anc(ds, return_mask=False, inplace=True):
     """Get allele count per ancestry
 
     Parameters
@@ -16,7 +16,8 @@ def allele_per_anc(ds, return_mask=False):
         Containing geno, lanc, n_anc
     return_mask: bool
         whether to return a masked array
-
+    inplace: bool
+        whether to return a new dataset or modify the input dataset
     Returns
     -------
     Return allele counts per ancestries
@@ -50,14 +51,53 @@ def allele_per_anc(ds, return_mask=False):
     rls_allele_per_anc = da.map_blocks(
         lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc
     )
+
     if return_mask:
         mask = np.dstack([np.all(lanc != i_anc, axis=2) for i_anc in range(n_anc)])
-        return da.ma.masked_array(rls_allele_per_anc, mask=mask, fill_value=0)
+        rls_allele_per_anc = da.ma.masked_array(
+            rls_allele_per_anc, mask=mask, fill_value=0
+        )
+    if inplace:
+        ds["allele_per_anc"] = xr.DataArray(
+            rls_allele_per_anc, dims=("indiv", "snp", "anc")
+        )
     else:
         return rls_allele_per_anc
 
 
-def admix_grm(dset, center: bool = False, mask: bool = False) -> dict:
+def grm(dset: xr.Dataset, inplace=True):
+    """Calculate the GRM matrix
+    The GRM matrix is calculated treating the genotypes as from one ancestry population,
+    the same as GCTA.
+
+    Parameters
+    ----------
+    dset: xr.Dataset
+        dataset containing geno
+    inplace: bool
+        whether to return a new dataset or modify the input dataset
+    Returns
+    -------
+    n_indiv x n_indiv GRM matrix if `inplace` is False, else return None
+    """
+
+    g = dset["geno"].data
+    n_indiv, n_snp, n_haplo = g.shape
+    g = g.sum(axis=2)
+    # normalization
+    g_mean = g.mean(axis=0)
+    g_std = g.std(axis=0)
+    assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
+    g = (g - g_mean) / g_std
+    # calculate GRM
+    grm = np.dot(g, g.T) / n_snp
+    if inplace:
+        dset["grm"] = xr.DataArray(grm, dims=("indiv", "indiv"))
+    else:
+        return grm
+
+
+def admix_grm(dset, center: bool = False, mask: bool = False, inplace=True):
     """Calculate ancestry specific GRM matrix
 
     Parameters
@@ -68,15 +108,21 @@ def admix_grm(dset, center: bool = False, mask: bool = False) -> dict:
     mask: bool
         whether to mask the missing values when perform the
         centering
+    inplace: bool
+        whether to return a new dataset or modify the input dataset
+
     Returns
     -------
-    A dictionary containing the GRM matrices
+    If `inplace` is False, return a dictionary of GRM matrices
         - K1: np.ndarray
             ancestry specific GRM matrix for the 1st ancestry
         - K2: np.ndarray
             ancestry specific GRM matrix for the 2nd ancestry
         - K12: np.ndarray
             ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
+
+    If `inplace` is True, return None
+        "admix_grm_K1", "admix_grm_K2", "admix_grm_K12" will be added to the dataset
     """
 
     geno = dset["geno"].data
@@ -105,8 +151,11 @@ def admix_grm(dset, center: bool = False, mask: bool = False) -> dict:
     K1 = np.dot(a1, a1.T) / n_snp
     K2 = np.dot(a2, a2.T) / n_snp
     K12 = np.dot(a1, a2.T) / n_snp
-    return {
-        "K1": K1,
-        "K2": K2,
-        "K12": K12,
-    }
+
+    if inplace:
+        dset["admix_grm_K1"] = xr.DataArray(K1, dims=("indiv", "indiv"))
+        dset["admix_grm_K2"] = xr.DataArray(K2, dims=("indiv", "indiv"))
+        dset["admix_grm_K12"] = xr.DataArray(K12, dims=("indiv", "indiv"))
+        return None
+    else:
+        return {"K1": K1, "K2": K2, "K12": K12}
