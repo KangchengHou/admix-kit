@@ -5,8 +5,7 @@ from scipy import stats
 import xarray as xr
 from typing import List
 from tqdm import tqdm
-from admix.data import compute_allele_per_anc
-
+import admix
 
 __all__ = ["marginal", "linear_reg"]
 
@@ -100,7 +99,7 @@ def marginal(
         # number of african alleles
         lanc = np.sum(dset["lanc"].data, axis=2)
         # alleles per ancestry
-        allele_per_anc = compute_allele_per_anc(dset).compute()
+        allele_per_anc = admix.tools.allele_per_anc(dset).compute()
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):

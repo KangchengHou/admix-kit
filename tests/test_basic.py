@@ -41,28 +41,29 @@ def test_utils():
         attrs={"n_anc": 2},
     )
 
-    allele_per_anc = admix.data.compute_allele_per_anc(ds).compute()
+    allele_per_anc = admix.tools.allele_per_anc(ds).compute()
     assert np.all(allele_per_anc == [[[1, 0], [2, 0], [0, 0]]])
     ds = load_toy()[0]
-    apa1 = admix.data.compute_allele_per_anc(ds, return_mask=False)
-    apa2 = admix.data.compute_allele_per_anc(ds, return_mask=True)
+    apa1 = admix.tools.allele_per_anc(ds, return_mask=False)
+    apa2 = admix.tools.allele_per_anc(ds, return_mask=True)
     assert np.all(apa1 == np.ma.getdata(apa2)).compute()
     assert np.all(apa1.compute()[da.ma.getmaskarray(apa2)] == 0)
 
 
 def test_compute_grm():
+
     ds = load_toy()[0]
-    allele_per_anc = admix.data.compute_allele_per_anc(ds).astype(float)
+    allele_per_anc = admix.tools.allele_per_anc(ds).astype(float)
 
 
 def test_simulate():
-    from admix.simulate import continuous_phenotype, continuous_phenotype_grm
-    from admix.data import compute_admix_grm
+    from admix.simulate import continuous_pheno, continuous_pheno_grm
+    from admix.tools import admix_grm
 
-    ds_admix = load_toy()[0]
-    beta, phe_g, phe = continuous_phenotype(ds_admix, var_g=1.0, gamma=1.0, var_e=1.0)
-    K1, K2 = compute_admix_grm(ds_admix)
-    ys = continuous_phenotype_grm(K1=K1, K2=K2, var_g=1.0, gamma=1.0, var_e=1.0)
+    dset = load_toy()[0]
+    sim = continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
+    grm = admix_grm(dset)
+    ys = continuous_pheno_grm(dset, grm, var_g=1.0, gamma=1.0, var_e=1.0)
 
 
 def test_lamp():
@@ -94,15 +95,13 @@ def test_assoc():
     """
     TODO: add basic testing to association testing modules.
     """
-    from admix.simulate import continuous_phenotype
+    from admix.simulate import continuous_pheno
 
     admix_dset, eur_dset, afr_dset = admix.data.load_toy()
-    beta, phe_g, pheno = continuous_phenotype(
-        admix_dset, var_g=1.0, gamma=1.0, var_e=1.0
-    )
+    sim = continuous_pheno(admix_dset, var_g=1.0, gamma=1.0, var_e=1.0)
     i_sim = 0
-    sim_beta = beta[:, :, i_sim]
-    sim_pheno = pheno[:, i_sim]
+    sim_beta = sim["beta"][:, :, i_sim]
+    sim_pheno = sim["pheno"][:, i_sim]
 
     assoc = admix.assoc.marginal(
         dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
