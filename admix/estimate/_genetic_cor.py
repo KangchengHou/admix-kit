@@ -2,7 +2,7 @@ import numpy as np
 from scipy import linalg
 import pandas as pd
 import xarray as xr
-from typing import List
+from typing import List, Union
 
 
 def trace_mul(a, b):
@@ -15,12 +15,11 @@ def trace_mul(a, b):
 
 def gen_cor(
     dset: xr.Dataset,
-    admix_grm: dict,
+    grm: Union[str, List[str], dict],
     pheno: np.ndarray,
     cov_cols: List[str] = None,
     cov_intercept: bool = True,
     method: str = "HE",
-    estimand: str = "var",
 ):
     """Estimate genetic correlation given a dataset, admixture GRM, phenotypes, and covariates.
 
@@ -28,8 +27,10 @@ def gen_cor(
     ----------
     dset: xr.Dataset
         Dataset to estimate correlation from.
-    admix_grm: dict
-        Admixture GRMs
+    grm: str, list of str or dict
+        column name(s) of GRM, or a dict of {name: grm}
+        Don't include the identity matrix, the indentify matrix representing environemntal
+        factor will be added to the list automatically
     pheno: np.ndarray
         Phenotypes to estimate genetic correlation. If a matrix is provided, then each
         column is treated as a separate phenotype.
@@ -48,10 +49,23 @@ def gen_cor(
             - "var+gamma": Both genetic variance and covariance.
             - "var1+var2+gamma": Genetic variances from two backgrounds and covariance.
     """
-    assert estimand in ["var", "var+gamma", "var1+var2+gamma"]
     assert method in ["HE", "RHE", "REML"]
     n_indiv = dset.dims["indiv"]
-    K1, K2, K12 = [admix_grm[k] for k in ["K1", "K2", "K12"]]
+    # get the dictionary of all the GRMs (including environmental)
+    # name -> grm
+    if isinstance(grm, dict):
+        # obtain from the list
+        grm_dict = {k: grm[k] for k in grm}
+    elif isinstance(grm, list):
+        grm_dict = {k: dset[k].data for k in grm}
+    elif isinstance(grm, str):
+        grm_dict = {grm: dset[grm].data}
+    else:
+        raise ValueError("`grm` must be a dictionary, list or string")
+
+    # add the environmental GRM
+    n_indiv = dset.dims["indiv"]
+    grm_dict["e"] = np.eye(n_indiv)
 
     # build the covariate matrix
     if cov_cols is not None:
@@ -64,6 +78,7 @@ def gen_cor(
         cov_values = None
         if cov_intercept:
             cov_values = np.ones((n_indiv, 1))
+
     # build projection matrix from covariate matrix
     if cov_values is None:
         cov_proj_mat = np.eye(n_indiv)
@@ -80,58 +95,28 @@ def gen_cor(
 
     pheno = np.dot(cov_proj_mat, pheno)
     quad_form_func = lambda x, A: np.dot(np.dot(x.T, A), x)
+
     if method == "HE":
         df_rls = []
-        if estimand == "var":
-            A = K1 + K2 + K12 + K12.T
-            A = np.dot(A, cov_proj_mat)
-            HE_design = np.array(
-                [
-                    [trace_mul(A, A), np.trace(A)],
-                    [np.trace(A), np.linalg.matrix_rank(cov_proj_mat)],
-                ]
-            )
-            for i_pheno in range(n_pheno):
-                # build response vector
-                HE_response = np.array(
-                    [
-                        quad_form_func(pheno[:, i_pheno], A),
-                        quad_form_func(pheno[:, i_pheno], np.eye(n_indiv)),
-                    ]
-                )
-                rls = linalg.solve(HE_design, HE_response)
-                df_rls.append(rls)
-            df_rls = pd.DataFrame(np.vstack(df_rls), columns=["sigma_g", "sigma_e"])
-        elif estimand == "var+gamma":
-            A1 = K1 + K2
-            A2 = K12 + K12.T
+        grm_list = [grm_dict[name] for name in grm_dict]
+        n_grm = len(grm_dict)
+        for name in grm_dict:
+            grm_dict[name] = np.dot(grm_dict[name], cov_proj_mat)
+        HE_design = np.zeros((n_grm, n_grm))
 
-            A1 = np.dot(A1, cov_proj_mat)
-            A2 = np.dot(A2, cov_proj_mat)
+        # fill in `HE_design`
+        for i in range(n_grm):
+            for j in range(n_grm):
+                if i <= j:
+                    HE_design[i, j] = (grm_list[i] * grm_list[j]).sum()
+                    HE_design[j, i] = HE_design[i, j]
 
-            HE_design = np.array(
-                [
-                    [trace_mul(A1, A1), trace_mul(A1, A2), np.trace(A1)],
-                    [trace_mul(A2, A1), trace_mul(A2, A2), np.trace(A2)],
-                    [np.trace(A1), np.trace(A2), np.linalg.matrix_rank(cov_proj_mat)],
-                ]
-            )
-            for i_pheno in range(n_pheno):
-
-                # build response vector
-                HE_response = np.array(
-                    [
-                        quad_form_func(pheno[:, i_pheno], A1),
-                        quad_form_func(pheno[:, i_pheno], A2),
-                        quad_form_func(pheno[:, i_pheno], np.eye(n_indiv)),
-                    ]
-                )
-                rls = linalg.solve(HE_design, HE_response)
-                df_rls.append(rls)
-            df_rls = pd.DataFrame(
-                np.vstack(df_rls), columns=["sigma_g", "gamma", "sigma_v"]
-            )
-        elif estimand == "var1+var2+gamma":
-            raise NotImplementedError
+        # build response vector for each phenotype
+        for i_pheno in range(n_pheno):
+            HE_response = np.zeros(n_grm)
+            for i in range(n_grm):
+                HE_response[i] = quad_form_func(pheno[:, i_pheno], grm_list[i])
+            df_rls.append(linalg.solve(HE_design, HE_response))
+        df_rls = pd.DataFrame(np.vstack(df_rls), columns=[name for name in grm_dict])
 
     return df_rls

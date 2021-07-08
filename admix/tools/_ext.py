@@ -10,7 +10,9 @@ import subprocess
 import tempfile
 from os.path import join
 
-
+##################
+# common utilities
+##################
 def has_dependency(name):
     return (
         subprocess.call(
@@ -23,7 +25,13 @@ def has_dependency(name):
     )
 
 
+########
+# gcta
+########
+
+#######
 # plink
+#######
 def plink_merge(bfiles: List[str], out: str):
     """Shortcut for merging a list of bfiles
 
@@ -77,7 +85,12 @@ def plink_read_fam(fam: str):
     )
 
 
-def lift_over(chrom_pos: np.ndarray, chain: str, verbose: str = False):
+########################################################################################
+############################ miscellaneous #############################################
+########################################################################################
+
+
+def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     """Lift over between genome assembly
     Download appropriate chain file from

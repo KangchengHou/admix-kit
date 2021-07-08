@@ -86,9 +86,8 @@ def grm(dset: xr.Dataset, inplace=True):
     g = g.sum(axis=2)
     # normalization
     g_mean = g.mean(axis=0)
-    g_std = g.std(axis=0)
     assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
-    g = (g - g_mean) / g_std
+    g = (g - g_mean) / np.sqrt(g_mean * (2 - g_mean) / 2)
     # calculate GRM
     grm = np.dot(g, g.T) / n_snp
     if inplace:

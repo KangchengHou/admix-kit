@@ -5,6 +5,7 @@ from ..tools import allele_per_anc
 from typing import List
 import dask.array as da
 import xarray as xr
+from typing import Union, List, Dict
 
 
 def continuous_pheno(
@@ -108,27 +109,20 @@ def continuous_pheno(
 
 def continuous_pheno_grm(
     dset: xr.Dataset,
-    grm: dict,
-    var_g: float,
-    var_e: float,
-    gamma=None,
+    grm: Union[str, List[str], dict],
+    var: Dict[str, float],
     cov_cols: List[str] = None,
     cov_effects: List[float] = None,
     n_sim=10,
 ):
     """Simulate continuous phenotype of admixed individuals [continuous] using GRM
-    grm: dict
-        dictionary containing the GRM of the admixture
-        - K1: np.ndarray
-            ancestry specific GRM matrix for the 1st ancestry
-        - K2: np.ndarray
-            ancestry specific GRM matrix for the 2nd ancestry
-        - K12: np.ndarray
-            ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
-    var_g: float
-        Variance explained by the genotype effect
-    var_e: float
-        Variance explained by the effect of the environment
+    grm: str, list of str or dict
+        column name(s) of GRM, or a dict of {name: grm}
+        Don't include the identity matrix, the indentify matrix representing environemntal
+        factor will be added to the list automatically
+    var: dict of {str: float}
+        dictionary of variance explained by the GRM effect, use 'e' to set the variance of
+        environmental effectse.g. {'K1': 0.5, 'K2': 0.5, 'e': 1.0}
     gamma: float, optional
         Correlation between the genetic effects from two ancestral backgrounds, by default None
     cov_cols: List[str], optional
@@ -145,17 +139,25 @@ def continuous_pheno_grm(
         - pheno: (n_indiv, n_sim) simulated phenotype
         - cov_effects: (n_cov,) simulated covariate effects
     """
-    n_indiv = grm["K1"].shape[0]
-    if gamma is None:
-        # covariance of effects across ancestries set to 1 if `gamma` is not specfied.
-        gamma = var_g
+    # get the dictionary of all the GRMs (including environmental)
+    # name -> (grm, var)
+    if isinstance(grm, dict):
+        # obtain from the list
+        grm_var = {k: (grm[k], var[k]) for k in grm}
+    elif isinstance(grm, list):
+        grm_var = {k: (dset[k].data, var[k]) for k in grm}
+    elif isinstance(grm, str):
+        grm_var = {grm: (dset[grm].data, var[grm])}
+    else:
+        raise ValueError("`grm` must be a dictionary, list or string")
 
-    # construct the GRM covariance for simulation
-    covariance = (
-        var_g * (grm["K1"] + grm["K2"])
-        + gamma * (grm["K12"] + grm["K12"].T)
-        + var_e * np.eye(n_indiv)
-    )
+    # add environemntal effect
+    n_indiv = dset.dims["indiv"]
+    grm_var["e"] = (np.eye(n_indiv), var["e"])
+
+    covariance = da.zeros((n_indiv, n_indiv))
+    for name in grm_var:
+        covariance += grm_var[name][0] * grm_var[name][1]
 
     # fixed effects
     # if `cov_cols` are specified, add the covariates to the phenotype
