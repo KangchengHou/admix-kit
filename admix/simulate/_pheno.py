@@ -52,7 +52,7 @@ def continuous_pheno(
         simulated phenotype (n_indiv, n_sim)
     """
     n_anc = dset.n_anc
-    apa = allele_per_anc(dset)
+    apa = allele_per_anc(dset, inplace=False)
     n_indiv, n_snp = apa.shape[0:2]
 
     if gamma is None:

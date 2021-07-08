@@ -131,7 +131,7 @@ def admix_grm(dset, center: bool = False, mask: bool = False, inplace=True):
     assert n_anc == 2, "only two-way admixture is implemented"
     assert np.all(geno.shape == lanc.shape)
 
-    apa = allele_per_anc(dset, return_mask=mask).astype(float)
+    apa = allele_per_anc(dset, return_mask=mask, inplace=False).astype(float)
 
     n_indiv, n_snp = apa.shape[0:2]
 

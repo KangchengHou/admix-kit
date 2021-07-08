@@ -99,7 +99,7 @@ def marginal(
         # number of african alleles
         lanc = np.sum(dset["lanc"].data, axis=2)
         # alleles per ancestry
-        allele_per_anc = admix.tools.allele_per_anc(dset).compute()
+        allele_per_anc = admix.tools.allele_per_anc(dset, inplace=False).compute()
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):

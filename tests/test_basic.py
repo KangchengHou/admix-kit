@@ -41,11 +41,11 @@ def test_utils():
         attrs={"n_anc": 2},
     )
 
-    allele_per_anc = admix.tools.allele_per_anc(ds).compute()
+    allele_per_anc = admix.tools.allele_per_anc(ds, inplace=False)
     assert np.all(allele_per_anc == [[[1, 0], [2, 0], [0, 0]]])
     ds = load_toy()[0]
-    apa1 = admix.tools.allele_per_anc(ds, return_mask=False)
-    apa2 = admix.tools.allele_per_anc(ds, return_mask=True)
+    apa1 = admix.tools.allele_per_anc(ds, return_mask=False, inplace=False)
+    apa2 = admix.tools.allele_per_anc(ds, return_mask=True, inplace=False)
     assert np.all(apa1 == np.ma.getdata(apa2)).compute()
     assert np.all(apa1.compute()[da.ma.getmaskarray(apa2)] == 0)
 
@@ -53,7 +53,7 @@ def test_utils():
 def test_compute_grm():
 
     ds = load_toy()[0]
-    allele_per_anc = admix.tools.allele_per_anc(ds).astype(float)
+    allele_per_anc = admix.tools.allele_per_anc(ds, inplace=False).astype(float)
 
 
 def test_simulate():
@@ -62,7 +62,7 @@ def test_simulate():
 
     dset = load_toy()[0]
     sim = continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
-    grm = admix_grm(dset)
+    grm = admix_grm(dset, inplace=False)
     ys = continuous_pheno_grm(dset, grm, var_g=1.0, gamma=1.0, var_e=1.0)
 
 
