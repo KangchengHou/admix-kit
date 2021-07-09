@@ -1,6 +1,6 @@
 from ._pheno import continuous_pheno, continuous_pheno_grm
+from ._geno import admix_geno
 
-# from ._lanc import simulate_lanc
 # from ._genotype import simulate_hap
 
-__all__ = ["continuous_pheno", "continuous_pheno_grm"]
+__all__ = ["continuous_pheno", "continuous_pheno_grm", "admix_geno"]
