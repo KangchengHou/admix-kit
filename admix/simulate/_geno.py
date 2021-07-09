@@ -6,10 +6,11 @@ from typing import List, Collection, Optional
 def _lanc(
     n_hap: int,
     n_snp: int,
-    recomb_rate: float,
+    mosaic_size: float,
     anc_props: List[float],
 ) -> np.ndarray:
     """Simulate local ancestries based on Poisson process.
+
 
     TODO: we could specify the centimorgan for all the SNPs, then infer some
     recombination rates from the centimorgans.
@@ -19,8 +20,8 @@ def _lanc(
         Number of haplotypes
     n_snp : int
         Number of SNPs
-    recomb_rate : bool
-        Recombination rate per base pair
+    mosaic_size : float
+        Expected mosaic size in # of SNPs
     anc_props : list of float
         Proportion of ancestral populations, if not specified, the proportion
         is uniform over the ancestral populations.
@@ -36,11 +37,11 @@ def _lanc(
     # TODO: infer the parameter in the exponential distribution
 
     # number of chunks to simulate in each iteration
-    chunk_size = int(n_total_snp * recomb_rate)
+    chunk_size = int(n_total_snp / mosaic_size)
 
     breaks: List[float] = []
     while np.sum(breaks) < n_total_snp:
-        breaks.extend(np.random.exponential(scale=1 / recomb_rate, size=chunk_size))
+        breaks.extend(np.random.exponential(scale=mosaic_size, size=chunk_size))
     breaks = np.ceil(breaks).astype(int)
     breaks = breaks[0 : np.argmax(np.cumsum(breaks) > n_total_snp) + 1]
 
@@ -57,7 +58,7 @@ def admix_geno(
     n_indiv: int,
     n_snp: int,
     n_anc: int,
-    recomb_rate: float,
+    mosaic_size: float,
     anc_props: np.ndarray = None,
 ) -> xr.Dataset:
     """Simulate admixed genotype
@@ -78,8 +79,8 @@ def admix_geno(
         Number of SNPs
     n_anc : int
         Number of ancestries
-    recomb_rate : float
-        Recombination rate per base pair
+    mosaic_size : float
+        Expected mosaic size in # of SNPs
     anc_props : list of float
         Proportion of ancestral populations, if not specified, the proportion
         is uniform over the ancestral populations.
@@ -104,7 +105,7 @@ def admix_geno(
     anc_props = np.array(anc_props)
     assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
 
-    rls_lanc = _lanc(n_indiv * 2, n_snp, recomb_rate=1e-8, anc_props=anc_props)
+    rls_lanc = _lanc(n_indiv * 2, n_snp, mosaic_size=mosaic_size, anc_props=anc_props)
     # n_indiv x n_snp x 2 (2 for each haplotype)
     rls_lanc = np.dstack([rls_lanc[0:n_indiv, :], rls_lanc[n_indiv:, :]])
     rls_geno = np.zeros_like(rls_lanc)
