@@ -1,14 +1,51 @@
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import collections as mc
 import pandas as pd
+import matplotlib
+import xarray as xr
+import warnings
 
 
 def manhattan(pvals):
     pass
 
 
-def lanc(lanc: np.ndarray, ax=None):
+def lanc(
+    dset: xr.Dataset = None, lanc: np.ndarray = None, ax=None, max_indiv: int = 10
+) -> None:
+    """
+    Plot local ancestry.
+
+    Parameters
+    ----------
+    dset: xarray.Dataset
+        A dataset containing the local ancestry matrix.
+    lanc: np.ndarray
+        A numpy array of shape (n_indiv, n_snp, 2)
+    ax: matplotlib.Axes
+        A matplotlib axes object to plot on. If None, will create a new one.
+    max_indiv: int
+        The maximum number of individuals to plot.
+    Returns
+    -------
+    ax: matplotlib.Axes
+    """
+    # if dataset is provided, use it to extract lanc
+    if dset is not None:
+        lanc = dset.lanc.values
+    else:
+        assert lanc is not None, "either dataset or lanc must be provided"
+    assert lanc.shape[2] == 2, "lanc must be of shape (n_indiv, n_snp, 2)"
+    n_indiv, n_snp = lanc.shape[0:2]
+
+    if n_indiv > max_indiv:
+        warnings.warn(
+            f"Only the first {max_indiv} are plotted. To plot more individuals, increase `max_indiv`"
+        )
+    else:
+        max_indiv = n_indiv
     if ax is None:
         ax = plt.gca()
 
@@ -16,18 +53,18 @@ def lanc(lanc: np.ndarray, ax=None):
     stop = []
     label = []
     row = []
-    n_haplo = lanc.shape[0]
-    for i_haplo in range(n_haplo):
 
-        a = lanc[i_haplo, :]
-        switch = np.where(a[1:] != a[0:-1])[0]
-        switch = np.concatenate([[0], switch, [len(a)]])
+    for i_indiv in range(max_indiv):
+        for i_ploidy in range(2):
+            a = lanc[i_indiv, :, i_ploidy]
+            switch = np.where(a[1:] != a[0:-1])[0]
+            switch = np.concatenate([[0], switch, [len(a)]])
 
-        for i_switch in range(len(switch) - 1):
-            start.append(switch[i_switch])
-            stop.append(switch[i_switch + 1])
-            label.append(a[start[-1] + 1])
-            row.append(i_haplo)
+            for i_switch in range(len(switch) - 1):
+                start.append(switch[i_switch])
+                stop.append(switch[i_switch + 1])
+                label.append(a[start[-1] + 1])
+                row.append(i_indiv - 0.1 + i_ploidy * 0.2)
 
     df_plot = pd.DataFrame({"start": start, "stop": stop, "label": label, "row": row})
 
@@ -46,13 +83,37 @@ def lanc(lanc: np.ndarray, ax=None):
 
     ax.legend()
     ax.autoscale()
-    ax.set_xlabel("Position")
-    ax.set_ylabel("Haplotype")
+    ax.set_xlabel("SNP index")
+    ax.set_ylabel("Individuals")
     ax.set_yticks([])
     ax.set_yticklabels([])
 
 
-def admixture(a, labels=None, label_orders=None, ax=None):
+def admixture(
+    a: np.ndarray,
+    labels=None,
+    label_orders=None,
+    ax=None,
+) -> None:
+    """
+    Plot admixture.
+
+    Parameters
+    ----------
+    a: np.ndarray
+        A numpy array of shape (n_indiv, n_snp, 2)
+    labels: list
+        A list of labels for each individual.
+    label_orders: list
+        A list of orderings for the individuals.
+    ax: matplotlib.Axes
+        A matplotlib axes object to plot on. If None, will create a new one.
+
+    Returns
+    -------
+    None
+    """
+
     n_indiv, n_pop = a.shape
 
     # reorder based on labels
