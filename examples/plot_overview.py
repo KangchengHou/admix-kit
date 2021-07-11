@@ -67,8 +67,8 @@ print(f"Accuracy: {acc:.2f}")
 
 fig, ax = plt.subplots(ncols=2, figsize=(8, 3))
 # TODO: make lanc accomodate to dset format directly.
-admix.plot.lanc(admix_dset.lanc[0:10, :, 0].values, ax=ax[0])
-admix.plot.lanc(admix_dset.est_lanc[0:10, :, 0].values, ax=ax[1])
+admix.plot.lanc(admix_dset, ax=ax[0])
+admix.plot.lanc(admix_dset, ax=ax[1])
 ax[0].set_title("Simulated ground-truth")
 ax[1].set_title("Estimated")
 plt.tight_layout()

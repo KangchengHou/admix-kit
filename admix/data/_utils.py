@@ -7,6 +7,7 @@ import warnings
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 from os.path import dirname, join
 from typing import List
+import os
 
 
 def make_dataset(
@@ -134,7 +135,7 @@ def load_toy() -> List[xr.Dataset]:
     dset_eur = xr.open_zarr(join(test_data_path, "eur.zip"))
     dset_afr = xr.open_zarr(join(test_data_path, "afr.zip"))
     dset_admix = xr.open_zarr(join(test_data_path, "admix.zip"))
-    return dset_admix, dset_eur, dset_afr
+    return [dset_admix, dset_eur, dset_afr]
 
 
 def load_lab_dataset(name: str) -> xr.Dataset:
