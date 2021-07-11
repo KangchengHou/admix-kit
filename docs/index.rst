@@ -7,6 +7,7 @@ admix-tools documentation
    :caption: Tutorials:
    
    auto_examples/plot_overview
+   auto_examples/plot_admix_corr
    prepare_data
    assoc_test
    
