@@ -1,6 +1,8 @@
+from dask.array.core import Array
 import numpy as np
 import re
 import dask.array as da
+from numpy.lib.arraysetops import isin
 import pandas as pd
 import xarray as xr
 import warnings
@@ -23,19 +25,19 @@ def allele_per_anc(ds, return_mask=False, inplace=True):
     Return allele counts per ancestries
     """
     geno, lanc = ds.data_vars["geno"].data, ds.data_vars["lanc"].data
+
     n_anc = ds.attrs["n_anc"]
     assert np.all(geno.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
     assert geno.ndim == 3, "`hap` and `lanc` should have three dimension"
     n_indiv, n_snp, n_haplo = geno.shape
     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
 
-    if isinstance(geno, da.Array):
-        assert isinstance(lanc, da.Array)
-        # make sure the chunk size along the haploid axis to be 2
-        geno = geno.rechunk({2: 2})
-        lanc = lanc.rechunk({2: 2})
-    else:
-        assert isinstance(geno, np.ndarray) & isinstance(lanc, np.ndarray)
+    assert isinstance(geno, da.Array) & isinstance(
+        lanc, da.Array
+    ), "`geno` and `lanc` should be dask array"
+    # make sure the chunk size along the haploid axis to be 2
+    geno = geno.rechunk({2: 2})
+    lanc = lanc.rechunk({2: 2})
 
     def helper(geno_chunk, lanc_chunk, n_anc):
         n_indiv, n_snp, n_haplo = geno_chunk.shape
@@ -65,7 +67,7 @@ def allele_per_anc(ds, return_mask=False, inplace=True):
         return rls_allele_per_anc
 
 
-def grm(dset: xr.Dataset, inplace=True):
+def grm(dset: xr.Dataset, method="gcta", inplace=True):
     """Calculate the GRM matrix
     The GRM matrix is calculated treating the genotypes as from one ancestry population,
     the same as GCTA.
@@ -74,6 +76,11 @@ def grm(dset: xr.Dataset, inplace=True):
     ----------
     dset: xr.Dataset
         dataset containing geno
+    method: str
+        method to calculate the GRM matrix, `gcta` or `raw`
+        - `raw`: use the raw genotype data without any transformation
+        - `center`: center the genotype data only
+        - `gcta`: use the GCTA implementation of GRM, center + standardize
     inplace: bool
         whether to return a new dataset or modify the input dataset
     Returns
@@ -81,15 +88,30 @@ def grm(dset: xr.Dataset, inplace=True):
     n_indiv x n_indiv GRM matrix if `inplace` is False, else return None
     """
 
+    assert method in [
+        "raw",
+        "center",
+        "gcta",
+    ], "`method` should be `raw`, `center`, or `gcta`"
     g = dset["geno"].data
     n_indiv, n_snp, n_haplo = g.shape
     g = g.sum(axis=2)
-    # normalization
-    g_mean = g.mean(axis=0)
-    assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
-    g = (g - g_mean) / np.sqrt(g_mean * (2 - g_mean) / 2)
-    # calculate GRM
-    grm = np.dot(g, g.T) / n_snp
+
+    if method == "raw":
+        grm = np.dot(g, g.T) / n_snp
+    elif method == "center":
+        g -= g.mean(axis=0)
+        grm = np.dot(g, g.T) / n_snp
+    elif method == "gcta":
+        # normalization
+        g_mean = g.mean(axis=0)
+        assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
+        g = (g - g_mean) / np.sqrt(g_mean * (2 - g_mean) / 2)
+        # calculate GRM
+        grm = np.dot(g, g.T) / n_snp
+    else:
+        raise ValueError("method should be `gcta` or `raw`")
+
     if inplace:
         dset["grm"] = xr.DataArray(grm, dims=("indiv", "indiv"))
     else:

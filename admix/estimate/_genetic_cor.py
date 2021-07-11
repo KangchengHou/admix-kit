@@ -43,11 +43,6 @@ def gen_cor(
             - "HE" (default): Haseman–Elston (HE) regression.
             - "RHE": Randomized Haseman–Elston (RHE) regression.
             - "REML": REML regression.
-    estimand: str, optional
-        Estimand to use for estimation. Valid options are:
-            - "var": Only genetic variance.
-            - "var+gamma": Both genetic variance and covariance.
-            - "var1+var2+gamma": Genetic variances from two backgrounds and covariance.
     """
     assert method in ["HE", "RHE", "REML"]
     n_indiv = dset.dims["indiv"]

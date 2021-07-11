@@ -1,11 +1,11 @@
 from scipy.optimize import fsolve
 import numpy as np
 from scipy.special import logit, expit
-from ..tools import allele_per_anc
 from typing import List
 import dask.array as da
 import xarray as xr
 from typing import Union, List, Dict
+import admix
 
 
 def continuous_pheno(
@@ -53,12 +53,17 @@ def continuous_pheno(
         simulated phenotype (n_indiv, n_sim)
     """
     n_anc = dset.n_anc
-    apa = allele_per_anc(dset, inplace=False)
+    assert n_anc == 2, "Only two-ancestry currently supported"
+    if "allele_per_anc" not in dset.data_vars:
+        admix.tools.allele_per_anc(dset)
+
+    apa = dset.data_vars["allele_per_anc"]
     n_indiv, n_snp = apa.shape[0:2]
 
     if gamma is None:
         # covariance of effects across ancestries set to 1 if `gamma` is not specfied.
         gamma = var_g
+
     if n_causal is None:
         # n_causal = n_snp if `n_causal` is not specified
         n_causal = n_snp
@@ -66,6 +71,7 @@ def continuous_pheno(
     beta = np.zeros((n_snp, n_anc, n_sim))
     for i_sim in range(n_sim):
         cau = sorted(np.random.choice(np.arange(n_snp), size=n_causal, replace=False))
+
         i_beta = np.random.multivariate_normal(
             mean=[0.0, 0.0],
             cov=np.array([[var_g, gamma], [gamma, var_g]]) / n_causal,

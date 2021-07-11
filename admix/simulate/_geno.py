@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from typing import List, Collection, Optional
+import dask.array as da
 
 
 def _lanc(
@@ -60,6 +61,8 @@ def admix_geno(
     n_anc: int,
     mosaic_size: float,
     anc_props: np.ndarray = None,
+    maf_low: float = 0.05,
+    maf_high: float = 0.5,
 ) -> xr.Dataset:
     """Simulate admixed genotype
     The generative model is:
@@ -84,7 +87,10 @@ def admix_geno(
     anc_props : list of float
         Proportion of ancestral populations, if not specified, the proportion
         is uniform over the ancestral populations.
-
+    maf_low : float
+        Lowest allowed minor allele frequency
+    maf_high : float
+        Highest allowed minor allele frequency
 
     Returns
     -------
@@ -111,7 +117,7 @@ def admix_geno(
     rls_geno = np.zeros_like(rls_lanc)
     # allele frequencies for the two populations
     allele_freqs = [
-        np.random.uniform(low=0.05, high=0.5, size=n_snp) for _ in range(n_anc)
+        np.random.uniform(low=maf_low, high=maf_high, size=n_snp) for _ in range(n_anc)
     ]
     for i_anc in range(n_anc):
         rls_geno[rls_lanc == i_anc] = np.random.binomial(
@@ -119,8 +125,11 @@ def admix_geno(
         )
 
     return xr.Dataset(
-        {
-            "geno": (["indiv", "snp", "haploid"], rls_geno),
-            "lanc": (["indiv", "snp", "haploid"], rls_lanc),
-        }
+        data_vars={
+            "geno": (["indiv", "snp", "haploid"], da.from_array(rls_geno)),
+            "lanc": (["indiv", "snp", "haploid"], da.from_array(rls_lanc)),
+        },
+        attrs={
+            "n_anc": n_anc,
+        },
     )

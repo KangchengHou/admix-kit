@@ -1,8 +1,10 @@
+"""
+all about admix.Dataset
+"""
+
+from ._utils import make_dataset, load_toy, load_lab_dataset
 from ._utils import make_dataset
-from ._dataset import load_toy
-from ..tools import allele_per_anc, admix_grm
-from ._utils import make_dataset
-from ._dataset import load_toy, load_lab_dataset
+from ._dataset import Dataset
 
 from ._read import read_digit_mat, write_digit_mat
 
@@ -13,4 +15,5 @@ __all__ = [
     "load_toy",
     "load_lab_dataset",
     "make_dataset",
+    "Dataset",
 ]

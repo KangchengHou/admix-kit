@@ -78,7 +78,7 @@ plt.show()
 # Now we simulate phenotype for these admixed individuals.
 # Maybe simulate case control would be a good idea
 np.random.seed(1234)
-beta, pheno_g, pheno = admix.simulate.continuous_phenotype(
+beta, pheno_g, pheno = admix.simulate.continuous_pheno(
     dset=admix_dset, var_g=0.8, var_e=0.2, n_causal=2, n_sim=10
 )
 print(beta.shape)  # (n_snp, n_anc, n_sim)

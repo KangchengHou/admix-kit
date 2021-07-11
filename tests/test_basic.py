@@ -3,8 +3,7 @@ import numpy as np
 from numpy.lib.npyio import load
 import pandas as pd
 import admix
-import os
-import zarr
+
 import xarray as xr
 from admix.data import load_toy
 
@@ -35,8 +34,8 @@ def test_utils():
     lanc = np.array([[[0, 0], [0, 0], [0, 0]]])
     ds = xr.Dataset(
         data_vars={
-            "geno": (("indiv", "snp", "haploid"), geno),
-            "lanc": (("indiv", "snp", "haploid"), lanc),
+            "geno": (("indiv", "snp", "haploid"), da.from_array(geno)),
+            "lanc": (("indiv", "snp", "haploid"), da.from_array(lanc)),
         },
         attrs={"n_anc": 2},
     )
@@ -57,13 +56,14 @@ def test_compute_grm():
 
 
 def test_simulate():
-    from admix.simulate import continuous_pheno, continuous_pheno_grm
-    from admix.tools import admix_grm
 
     dset = load_toy()[0]
-    sim = continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
-    grm = admix_grm(dset, inplace=False)
-    ys = continuous_pheno_grm(dset, grm, var_g=1.0, gamma=1.0, var_e=1.0)
+    sim = admix.simulate.continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
+
+    admix.tools.grm(dset, method="center")
+    ys = admix.simulate.continuous_pheno_grm(
+        dset, grm="grm", var={"grm": 1.0, "e": 1.0}
+    )
 
 
 def test_lamp():
