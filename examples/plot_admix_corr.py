@@ -40,7 +40,7 @@ dset = admix.simulate.admix_geno(
     n_indiv=5000, n_snp=1000, n_anc=2, mosaic_size=100, anc_props=[0.1, 0.9]
 )
 admix.tools.allele_per_anc(dset)
-admix.tools.admix_grm(dset)
+admix.tools.admix_grm(dset, center=True)
 
 grms = {
     "A1": dset["admix_grm_K1"].data + dset["admix_grm_K2"].data,
