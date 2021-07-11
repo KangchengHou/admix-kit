@@ -25,4 +25,4 @@ admix-tools documentation
    :maxdepth: 2
    :caption: Package reference
 
-   api/index
+   api

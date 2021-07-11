@@ -23,9 +23,18 @@ Basic functions
 .. autosummary::
    :toctree: .
 
-    data.compute_allele_per_anc
-    data.read_digit_mat
-    data.write_digit_mat
+   data.Dataset
+
+Tools: `tools`
+--------------
+.. module:: admix.tools
+.. currentmodule:: admix
+
+.. autosummary::
+   :toctree: .
+
+    tools.grm
+    tools.admix_grm
 
 
 Simulation: `simulate`
@@ -34,16 +43,25 @@ Simulation: `simulate`
 .. module:: admix.simulate
 .. currentmodule:: admix
 
-Phenotype
-~~~~~~~~~~~~
-TODO: relevant functions to simulate phenotypes
+.. autosummary::
+   :toctree: .
 
-Genotype
-~~~~~~~~~~~~~~~
-TODO: relevant functions to simulate genotypes
+    simulate.admix_geno
+    simulate.continuous_pheno
+    simulate.continuous_pheno_grm
+
+Estimation: `estimate`
+----------------------
+
+.. module:: admix.estimate
+.. currentmodule:: admix
 
 .. autosummary::
    :toctree: .
 
-    simulate.simulate_lanc
-    simulate.simulate_hap
+    estimate.gen_cor
+
+
+    
+    
+    
