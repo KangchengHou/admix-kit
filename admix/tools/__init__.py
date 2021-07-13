@@ -8,6 +8,7 @@ from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 import dask.array as da
 import dask
 from ._ext import get_dependency, plink2, gcta
+from typing import List, Optional
 
 
 def pca(
@@ -101,15 +102,56 @@ def pca(
 #     return u, s, v
 
 
-def allele_per_anc(ds, return_mask=False, inplace=True):
+def af_per_anc(dset: xr.Dataset, inplace=True) -> Optional[np.ndarray]:
+    """
+    Calculate allele frequency per ancestry
+
+    Parameters
+    ----------
+    dset: xr.Dataset
+        Containing geno, lanc, n_anc
+
+    Returns
+    -------
+    List[np.ndarray]
+        `n_anc` length list of allele frequencies.
+    """
+    assert "geno" in dset.data_vars, "`geno` not in `ds.data_vars`"
+    assert "lanc" in dset.data_vars, "`lanc` not in `ds.data_vars`"
+    n_anc = dset.attrs["n_anc"]
+    geno = dset.data_vars["geno"]
+    lanc = dset.data_vars["lanc"]
+    rls = []
+    for i_anc in range(n_anc):
+        # mask SNPs with local ancestry not `i_anc`
+        rls.append(
+            da.ma.getdata(
+                da.ma.masked_where(lanc != i_anc, geno).mean(axis=(0, 2))
+            ).compute()
+        )
+    rls = da.from_array(np.array(rls)).T
+    if inplace:
+        dset["af_per_anc"] = xr.DataArray(
+            rls,
+            dims=(
+                "snp",
+                "anc",
+            ),
+        )
+        return None
+    else:
+        return rls
+
+
+def allele_per_anc(ds, center=False, inplace=True):
     """Get allele count per ancestry
 
     Parameters
     ----------
     ds: xr.Dataset
         Containing geno, lanc, n_anc
-    return_mask: bool
-        whether to return a masked array
+    center: bool
+        whether to center the data around empirical frequencies of each ancestry
     inplace: bool
         whether to return a new dataset or modify the input dataset
     Returns
@@ -127,29 +169,82 @@ def allele_per_anc(ds, return_mask=False, inplace=True):
     assert isinstance(geno, da.Array) & isinstance(
         lanc, da.Array
     ), "`geno` and `lanc` should be dask array"
-    # make sure the chunk size along the haploid axis to be 2
+
+    # make sure the chunk size along the ploidy axis to be 2
     geno = geno.rechunk({2: 2})
     lanc = lanc.rechunk({2: 2})
 
-    def helper(geno_chunk, lanc_chunk, n_anc):
+    # TODO: align the chunk size along 1st axis to be the same
+
+    # def helper(geno_chunk, lanc_chunk, n_anc):
+    #     n_indiv, n_snp, n_haplo = geno_chunk.shape
+    #     apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
+
+    #     for i_haplo in range(n_haplo):
+    #         haplo_hap = geno_chunk[:, :, i_haplo]
+    #         haplo_lanc = lanc_chunk[:, :, i_haplo]
+    #         for i_anc in range(n_anc):
+    #             apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+    #     return apa
+
+    # rls_allele_per_anc = da.map_blocks(
+    #     lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc
+    # )
+
+    def helper(geno_chunk, lanc_chunk, n_anc, af_chunk=None):
+
         n_indiv, n_snp, n_haplo = geno_chunk.shape
-        apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.int8)
+        apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.float64)
 
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
             for i_anc in range(n_anc):
-                apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
+                if af_chunk is None:
+                    apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
+                        haplo_lanc == i_anc
+                    ]
+                else:
+                    apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
+                        haplo_lanc == i_anc
+                    ] - af_chunk[:, np.where(haplo_lanc == i_anc)[1], i_anc].squeeze(
+                        axis=0
+                    )
         return apa
 
-    rls_allele_per_anc = da.map_blocks(
-        lambda a, b: helper(a, b, n_anc=n_anc), geno, lanc
-    )
+    if center:
+        if inplace:
+            af_per_anc(ds, inplace=True)
+            af = ds.data_vars["af_per_anc"].data
+        else:
+            af = af_per_anc(ds, inplace=False)
+        # rechunk so that all chunk of `n_anc` is passed into the helper function
+        assert (
+            n_anc == 2
+        ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
+        af = af.rechunk({1: n_anc})
 
-    if return_mask:
-        mask = np.dstack([np.all(lanc != i_anc, axis=2) for i_anc in range(n_anc)])
-        rls_allele_per_anc = da.ma.masked_array(
-            rls_allele_per_anc, mask=mask, fill_value=0
+        rls_allele_per_anc = da.map_blocks(
+            lambda geno_chunk, lanc_chunk, af_chunk: helper(
+                geno_chunk=geno_chunk,
+                lanc_chunk=lanc_chunk,
+                n_anc=n_anc,
+                af_chunk=af_chunk,
+            ),
+            geno,
+            lanc,
+            af[None, :, :],
+            dtype=np.float64,
+        )
+
+    else:
+        rls_allele_per_anc = da.map_blocks(
+            lambda geno_chunk, lanc_chunk: helper(
+                geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc
+            ),
+            geno,
+            lanc,
+            dtype=np.float64,
         )
     if inplace:
         ds["allele_per_anc"] = xr.DataArray(
@@ -210,7 +305,7 @@ def grm(dset: xr.Dataset, method="gcta", inplace=True):
         return grm
 
 
-def admix_grm(dset, center: bool = False, mask: bool = False, inplace=True):
+def admix_grm(dset, center: bool = False, inplace=True):
     """Calculate ancestry specific GRM matrix
 
     Parameters
@@ -218,9 +313,6 @@ def admix_grm(dset, center: bool = False, mask: bool = False, inplace=True):
     center: bool
         whether to center the `allele_per_ancestry` matrix
         in the calculation
-    mask: bool
-        whether to mask the missing values when perform the
-        centering
     inplace: bool
         whether to return a new dataset or modify the input dataset
 
@@ -243,21 +335,11 @@ def admix_grm(dset, center: bool = False, mask: bool = False, inplace=True):
     n_anc = dset.attrs["n_anc"]
     assert n_anc == 2, "only two-way admixture is implemented"
     assert np.all(geno.shape == lanc.shape)
-
-    apa = allele_per_anc(dset, return_mask=mask, inplace=False).astype(float)
+    # TODO: everytime should we recompute? or use the cached version?
+    # how to make sure the cache is up to date?
+    apa = allele_per_anc(dset, center=center, inplace=False).astype(float)
 
     n_indiv, n_snp = apa.shape[0:2]
-
-    if center:
-        if mask:
-            # only calculate at nonmissing entries
-            mean_apa = np.ma.getdata(np.mean(apa, axis=0).compute())
-            apa = apa - mean_apa
-            apa = da.ma.getdata(apa)
-        else:
-            # calculate at all entries
-            mean_apa = np.mean(da.ma.getdata(apa), axis=0).compute()
-            apa = da.ma.getdata(apa) - mean_apa
 
     a1, a2 = apa[:, :, 0], apa[:, :, 1]
 
