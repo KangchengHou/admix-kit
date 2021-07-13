@@ -3,6 +3,9 @@ from scipy import linalg
 import pandas as pd
 import xarray as xr
 from typing import List, Union
+import admix
+import tempfile
+from .._utils import cd
 
 
 def trace_mul(a, b):
@@ -43,6 +46,8 @@ def gen_cor(
             - "HE" (default): Haseman–Elston (HE) regression.
             - "RHE": Randomized Haseman–Elston (RHE) regression.
             - "REML": REML regression.
+            - "HE-gcta": HE regression as implemented in GCTA.
+            - "REML-gcta": REML as implemented in GCTA.
     """
     assert method in ["HE", "RHE", "REML"]
     n_indiv = dset.dims["indiv"]

@@ -61,7 +61,6 @@ Estimation: `estimate`
 
     estimate.gen_cor
 
-
     
     
     

@@ -95,7 +95,7 @@ def pval2zsc(pval):
 
 
 def chi2_to_logpval(chi2, dof=1):
-    return stats.chi2.logsf(chi2, dof)
+    return scipy.stats.chi2.logsf(chi2, dof)
 
 
 def check_align(dsets: List[xr.Dataset], dim: str) -> bool:
@@ -113,7 +113,7 @@ def check_align(dsets: List[xr.Dataset], dim: str) -> bool:
     bool: whether the two datasets align in the given dimension
     """
     assert dim in ["snp", "indiv"]
-    pass
+    return
 
 
 def align(dsets: List[xr.Dataset], dim: str) -> List[xr.Dataset]:
@@ -132,6 +132,8 @@ def align(dsets: List[xr.Dataset], dim: str) -> List[xr.Dataset]:
     """
     assert dim in ["snp", "indiv"]
     pass
+
+    return
 
 
 def make_dataset(
