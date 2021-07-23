@@ -45,8 +45,8 @@ afr_hap = get_subset(afr_hap, n_snp, n_anc_haplo)
 # make xarray
 ds_admix = xr.Dataset(
     data_vars={
-        "geno": (("indiv", "snp", "haploid"), admix_hap),
-        "lanc": (("indiv", "snp", "haploid"), admix_lanc),
+        "geno": (("indiv", "snp", "ploidy"), admix_hap),
+        "lanc": (("indiv", "snp", "ploidy"), admix_lanc),
     },
 )
 ds_admix = ds_admix.assign_coords(
@@ -63,7 +63,7 @@ ds_admix = ds_admix.assign_coords(
 
 ds_eur = xr.Dataset(
     data_vars={
-        "geno": (("indiv", "snp", "haploid"), eur_hap),
+        "geno": (("indiv", "snp", "ploidy"), eur_hap),
     },
     coords={
         "snp": legend.id.values.astype(str),
@@ -77,7 +77,7 @@ ds_eur = xr.Dataset(
 
 ds_afr = xr.Dataset(
     data_vars={
-        "geno": (("indiv", "snp", "haploid"), afr_hap),
+        "geno": (("indiv", "snp", "ploidy"), afr_hap),
     },
     coords={
         "snp": legend.id.values.astype(str),

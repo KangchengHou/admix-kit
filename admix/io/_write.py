@@ -38,3 +38,32 @@ def write_gcta_grm(
     grm[tril_indices_from(grm)].astype(float32).tofile(bin_file)
     # N
     n_snps.astype(float32).tofile(N_file)
+
+
+# def write_gcta_pheno(
+#     file_prefix: str, df_pheno: pd.DataFrame, df_id: pd.DataFrame
+# ) -> None:
+#     """
+#     Write a GCTA phenotype file.
+
+#     Parameters
+#     ----------
+#     file_prefix : str
+#         The prefix of the file to write.
+#     df_pheno : array_like, shape (n_indiv, n_pheno)
+#         The phenotype matrix.
+#     df_id : array_like, shape (n_indiv,)
+#         The ID of each individual.
+
+#     Returns
+#     -------
+#     None
+#     """
+
+#     pheno_file = file_prefix + ".pheno"
+#     id_file = file_prefix + ".id"
+
+#     # id
+#     df_id.to_csv(id_file, sep="\t", header=None, index=False)
+#     # pheno
+#     df_pheno.to_csv(pheno_file, sep="\t", header=None, index=False)

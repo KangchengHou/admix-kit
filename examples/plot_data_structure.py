@@ -6,8 +6,8 @@ We introduce the central data stuctures used in this package.
 
 These data will be of shape
 
-#. genotype (``n_snp``, ``n_indiv``, ``n_haploid``)
-#. local ancestry (``n_snp``, ``n_indiv``, ``n_haploid``)
+#. genotype (``n_snp``, ``n_indiv``, ``n_ploidy``)
+#. local ancestry (``n_snp``, ``n_indiv``, ``n_ploidy``)
 #. information about SNPs (``n_snp``, ``n_snp_feature``)
 #. information about individuals (``n_indiv``, ``n_indiv_feature``)
 

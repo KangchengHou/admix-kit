@@ -157,13 +157,13 @@ def make_dataset(
         Local ancestry
     """
     # fill `data_vars`
-    data_vars = {
-        "geno": (("indiv", "snp", "haploid"), geno),
+    data_vars:dict = {
+        "geno": (("indiv", "snp", "ploidy"), geno),
     }
     if lanc is not None:
-        data_vars["lanc"] = (("indiv", "snp", "haploid"), lanc)
+        data_vars["lanc"] = (("indiv", "snp", "ploidy"), lanc)
 
-    coords = {}
+    coords:dict = {}
     # fill SNP information
     coords["snp"] = snp.index.values
     if not is_string_dtype(coords["snp"]):

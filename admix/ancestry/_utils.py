@@ -23,7 +23,7 @@ def impute_lanc(vcf, ds):
 
     ds_imputed = xr.Dataset(
         data_vars={
-            "geno": (("indiv", "snp", "haploid"), np.swapaxes(gt, 0, 1)),
+            "geno": (("indiv", "snp", "ploidy"), np.swapaxes(gt, 0, 1)),
         },
         coords={
             "snp": vcf["variants/ID"],
@@ -90,6 +90,6 @@ def impute_lanc(vcf, ds):
         )
 
     ds_imputed = ds_imputed.assign(
-        lanc=(("indiv", "snp", "haploid"), np.dstack(imputed_lanc))
+        lanc=(("indiv", "snp", "ploidy"), np.dstack(imputed_lanc))
     )
     return ds_imputed

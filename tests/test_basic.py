@@ -34,8 +34,8 @@ def test_utils():
     lanc = np.array([[[0, 0], [0, 0], [0, 0]]])
     ds = xr.Dataset(
         data_vars={
-            "geno": (("indiv", "snp", "haploid"), da.from_array(geno)),
-            "lanc": (("indiv", "snp", "haploid"), da.from_array(lanc)),
+            "geno": (("indiv", "snp", "ploidy"), da.from_array(geno)),
+            "lanc": (("indiv", "snp", "ploidy"), da.from_array(lanc)),
         },
         attrs={"n_anc": 2},
     )
@@ -43,10 +43,7 @@ def test_utils():
     allele_per_anc = admix.tools.allele_per_anc(ds, inplace=False)
     assert np.all(allele_per_anc == [[[1, 0], [2, 0], [0, 0]]])
     ds = load_toy()[0]
-    apa1 = admix.tools.allele_per_anc(ds, return_mask=False, inplace=False)
-    apa2 = admix.tools.allele_per_anc(ds, return_mask=True, inplace=False)
-    assert np.all(apa1 == np.ma.getdata(apa2)).compute()
-    assert np.all(apa1.compute()[da.ma.getmaskarray(apa2)] == 0)
+    apa = admix.tools.allele_per_anc(ds, inplace=False)
 
 
 def test_compute_grm():

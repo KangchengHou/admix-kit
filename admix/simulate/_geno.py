@@ -126,8 +126,8 @@ def admix_geno(
 
     return xr.Dataset(
         data_vars={
-            "geno": (["indiv", "snp", "haploid"], da.from_array(rls_geno)),
-            "lanc": (["indiv", "snp", "haploid"], da.from_array(rls_lanc)),
+            "geno": (["indiv", "snp", "ploidy"], da.from_array(rls_geno)),
+            "lanc": (["indiv", "snp", "ploidy"], da.from_array(rls_lanc)),
         },
         attrs={
             "n_anc": n_anc,

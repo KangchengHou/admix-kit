@@ -38,7 +38,7 @@ print(afr_dset)
 #
 # * ``indiv``: the dimension of different individual
 # * ``snp``: the dimension of SNP
-# * ``haploid``: the dimension of ploidy, which will be always 2.
+# * ``ploidy``: the dimension of ploidy, which will be always 2.
 #
 # These :class:`xarray.Dataset` objects will be the central data structure we
 # operate on.
@@ -51,7 +51,7 @@ est_lanc = admix.ancestry.lanc(
     n_proto=8,
     window_size=50,
 )
-admix_dset = admix_dset.assign(est_lanc=(("indiv", "snp", "haploid"), est_lanc))
+admix_dset = admix_dset.assign(est_lanc=(("indiv", "snp", "ploidy"), est_lanc))
 acc = (admix_dset.est_lanc == admix_dset.lanc).mean().compute().item()
 print(f"Accuracy: {acc:.2f}")
 

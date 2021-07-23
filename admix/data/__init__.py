@@ -3,8 +3,8 @@ all about admix.Dataset
 """
 
 from ._utils import make_dataset, load_toy, load_lab_dataset
-from ._utils import make_dataset
-from ._dataset import Dataset
+
+# from ._dataset import Dataset
 
 from ._read import read_digit_mat, write_digit_mat
 
