@@ -263,10 +263,16 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
     df_merged = df_old.set_index(3).join(
         df_new.set_index(3), lsuffix="_old", rsuffix="_new"
     )
-    df_unmapped = pd.read_csv(unmapped_file, comment="#", sep="\t", header=None)
-    if verbose:
-        print("Unmapped SNPs:")
-        print(df_unmapped)
+
+    subprocess.check_call(
+        f"cat {unmapped_file}",
+        shell=True,
+    )
+
+    # df_unmapped = pd.read_csv(unmapped_file, comment="#", sep="\t", header=None)
+    # if verbose:
+    #     print("Unmapped SNPs:")
+    #     print(df_unmapped)
     tmp_dir.cleanup()
 
     return df_merged["1_new"].fillna(-1).astype(int).values
