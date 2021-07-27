@@ -96,6 +96,28 @@ def get_dependency(name, download=True):
                             f"mv dir/{platform_wildcard}/gcta64 {cache_bin_path}",
                             shell=True,
                         )
+            elif name == "liftOver":
+                if platform == "darwin":
+                    url = "http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/liftOver"
+                # NOTE: in case GLIBC version is not compatible, try
+                # http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/liftOver
+                elif platform == "linux":
+                    url = (
+                        "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/liftOver"
+                    )
+                else:
+                    raise ValueError(f"Unsupported platform {platform}")
+
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with cd(tmp_dir):
+                        urllib.request.urlretrieve(
+                            url,
+                            "liftOver",
+                        )
+                        subprocess.check_call(f"chmod +x liftOver", shell=True)
+                        subprocess.check_call(
+                            f"mv liftOver {cache_bin_path}", shell=True
+                        )
             else:
                 raise ValueError(f"Unsupported software {name}")
 
@@ -211,7 +233,7 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
     np.ndarray
     SNP positions after the liftOver, unmapped SNPs are returned as -1
     """
-    assert has_dependency("liftOver"), "liftOver should be in $PATH"
+    bin_path = get_dependency("liftOver")
 
     assert chain in [
         "hg38->hg19",
@@ -235,7 +257,7 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     urllib.request.urlretrieve(url_dict[chain], chain_file)
     df_old.to_csv(old_file, sep="\t", index=False, header=False)
-    cmd = f"liftOver {old_file} {chain_file} {new_file} {unmapped_file}"
+    cmd = f"{bin_path} {old_file} {chain_file} {new_file} {unmapped_file}"
     subprocess.check_call(cmd, shell=True)
     df_new = pd.read_csv(new_file, sep="\t", header=None)
     df_merged = df_old.set_index(3).join(

@@ -1,4 +1,12 @@
-__all__ = ["allele_per_anc", "admix_grm", "grm", "get_dependency", "plink2", "gcta"]
+__all__ = [
+    "allele_per_anc",
+    "admix_grm",
+    "grm",
+    "get_dependency",
+    "plink2",
+    "gcta",
+    "lift_over",
+]
 
 from dask.array.core import Array
 import numpy as np
@@ -7,75 +15,75 @@ import xarray as xr
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 import dask.array as da
 import dask
-from ._ext import get_dependency, plink2, gcta
+from ._ext import get_dependency, plink2, gcta, lift_over
 from typing import List, Optional
 
 
-def pca(
-    dset: xr.Dataset,
-    method: str = "grm",
-    n_components: int = 10,
-    n_power_iter: int = 4,
-    inplace: bool = True,
-):
-    """
-    Calculate PCA of dataset
+# def pca(
+#     dset: xr.Dataset,
+#     method: str = "grm",
+#     n_components: int = 10,
+#     n_power_iter: int = 4,
+#     inplace: bool = True,
+# ):
+#     """
+#     Calculate PCA of dataset
 
-    Parameters
-    ----------
-    dset: xr.Dataset
-        Dataset to get PCA
-    method: str
-        Method to calculate PCA, "grm" or "randomized"
-    n_components: int
-        Number of components to keep
-    n_power_iter: int
-        Number of power iterations to use for randomized PCA
-    inplace: bool
-        whether to return a new dataset or modify the input dataset
-    """
+#     Parameters
+#     ----------
+#     dset: xr.Dataset
+#         Dataset to get PCA
+#     method: str
+#         Method to calculate PCA, "grm" or "randomized"
+#     n_components: int
+#         Number of components to keep
+#     n_power_iter: int
+#         Number of power iterations to use for randomized PCA
+#     inplace: bool
+#         whether to return a new dataset or modify the input dataset
+#     """
 
-    assert method in ["grm", "randomized"], "`method` should be 'grm' or 'randomized'"
-    if method == "grm":
-        if "grm" not in dset.data_vars:
-            # calculate grm
-            if inplace:
-                grm(dset, inplace=True)
-                grm_ = dset.data_vars["grm"]
-            else:
-                grm_ = grm(dset, inplace=False)
-        else:
-            grm_ = dset.data_vars["grm"]
-        # calculate pca
-        u, s, v = da.linalg.svd(grm_)
-        u, s, v = dask.compute(u, s, v)
-        exp_var = (s ** 2) / n_indiv
-        full_var = exp_var.sum()
-        exp_var_ratio = exp_var / full_var
+#     assert method in ["grm", "randomized"], "`method` should be 'grm' or 'randomized'"
+#     if method == "grm":
+#         if "grm" not in dset.data_vars:
+#             # calculate grm
+#             if inplace:
+#                 grm(dset, inplace=True)
+#                 grm_ = dset.data_vars["grm"]
+#             else:
+#                 grm_ = grm(dset, inplace=False)
+#         else:
+#             grm_ = dset.data_vars["grm"]
+#         # calculate pca
+#         u, s, v = da.linalg.svd(grm_)
+#         u, s, v = dask.compute(u, s, v)
+#         exp_var = (s ** 2) / n_indiv
+#         full_var = exp_var.sum()
+#         exp_var_ratio = exp_var / full_var
 
-        coords = u[:, :n_components] * s[:n_components]
-        # TODO: unit test with gcta64
-    elif method == "randomized":
-        # n_indiv, n_snp = gn.shape
-        # if copy:
-        #     gn = gn.copy()
+#         coords = u[:, :n_components] * s[:n_components]
+#         # TODO: unit test with gcta64
+#     elif method == "randomized":
+#         # n_indiv, n_snp = gn.shape
+#         # if copy:
+#         #     gn = gn.copy()
 
-        # mean_ = gn.mean(axis=0)
-        # std_ = gn.std(axis=0)
-        # gn -= mean_
-        # gn /= std_
-        u, s, v = da.linalg.svd_compressed(
-            dset, n_components=n_components, n_power_iter=n_power_iter
-        )
+#         # mean_ = gn.mean(axis=0)
+#         # std_ = gn.std(axis=0)
+#         # gn -= mean_
+#         # gn /= std_
+#         u, s, v = da.linalg.svd_compressed(
+#             dset, n_components=n_components, n_power_iter=n_power_iter
+#         )
 
-        # # calculate explained variance
-        # exp_var = (s ** 2) / n_indiv
-        # full_var = exp_var.sum()
-        # exp_var_ratio = exp_var / full_var
+#         # # calculate explained variance
+#         # exp_var = (s ** 2) / n_indiv
+#         # full_var = exp_var.sum()
+#         # exp_var_ratio = exp_var / full_var
 
-        # coords = u[:, :n_components] * s[:n_components]
+#         # coords = u[:, :n_components] * s[:n_components]
 
-    # return coords
+#     # return coords
 
 
 # def pca(gn, n_components=10, copy=True):
