@@ -95,9 +95,14 @@ def variance_component(
             columns = [name for name in grm_dict] + ["e"]
         elif method == "HE-gcta":
             columns = [name + "/total" for name in grm_dict]
-
+        else:
+            raise ValueError("Invalid method")
         df_rls = pd.DataFrame(rls_list, columns=columns)
 
+    elif method == "REML":
+        rls_list = REML(
+            grm_list=[grm_dict[name] for name in grm_dict], pheno=pheno, cov=cov_values
+        )
     else:
         raise NotImplementedError("{} is not implemented".format(method))
 
@@ -236,9 +241,10 @@ def HE_reg(
     return rls_list
 
 
-def REML(grm_list: List, pheno: np.ndarray, cov: np.ndarray, method="gcta"):
+def REML(grm_list: List, pheno: np.ndarray, cov: np.ndarray):
     """
     Estimate the variance components for the given phenotype with REML.
+    Currently only a GCTA wrapper is provided.
     Parameters
     ----------
     grm_list : list of array-like
@@ -248,8 +254,63 @@ def REML(grm_list: List, pheno: np.ndarray, cov: np.ndarray, method="gcta"):
         column is treated as a separate phenotype.
     cov : array-like
         Covariates to be used. (n_indiv, n_cov)
-    method : str, optional
-        Method to use.
-            "gcta": use GCTA to estimate
     """
-    pass
+    # creating dummy individual IDs
+    n_indiv = grm_list[0].shape[0]
+    n_pheno = pheno.shape[1]
+    n_grm = len(grm_list)
+
+    df_id = pd.DataFrame(
+        {
+            "FID": np.arange(n_indiv).astype(str),
+            "IID": np.arange(n_indiv).astype(str),
+        }
+    )
+
+    rls_list = []
+
+    # create temporary directory
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        print(tmp_dir)
+        with cd(tmp_dir):
+            f = open("mgrm.txt", "w")
+            # the last grm corresponds to identity matrix, which will be coped
+            # internally by GCTA, so we don't need to write it
+            for i_grm, grm in enumerate(grm_list[:-1]):
+                name = f"grm_{i_grm}"
+                # NOTE: the degree of freedom for GCTA implementation is not
+                # properly set up. Should not be a big problem for the current.
+
+                # NOTE: n_snps will not be used by GCTA in this HE regression.
+                # so we just set it to some arbitrary value `1`.
+                admix.io.write_gcta_grm(
+                    file_prefix=name,
+                    grm=grm.compute(),
+                    df_id=df_id,
+                    n_snps=np.array([1] * n_indiv),
+                )
+                f.write(f"{name}\n")
+            f.close()
+            df_pheno = df_id.copy()
+            df_covar = df_id.copy()
+            df_covar[[f"COV{cov_i}" for cov_i in range(cov.shape[1])]] = cov
+            df_covar.to_csv("covar.txt", sep="\t", index=False, header=False)
+
+            # write covarites
+            for i_pheno in range(n_pheno):
+                df_pheno["PHENO"] = pheno[:, i_pheno]
+                df_pheno.to_csv("pheno.txt", sep="\t", index=False, header=False)
+
+                # run GCTA
+                admix.tools.gcta(
+                    "--reml --mgrm mgrm.txt --pheno pheno.txt --qcovar covar.txt --reml-est-fix --reml-no-constrain --out result"
+                )
+
+                df_rls = pd.read_csv(
+                    "result.hsq",
+                    delim_whitespace=True,
+                    nrows=n_grm,
+                )
+                rls_list.append(df_rls)
+
+    return rls_list
