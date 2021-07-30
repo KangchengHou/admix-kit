@@ -98,10 +98,8 @@ def gen_cor(
 
     if method == "HE":
         df_rls = []
-        grm_list = [grm_dict[name] for name in grm_dict]
-        n_grm = len(grm_dict)
-        for name in grm_dict:
-            grm_dict[name] = np.dot(grm_dict[name], cov_proj_mat)
+        grm_list = [np.dot(grm_dict[name], cov_proj_mat) for name in grm_dict]
+        n_grm = len(grm_list)
         HE_design = np.zeros((n_grm, n_grm))
 
         # fill in `HE_design`

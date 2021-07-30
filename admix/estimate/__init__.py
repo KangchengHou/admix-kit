@@ -143,7 +143,7 @@ def HE_reg(
     quad_form = lambda x, A: np.dot(np.dot(x.T, A), x)
 
     n_indiv = grm_list[0].shape[0]
-    grm_list.append(np.eye(n_indiv))
+    grm_list = grm_list + [np.eye(n_indiv)]
     n_grm = len(grm_list)
     n_pheno = pheno.shape[1]
 
