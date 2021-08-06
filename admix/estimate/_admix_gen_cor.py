@@ -1,14 +1,8 @@
 import numpy as np
 from scipy import linalg
-import pandas as pd
 import xarray as xr
-from typing import List, Union
+from typing import List, Tuple
 import admix
-import tempfile
-from .._utils import cd
-import dask
-from tqdm import tqdm
-import dask.array as da
 
 
 def admix_gen_cor(
@@ -16,13 +10,10 @@ def admix_gen_cor(
     pheno: np.ndarray,
     cov_cols: List[str] = None,
     cov_intercept: bool = True,
-    n_jackknife_blocks: int = 5,
 ):
     """Estimate genetic correlation given a dataset, phenotypes, and covariates.
     This is a very specialized function that tailed for estimating the genetic correlation
-    for variants in different local ancestry backgrounds. The function is seperated from
-    the general class for computational efficiency of implmentation (e.g. using streaming
-    implmentation for block jackknife).
+    for variants in different local ancestry backgrounds.
 
     See details in https://www.nature.com/articles/s41467-020-17576-9#MOESM1
 
@@ -68,63 +59,53 @@ def admix_gen_cor(
 
     pheno = np.dot(cov_proj_mat, pheno)
     quad_form_func = lambda x, A: np.dot(np.dot(x.T, A), x)
-
-    # streaming block jackknife
-    jackknife_snps = np.array_split(np.arange(dset.dims["snp"]), n_jackknife_blocks)
-    jackknife_n_snp = [len(x) for x in jackknife_snps]
-    total_n_snp = sum(jackknife_n_snp)
-    jackknife_design: List[np.ndarray] = []
-    jackknife_response: List[np.ndarray] = []
-
+    n_indiv = dset.dims["indiv"]
+    n_snp = dset.dims["snp"]
     apa = admix.tools.allele_per_anc(dset, center=True, inplace=False).astype(float)
+    a1, a2 = apa[:, :, 0], apa[:, :, 1]
+    grm_list = [
+        (np.dot(a1, a1.T) + np.dot(a2, a2.T)) / n_snp,
+        (np.dot(a1, a2.T) + np.dot(a1, a2.T).T) / n_snp,
+        np.eye(n_indiv),
+    ]
+    grm_list = [np.dot(grm, cov_proj_mat) for grm in grm_list]
 
-    for i_block in tqdm(range(n_jackknife_blocks)):
-        # subset snps
-        block_snps = jackknife_snps[i_block]
-        a1, a2 = apa[:, block_snps, 0], apa[:, block_snps, 1]
-        grm_list = [
-            np.dot(a1, a1.T) + np.dot(a2, a2.T),
-            np.dot(a1, a2.T) + np.dot(a1, a2.T).T,
-            np.eye(n_indiv),
-        ]
+    # multiply cov_proj_mat
+    n_grm = len(grm_list)
+    design = np.zeros((n_grm, n_grm))
+    for i in range(n_grm):
+        for j in range(n_grm):
+            if i <= j:
+                design[i, j] = (grm_list[i] * grm_list[j]).sum()
+                design[j, i] = design[i, j]
 
-        # multiply cov_proj_mat
-        n_grm = len(grm_list)
-        design = np.zeros((n_grm, n_grm))
+    rls_list: List[Tuple] = []
+    for i_pheno in range(n_pheno):
+        response = np.zeros(n_grm)
+        for i in range(n_grm):
+            response[i] = quad_form_func(pheno[:, i_pheno], grm_list[i])
+
+        # point estimate
+        var_comp = linalg.solve(
+            design,
+            response,
+        )
+
+        # variance-covariance matrix
+        inv_design = linalg.inv(design)
+        Sigma = np.zeros_like(grm_list[0])
+        for i in range(n_grm):
+            Sigma += var_comp[i] * grm_list[i]
+        Sigma_grm_list = [np.dot(Sigma, grm) for grm in grm_list]
+
+        var_response = np.zeros((n_grm, n_grm))
         for i in range(n_grm):
             for j in range(n_grm):
                 if i <= j:
-                    design[i, j] = (grm_list[i] * grm_list[j]).sum()
-
-        jackknife_design.append(design)
-
-        # cope with one phenotype for now
-        # TODO: add multiple phenotypes
-        response = np.zeros(n_grm)
-        for i in range(n_grm):
-            response[i] = quad_form_func(pheno, grm_list[i])
-        jackknife_response.append(response)
-
-    # perform leave-block-out jackknife regression
-
-    total_design = np.sum(jackknife_design, axis=0)
-    total_response = np.sum(jackknife_response, axis=0)
-
-    df_rls = [
-        linalg.solve(
-            (total_design - jackknife_design[i_block])
-            / np.square(total_n_snp - jackknife_n_snp[i_block]),
-            (total_response - jackknife_response[i_block])
-            / (total_n_snp - jackknife_n_snp[i_block]),
-        )
-        for i_block in range(n_jackknife_blocks)
-    ]
-    df_rls = pd.DataFrame(df_rls, index=np.arange(n_jackknife_blocks))
-    print(df_rls)
-    print(
-        linalg.solve(
-            total_design / np.square(total_n_snp), total_response / total_n_snp
-        )
-    )
-
-    return df_rls
+                    var_response[i, j] = (
+                        2 * (Sigma_grm_list[i] * Sigma_grm_list[j]).sum()
+                    )
+                    var_response[j, i] = var_response[i, j]
+        var_comp_var = np.linalg.multi_dot([inv_design, var_response, inv_design])
+        rls_list.append((var_comp, var_comp_var))
+    return rls_list
