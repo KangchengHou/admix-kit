@@ -61,13 +61,15 @@ def admix_gen_cor(
     quad_form_func = lambda x, A: np.dot(np.dot(x.T, A), x)
     n_indiv = dset.dims["indiv"]
     n_snp = dset.dims["snp"]
-    apa = admix.tools.allele_per_anc(dset, center=True, inplace=False).astype(float)
-    a1, a2 = apa[:, :, 0], apa[:, :, 1]
-    grm_list = [
-        (np.dot(a1, a1.T) + np.dot(a2, a2.T)) / n_snp,
-        (np.dot(a1, a2.T) + np.dot(a1, a2.T).T) / n_snp,
-        np.eye(n_indiv),
-    ]
+    # apa = admix.tools.allele_per_anc(dset, center=True, inplace=False).astype(float)
+    # a1, a2 = apa[:, :, 0], apa[:, :, 1]
+    # grm_list = [
+    #     (np.dot(a1, a1.T) + np.dot(a2, a2.T)) / n_snp,
+    #     (np.dot(a1, a2.T) + np.dot(a1, a2.T).T) / n_snp,
+    #     np.eye(n_indiv),
+    # ]
+    
+    grm_list = [dset["A1"].data, dset["A2"].data, np.eye(n_indiv)]
     grm_list = [np.dot(grm, cov_proj_mat) for grm in grm_list]
 
     # multiply cov_proj_mat
