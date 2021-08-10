@@ -55,7 +55,7 @@ def continuous_pheno(
     n_anc = dset.n_anc
     assert n_anc == 2, "Only two-ancestry currently supported"
     if "allele_per_anc" not in dset.data_vars:
-        admix.tools.allele_per_anc(dset)
+        admix.tools.allele_per_anc(dset, center=True)
 
     apa = dset.data_vars["allele_per_anc"]
     n_indiv, n_snp = apa.shape[0:2]
