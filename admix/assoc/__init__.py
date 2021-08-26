@@ -6,8 +6,173 @@ import xarray as xr
 from typing import List
 from tqdm import tqdm
 import admix
+from typing import Any, Dict
 
-__all__ = ["marginal", "linear_reg"]
+__all__ = ["marginal", "marginal_fast"]
+
+
+def marginal_fast(
+    dset: xr.Dataset,
+    pheno: str,
+    cov: List[str] = None,
+    method: str = "ATT",
+    family: str = "linear",
+    logistic_kwargs: Dict[str, Any] = dict(),
+    verbose: bool = False,
+):
+    """Marginal association testing for one SNP at a time
+    TODO: what happens when the covariates perfectly correlate?
+    TODO: iterate SNPs by chunk and contatenate results for all chunks
+    TODO: also return effect sizes in additional to p-values
+
+    Parameters
+    ----------
+    dset : xr.Dataset
+        [description]
+    pheno : str
+        [description]
+    cov : List[str], optional
+        [description], by default None
+    family : str, optional
+        distribution assumption of response variable, one of "linear" and "logistic",
+            by default "linear"
+    method : str, optional
+        method to perform GWAS, by default "ATT"
+
+    Returns
+    -------
+    [type]
+        Association p-values for each SNP being tested
+
+    Raises
+    ------
+    NotImplementedError
+        [description]
+    NotImplementedError
+        [description]
+    """
+
+    try:
+        import admixgwas
+    except ImportError:
+        raise ImportError("\nplease install admixgwas:\n\n\tpip install admixgwas")
+
+    assert family in ["linear", "logistic"]
+    assert method in ["ATT", "TRACTOR", "ADM", "SNP1"]
+
+    if family == "logistic":
+        if "max_iter" not in logistic_kwargs:
+            logistic_kwargs["max_iter"] = 200
+        if "tol" not in logistic_kwargs:
+            logistic_kwargs["tol"] = 1e-6
+
+    n_indiv = dset.dims["indiv"]
+
+    pheno = dset[pheno].data
+    n_snp = dset.dims["snp"]
+    mask_indiv = ~np.isnan(pheno)
+    if cov is not None:
+        cov_values = np.column_stack(
+            [np.ones(n_indiv)] + [dset[col].data for col in cov]
+        )
+    else:
+        cov_values = np.ones((n_indiv, 1))
+
+    n_cov = cov_values.shape[1]
+    if method == "ATT":
+        # [geno]
+        geno = np.sum(dset["geno"].data, axis=2)
+        if family == "linear":
+            f_stats = admixgwas.linear_f_test(geno, cov_values, pheno, 1, [0])
+            p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
+        elif family == "logistic":
+            lrt_diff = admixgwas.logistic_lrt(
+                geno,
+                cov_values,
+                pheno,
+                1,
+                [0],
+                logistic_kwargs["max_iter"],
+                logistic_kwargs["tol"],
+            )
+            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+        else:
+            raise NotImplementedError
+
+    elif method == "SNP1":
+        # [geno] + lanc
+        geno = np.sum(dset["geno"].data, axis=2)
+        lanc = np.sum(dset["lanc"].data, axis=2)
+        var = np.empty((geno.shape[0], n_snp * 2))
+        var[:, 0::2] = geno
+        var[:, 1::2] = lanc
+        if family == "linear":
+            f_stats = admixgwas.linear_f_test(var, cov_values, pheno, 2, [0])
+            p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 2)
+        elif family == "logistic":
+            lrt_diff = admixgwas.logistic_lrt(
+                var,
+                cov_values,
+                pheno,
+                2,
+                [0],
+                logistic_kwargs["max_iter"],
+                logistic_kwargs["tol"],
+            )
+            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+        else:
+            raise NotImplementedError
+    elif method == "TRACTOR":
+        # lanc + [allele1 + allele2]
+        # number of african alleles
+        lanc = np.sum(dset["lanc"].data, axis=2)
+        # alleles per ancestry
+        allele_per_anc = admix.tools.allele_per_anc(dset, inplace=False).compute()
+
+        var = np.empty((n_indiv, n_snp * 3))
+        var[:, 0::3] = allele_per_anc[:, :, 0]
+        var[:, 1::3] = allele_per_anc[:, :, 1]
+        var[:, 2::3] = lanc
+        if family == "linear":
+            f_stats = admixgwas.linear_f_test(var, cov_values, pheno, 3, [0, 1])
+            p_vals = stats.f.sf(f_stats, 2, n_indiv - n_cov - 3)
+        elif family == "logistic":
+            lrt_diff = admixgwas.logistic_lrt(
+                var,
+                cov_values,
+                pheno,
+                3,
+                [0, 1],
+                logistic_kwargs["max_iter"],
+                logistic_kwargs["tol"],
+            )
+            p_vals = stats.chi2.sf(-2 * lrt_diff, 2)
+        else:
+            raise NotImplementedError
+
+    elif method == "ADM":
+        # [lanc]
+        lanc = np.sum(dset["lanc"].data, axis=2)
+        if family == "linear":
+            f_stats = admixgwas.linear_f_test(lanc, cov_values, pheno, 1, [0])
+            p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
+        elif family == "logistic":
+            lrt_diff = admixgwas.logistic_lrt(
+                lanc,
+                cov_values,
+                pheno,
+                1,
+                [0],
+                logistic_kwargs["max_iter"],
+                logistic_kwargs["tol"],
+            )
+            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+        else:
+            raise NotImplementedError
+    else:
+        raise NotImplementedError
+
+    return pd.DataFrame({"SNP": dset.snp.values, "P": p_vals}).set_index("SNP")
 
 
 def marginal(
@@ -69,10 +234,14 @@ def marginal(
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
-            model = sm.GLM(
-                pheno[mask_indiv], design[mask_indiv, :], family=glm_family
-            ).fit()
+            if family == "linear":
+                model = sm.OLS(pheno[mask_indiv], design[mask_indiv, :]).fit()
+            elif family == "logistic":
+                model = sm.Logit(pheno[mask_indiv], design[mask_indiv, :]).fit()
             pvalues.append(model.pvalues[1])
+            # model = sm.GLM(
+            #     pheno[mask_indiv], design[mask_indiv, :], family=glm_family
+            # ).fit()
         pvalues = np.array(pvalues)
 
     elif method == "SNP1":
@@ -137,43 +306,6 @@ def marginal(
         raise NotImplementedError
 
     return pd.DataFrame({"SNP": dset.snp.values, "P": pvalues}).set_index("SNP")
-
-
-def linear_reg(X: np.ndarray, y: np.ndarray, cov: np.ndarray) -> np.ndarray:
-    """Implement linear regression for numpy matrix
-
-    Refer to `f_regression_cov` in FaST-LMM package
-    TODO: check `f_regression_cov_alt` in FaST-LMM package to see the difference
-    TODO: double check math to see the difference.
-    TODO: what happens when the covariates perfectly correlate?
-
-    Args:
-        X (np.ndarray): (n_indiv, n_snp) genotype matrix
-        y (np.ndarray): (n_indiv, ) phenotype matrix
-        cov (np.ndarray): (n_indiv, n_cov) covariance matrix
-
-    Returns:
-        np.ndarray: p-values for each SNP
-    """
-
-    n_snp = X.shape[1]
-
-    assert cov.shape[0] > cov.shape[1]
-
-    cov_pinv = np.linalg.pinv(cov)
-    X -= np.dot(cov, (np.dot(cov_pinv, X)))
-    y -= np.dot(cov, (np.dot(cov_pinv, y)))
-
-    # compute the correlation
-    corr = np.dot(y, X)
-    corr /= np.asarray(np.sqrt((X ** 2).sum(axis=0))).ravel()
-    corr /= np.asarray(np.sqrt((y ** 2).sum())).ravel()
-
-    # convert to p-value
-    dof = (X.shape[0] - 1 - cov.shape[1]) / (1)  # (df_fm / (df_rm - df_fm))
-    F = corr ** 2 / (1 - corr ** 2) * dof
-    pv = stats.f.sf(F, 1, dof)
-    return pv
 
 
 def logistic_reg(X, y, cov):

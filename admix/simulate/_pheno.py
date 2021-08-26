@@ -91,6 +91,7 @@ def continuous_pheno(
         )
 
     pheno = pheno_g + pheno_e
+    # TODO: could speed up using pheno_g, pheno = dask.compute((pheno_g, pheno))
     # if `cov_cols` are specified, add the covariates to the phenotype
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values
