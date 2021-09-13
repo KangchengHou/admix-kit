@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+
+import admix
+import fire
+import pandas as pd
+
+
+def test():
+    """
+    Test the admix module
+    """
+    print("testing the admix module")
+
+
+if __name__ == "__main__":
+    fire.Fire()
