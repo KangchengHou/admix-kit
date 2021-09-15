@@ -82,6 +82,7 @@ def marginal_fast(
     if method == "ATT":
         # [geno]
         geno = np.sum(dset["geno"].data, axis=2)
+
         if family == "linear":
             f_stats = admixgwas.linear_f_test(geno, cov_values, pheno, 1, [0])
             p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)

@@ -3,6 +3,53 @@
 import admix
 import fire
 import pandas as pd
+import logging
+from typing import List
+
+logger = logging.getLogger(__name__)
+
+# TODO: including logging functions
+def vcf_to_dataset(vcf: str, lanc: str, out: str, region: str = None):
+    """
+    Convert a VCF file to a zarr file
+
+    Parameters
+    ----------
+    vcf : str
+        Path to the VCF file
+    lanc : str
+        Path to the local ancestry file
+    out : str
+        Path to the output zarr file
+    region : str
+        Region to extract from the VCF file
+
+    """
+    logger.info(f"Loading vcf from {vcf}")
+    dset = admix.data.read_vcf(vcf, region=region)
+    dset = admix.data.assign_lanc(dset, lanc)
+    dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).to_zarr(out, mode="w")
+
+
+def merge_dataset(path_list: str, out: str):
+    """Merge multiple dataset [in zarr format] into one dataset, assuming the individiduals
+    are shared typically used for merging multiple datasets from different chromosomes.
+
+    Parameters
+    ----------
+    path_list : List[str]
+        path of a text file pointing to the list of paths
+    out : str
+        Path to the output zarr file
+    """
+    import xarray as xr
+
+    dset_list = [xr.open_zarr(p) for p in path_list]
+
+    dset = xr.concat(dset_list, dim="snp")
+
+    dset = dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).compute()
+    dset.to_zarr(out, mode="w", safe_chunks=False)
 
 
 def test():
