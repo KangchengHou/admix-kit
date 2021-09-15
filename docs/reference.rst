@@ -2,8 +2,8 @@
 .. automodule:: admix
    :noindex:
 
-API
-==========
+Reference
+=========
 
 Import admix-tools as::
 
@@ -21,7 +21,7 @@ Basic functions
 ~~~~~~~~~~~~~~~
 
 .. autosummary::
-   :toctree: .
+   :toctree: reference
 
    data.Dataset
 
@@ -31,7 +31,7 @@ Tools: `tools`
 .. currentmodule:: admix
 
 .. autosummary::
-   :toctree: .
+   :toctree: reference
 
     tools.grm
     tools.admix_grm
@@ -44,7 +44,7 @@ Simulation: `simulate`
 .. currentmodule:: admix
 
 .. autosummary::
-   :toctree: .
+   :toctree: reference
 
     simulate.admix_geno
     simulate.continuous_pheno
@@ -57,7 +57,7 @@ Estimation: `estimate`
 .. currentmodule:: admix
 
 .. autosummary::
-   :toctree: .
+   :toctree: reference
 
     estimate.gen_cor
 

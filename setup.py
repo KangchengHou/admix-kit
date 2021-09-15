@@ -16,5 +16,8 @@ setup(
     author="Kangcheng Hou",
     author_email="kangchenghou@gmail.com",
     packages=["admix"],
-    setup_requires=["numpy>=1.10"]
+    setup_requires=["numpy>=1.10"],
+    scripts=[
+        "bin/admix",
+    ],
 )
