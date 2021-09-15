@@ -16,7 +16,7 @@ set -x
 # INSTALL DEPENDS #
 ###################
 
-pip install --upgrade sphinx sphinx-rtd-theme sphinx-gallery rinohtype pygments
+pip install --upgrade sphinx sphinx-rtd-theme sphinx-gallery rinohtype pygments pydata-sphinx-theme
 pip install --upgrade sphinx-copybutton
 #####################
 # DECLARE VARIABLES #

@@ -3,6 +3,11 @@ import numpy as np
 import re
 from smart_open import open
 
+
+def read_vcf(path: str):
+    pass
+
+
 def read_digit_mat(path, filter_non_numeric=False):
     """
     Read a matrix of integer with [0-9], and with no delimiter.

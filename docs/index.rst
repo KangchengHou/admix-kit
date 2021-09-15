@@ -23,6 +23,6 @@ admix-tools documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Package reference
+   :caption: Reference
 
-   api
+   reference
