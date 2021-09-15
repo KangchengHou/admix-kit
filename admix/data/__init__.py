@@ -2,7 +2,7 @@
 all about admix.Dataset
 """
 
-from ._utils import make_dataset, load_toy, load_lab_dataset
+from ._utils import make_dataset, load_toy, load_lab_dataset, quantile_normalize
 
 # from ._dataset import Dataset
 
