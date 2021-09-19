@@ -11,6 +11,18 @@ import os
 import scipy
 
 
+def quantile_normalize(val):
+    from scipy.stats import rankdata, norm
+
+    val = np.array(val)
+    non_nan_index = ~np.isnan(val)
+    results = np.full(val.shape, np.nan)
+    results[non_nan_index] = norm.ppf(
+        (rankdata(val[non_nan_index]) - 0.5) / len(val[non_nan_index])
+    )
+    return results
+
+
 def impute_std(geno, mean=None, std=None):
     """
     impute the mean and then standardize

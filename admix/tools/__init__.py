@@ -15,7 +15,7 @@ import xarray as xr
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 import dask.array as da
 import dask
-from ._ext import get_dependency, plink2, gcta, lift_over
+from ._ext import get_dependency, plink2, gcta, lift_over, plink_read_bim
 from typing import List, Optional
 
 

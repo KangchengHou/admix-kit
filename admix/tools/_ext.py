@@ -214,8 +214,8 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     """Lift over between genome assembly
     Download appropriate chain file from
-    hg38 -> hg19 http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
-    hg19 -> hg38 http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+    hg38->hg19 http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
+    hg19->hg38 http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
     Download executable from http://hgdownload.soe.ucsc.edu/admin/exe/
     (1) chmod +x liftOver
     (2) include to the path, so the program can call liftOver

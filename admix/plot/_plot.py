@@ -8,8 +8,47 @@ import xarray as xr
 import warnings
 
 
-def manhattan(pvals):
-    pass
+def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
+    """Manhatton plot of p-values
+
+    Parameters
+    ----------
+    chrom : np.ndarray
+        array-like
+    pval : np.ndarray
+        p-values, array-like
+    axh_y : np.ndarray, optional
+        horizontal line for genome-wide significance, by default -np.log10(5e-8)
+    s : float, optional
+        dot size, by default 0.1
+    ax : matplotlib.axes, optional
+        axes, by default None
+    """
+    if ax is None:
+        ax = plt.gca()
+    assert len(chrom) == len(pval)
+    color_list = ["#1b9e77", "#d95f02"]
+    # plot dots for odd and even chromosomes
+    for mod in range(2):
+        index = np.where(chrom % 2 == mod)[0]
+        ax.scatter(
+            np.arange(len(pval))[index],
+            -np.log10(pval)[index],
+            s=s,
+            color=color_list[mod],
+        )
+
+    # label unique chromosomes
+    xticks = []
+    xticklabels = []
+    for chrom_i in np.unique(chrom):
+        xticks.append(np.where(chrom == chrom_i)[0].mean())
+        xticklabels.append(chrom_i)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels, rotation=90, fontsize=8)
+    ax.set_ylabel("-$\log_{10}(P)$")
+    if axh_y is not None:
+        ax.axhline(y=axh_y, color="r", ls="--")
 
 
 def lanc(
