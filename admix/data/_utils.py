@@ -175,7 +175,7 @@ def make_dataset(
         if is_string_dtype(snp[col]):
             vals = snp[col].values.astype(str)
 
-        coords[f"{col}@snp"] = ("snp", vals)
+        coords[col] = ("snp", vals)
 
     # fill in individual information
     coords["indiv"] = indiv.index.values
@@ -187,7 +187,7 @@ def make_dataset(
         vals = indiv[col].values
         if is_string_dtype(indiv[col]):
             vals = vals.astype(str)
-        coords[f"{col}@indiv"] = ("indiv", vals)
+        coords[col] = ("indiv", vals)
 
     dset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=meta)
     return dset

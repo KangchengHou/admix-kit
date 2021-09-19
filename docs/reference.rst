@@ -17,13 +17,6 @@ Data management: `data`
 
 For basic data management.
 
-Basic functions
-~~~~~~~~~~~~~~~
-
-.. autosummary::
-   :toctree: reference
-
-   data.Dataset
 
 Tools: `tools`
 --------------
