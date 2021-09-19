@@ -29,12 +29,12 @@ def read_vcf(path: str, region: str = None):
         coords={
             "snp": vcf["variants/ID"].astype(str),
             "indiv": vcf["samples"].astype(str),
-            "CHROM@snp": ("snp", vcf["variants/CHROM"].astype(int)),
-            "POS@snp": ("snp", vcf["variants/POS"].astype(int)),
-            "REF@snp": ("snp", vcf["variants/REF"].astype(str)),
-            "ALT@snp": ("snp", vcf["variants/ALT"][:, 0].astype(str)),
-            "R2@snp": ("snp", vcf["variants/R2"].astype(float)),
-            "MAF@snp": ("snp", vcf["variants/MAF"].astype(float)),
+            "CHROM": ("snp", vcf["variants/CHROM"].astype(int)),
+            "POS": ("snp", vcf["variants/POS"].astype(int)),
+            "REF": ("snp", vcf["variants/REF"].astype(str)),
+            "ALT": ("snp", vcf["variants/ALT"][:, 0].astype(str)),
+            "R2": ("snp", vcf["variants/R2"].astype(float)),
+            "MAF": ("snp", vcf["variants/MAF"].astype(float)),
         },
     )
     return dset
