@@ -20,7 +20,6 @@ admix-tools documentation
 
    auto_examples/plot_data_structure
    auto_examples/plot_local_ancestry_inference
-   auto_examples/plot_simulate
    
 
 .. toctree::

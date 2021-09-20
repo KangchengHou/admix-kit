@@ -21,8 +21,23 @@ jobs:
         pip install -r requirements.txt
         pip install -e .
         conda install -c conda-forge pandoc
-    - name: Build documentation and update pages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build docs
+      shell: bash -l {0}
       run: |
-        bash docs/build_docs.sh
+        cd docs
+        make html
+    - name: Deploy docs
+      uses: JamesIves/github-pages-deploy-action@4.1.5
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/_build/html
+        CLEAN: true
+
+
+    # - name: Build documentation and update pages
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     bash docs/build_docs.sh
+
