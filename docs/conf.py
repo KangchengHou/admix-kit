@@ -38,7 +38,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
-    # "nbsphinx",
+    "nbsphinx",
 ]
 
 autosummary_generate = True
