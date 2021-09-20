@@ -8,6 +8,7 @@ from ._utils import (
     load_lab_dataset,
     quantile_normalize,
     impute_lanc,
+    match_prs_weights,
 )
 from ._read import read_digit_mat, write_digit_mat, read_vcf
 

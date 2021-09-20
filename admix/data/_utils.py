@@ -6,9 +6,71 @@ import xarray as xr
 import warnings
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 from os.path import dirname, join
-from typing import List
+from typing import List, Tuple
 import os
 import scipy
+
+
+def match_prs_weights(
+    dset: xr.Dataset, df_weight: pd.DataFrame, weight_cols: List[str]
+) -> Tuple[xr.Dataset, pd.DataFrame]:
+    """
+    align the dataset and PRS weights with the following 3 steps:
+    1. match SNPs in `dset` and `df_weight` by `CHROM` and `POS`
+    2. Try match REF and ALT columns in `dset` and `df_weight`, either
+        REF_dset = REF_weight, ALT_dset = ALT_weight, or
+        REF_dset = ALT_weight, ALT_dset = REF_weight
+    3. For mismatched SNPs,all columns in `weight_cols` of returned data frame
+        will be reversed
+
+    A shallow copy of `dset` will be returned.
+    A copy of `df_weight` will be returned.
+    Parameters
+    ----------
+    dset: a dataset with prs
+    df_weight: a dataframe with prs weights
+    weight_cols: list of columns in df_weight representing PRS weights
+    """
+
+    df_match_dset = (
+        dset[["CHROM", "POS", "REF", "ALT"]]
+        .to_dataframe()
+        .reset_index()
+        .rename(columns={"snp": "SNP"})
+    )
+
+    df_match_weight = df_weight[["SNP", "CHROM", "POS", "REF", "ALT"]].reset_index()
+
+    df_merged = pd.merge(
+        df_match_dset,
+        df_match_weight,
+        on=["CHROM", "POS"],
+        suffixes=["_dset", "_weight"],
+    )
+    noflip_index = (df_merged["REF_dset"] == df_merged["REF_weight"]) & (
+        df_merged["ALT_dset"] == df_merged["ALT_weight"]
+    )
+    flip_index = (df_merged["REF_dset"] == df_merged["ALT_weight"]) & (
+        df_merged["ALT_dset"] == df_merged["REF_weight"]
+    )
+
+    rls_df_weight = df_weight.loc[
+        df_weight.SNP.isin(df_merged["SNP_weight"][noflip_index | flip_index]),
+        ["SNP", "CHROM", "POS", "REF", "ALT"] + weight_cols,
+    ].copy()
+    rls_df_weight.loc[
+        rls_df_weight.SNP.isin(df_merged["SNP_weight"][flip_index]), weight_cols
+    ] *= -1
+
+    # the following step can be a bit slow sometimes, need to make sure both array
+    # are like <U18 types to be fast
+    rls_dset = dset.sel(
+        snp=np.isin(
+            dset.snp.values,
+            df_merged["SNP_dset"][noflip_index | flip_index].values.astype(str),
+        )
+    )
+    return rls_dset, rls_df_weight
 
 
 def impute_lanc(vcf, region, dset):
