@@ -1,4 +1,4 @@
-name: Sphinx document
+name: Documentation
 
 on: [push]
 
