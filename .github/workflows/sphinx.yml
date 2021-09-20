@@ -3,19 +3,10 @@ name: Documentation
 on: [push]
 
 jobs:
-  build:
-    name: Push Sphinx Pages
-    strategy:
-      matrix:
-        python-version: [ 3.8 ]
+  docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
 
     - name: Setup Conda Environment
       uses: conda-incubator/setup-miniconda@v2
