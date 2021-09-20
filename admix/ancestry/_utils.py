@@ -28,10 +28,10 @@ def impute_lanc(vcf, ds):
         coords={
             "snp": vcf["variants/ID"],
             "indiv": vcf["samples"],
-            "chrom": ("snp", vcf["variants/CHROM"]),
-            "position": ("snp", vcf["variants/POS"]),
-            "snp_a0": ("snp", vcf["variants/REF"]),
-            "snp_a1": ("snp", vcf["variants/ALT"][:, 0]),
+            "CHROM": ("snp", vcf["variants/CHROM"]),
+            "POS": ("snp", vcf["variants/POS"]),
+            "REF": ("snp", vcf["variants/REF"]),
+            "ALT": ("snp", vcf["variants/ALT"][:, 0]),
         },
         attrs={"n_anc": 2},
     )
@@ -48,8 +48,8 @@ def impute_lanc(vcf, ds):
     # impute local ancestry
 
     # relevant typed region
-    typed_start = np.where(ds["position"] < vcf["variants/POS"][0])[0][-1]
-    typed_stop = np.where(ds["position"] > vcf["variants/POS"][-1])[0][0]
+    typed_start = np.where(ds["POS"] < vcf["variants/POS"][0])[0][-1]
+    typed_stop = np.where(ds["POS"] > vcf["variants/POS"][-1])[0][0]
     ds_typed_subset = ds.isel(snp=slice(typed_start, typed_stop + 1))
     ds_typed_margin = ds_typed_subset.isel(snp=[0, -1])
 

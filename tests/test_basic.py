@@ -12,7 +12,7 @@ def test_basic():
     ds = load_toy()[0]
     lanc = ds["lanc"]
     geno = ds["geno"]
-    pos = ds["position@snp"]
+    pos = ds["POS"]
 
     # basic shape
     assert lanc.ndim == 3
@@ -73,7 +73,7 @@ def test_lamp():
     n_anc = len(ref_list)
     n_snp = ds_admix.dims["snp"]
     model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=6, window_size=300)
-    model.set_pos(ds_admix["position@snp"].values)
+    model.set_pos(ds_admix["POS"].values)
     model.fit(ref_list)
 
     est = np.dstack(
