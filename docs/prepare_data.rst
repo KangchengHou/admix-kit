@@ -93,29 +93,6 @@ from online and format it for the purpose.
         raw_map = raw_map[[0, 3, 2]]
         raw_map.to_csv(f"metadata/genetic_map/chr{chrom}.tsv", sep='\t', index=False, header=False)
 
-Now we are ready to run RFmix
-
-..    rfmix=/u/project/pasaniuc/kangchen/tractor-response/ukb/03_rfmix/rfmix/rfmix
-    prefix=chr22
-
-.. code-block:: bash
-
-    rfmix=/path/to/rfmix # RFmix executable
-    chrom=22
-    sample_vcf=lanc_input/${prefix}.sample.vcf.gz
-    ref_vcf=lanc_input/${prefix}.ref.vcf.gz
-    sample_map=metadata/sample_map.tsv
-    genetic_map=metadata/genetic_map/chr${chrom}.tsv
-    out_prefix=lanc_output/${prefix}
-    ${rfmix} \
-        -f ${sample_vcf} \
-        -r ${ref_vcf} \
-        --chromosome=${chrom} \
-        -m ${sample_map} \
-        -g ${genetic_map} \
-        -e 1 -n 5 \
-        -o ${out_prefix}
-
 
 TL;DR
 =====

@@ -6,7 +6,8 @@ We start by simulating genotype, local ancestry and phenotype
 """
 
 import admix
-from admix.simulate import simulate_hap, simulate_lanc
+
+# from admix.simulate import simulate_hap, simulate_lanc
 import matplotlib.pyplot as plt
 
 # %%
@@ -17,15 +18,15 @@ n_snp = 1000
 
 # %%
 # We use function :meth:`~admix.simulate.simulate_lanc`, :meth:`~admix.simulate.simulate_hap` to simulate a few individuals
-lanc = simulate_lanc(n_indiv, n_snp, 100)
-hap = simulate_hap(n_indiv, n_snp)
+# lanc = simulate_lanc(n_indiv, n_snp, 100)
+# hap = simulate_hap(n_indiv, n_snp)
 
-print(lanc.shape)
-print(hap.shape)
+# print(lanc.shape)
+# print(hap.shape)
 
 
-ax = admix.plot.lanc(lanc[0:10, :])
-plt.show()
+# ax = admix.plot.lanc(lanc[0:10, :])
+# plt.show()
 
 
 # sim = simulate_continuous_phenotype(
