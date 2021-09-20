@@ -16,6 +16,10 @@ jobs:
         activate-environment: docs
         auto-activate-base: false
 
+    - name: Install pacakge
+      shell: bash -l {0}
+      run: python -m pip install -e .
+
     - name: Build docs
       shell: bash -l {0}
       run: |
@@ -29,7 +33,7 @@ jobs:
         BRANCH: gh-pages
         FOLDER: docs/_build/html
         CLEAN: true
-
+        single-commit: true
 
     # - name: Install dependencies
     #   run: |
