@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
+    "nbsphinx",
 ]
 
 autosummary_generate = True

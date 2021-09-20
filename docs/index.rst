@@ -5,8 +5,9 @@ admix-tools documentation
    :glob:
    :maxdepth: 1
    :caption: Tutorials:
-   
+
    auto_examples/plot_overview
+   notebooks/data_structure.ipynb
    auto_examples/plot_admix_corr
    prepare_data
    assoc_test
@@ -16,6 +17,7 @@ admix-tools documentation
    :glob:
    :maxdepth: 2
    :caption: Modules:
+
    auto_examples/plot_data_structure
    auto_examples/plot_local_ancestry_inference
    auto_examples/plot_simulate

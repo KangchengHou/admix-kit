@@ -53,11 +53,11 @@ ds_admix = ds_admix.assign_coords(
     {
         "snp": legend.id.values.astype(str),
         "indiv": ["admix_" + str(i) for i in np.arange(ds_admix.dims["indiv"])],
-        "position@snp": ("snp", legend.position.values),
-        "eur_freq@snp": ("snp", legend.EUR.values),
-        "afr_freq@snp": ("snp", legend.AFR.values),
-        "a0@snp": ("snp", legend.a0.values.astype(str)),
-        "a1@snp": ("snp", legend.a1.values.astype(str)),
+        "POS": ("snp", legend.position.values),
+        "EUR_freq@snp": ("snp", legend.EUR.values),
+        "AFR_freq@snp": ("snp", legend.AFR.values),
+        "REF": ("snp", legend.a0.values.astype(str)),
+        "ALT": ("snp", legend.a1.values.astype(str)),
     }
 ).assign_attrs(n_anc=2, description="Simulated African American individuals")
 
@@ -68,9 +68,9 @@ ds_eur = xr.Dataset(
     coords={
         "snp": legend.id.values.astype(str),
         "indiv": ["eur_" + str(i) for i in np.arange(eur_hap.shape[0])],
-        "position@snp": ("snp", legend.position.values),
-        "a0@snp": ("snp", legend.a0.values.astype(str)),
-        "a1@snp": ("snp", legend.a1.values.astype(str)),
+        "POS": ("snp", legend.position.values),
+        "REF": ("snp", legend.a0.values.astype(str)),
+        "ALT": ("snp", legend.a1.values.astype(str)),
     },
     attrs={"n_anc": 1, "description": "Simulated EUR"},
 )
@@ -82,9 +82,9 @@ ds_afr = xr.Dataset(
     coords={
         "snp": legend.id.values.astype(str),
         "indiv": ["afr_" + str(i) for i in np.arange(afr_hap.shape[0])],
-        "position@snp": ("snp", legend.position.values),
-        "a0@snp": ("snp", legend.a0.values.astype(str)),
-        "a1@snp": ("snp", legend.a1.values.astype(str)),
+        "POS": ("snp", legend.position.values),
+        "REF": ("snp", legend.a0.values.astype(str)),
+        "ALT": ("snp", legend.a1.values.astype(str)),
     },
     attrs={"n_anc": 1, "description": "Simulated AFR"},
 )

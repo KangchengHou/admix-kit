@@ -16,8 +16,8 @@ set -x
 # INSTALL DEPENDS #
 ###################
 
-pip install --upgrade sphinx sphinx-rtd-theme sphinx-gallery rinohtype pygments pydata-sphinx-theme
-pip install --upgrade sphinx-copybutton
+pip install --upgrade sphinx sphinx-rtd-theme sphinx-gallery rinohtype pygments
+pip install --upgrade sphinx-copybutton nbsphinx pydata-sphinx-theme
 #####################
 # DECLARE VARIABLES #
 #####################
@@ -54,18 +54,12 @@ for current_version in ${versions}; do
       continue
    fi
 
-   current_language="en"
-
-   # make the current language available to conf.py
-   export current_language
-
    ##########
    # BUILDS #
    ##########
-   echo "INFO: Building for ${current_language}"
 
    # HTML #
-   sphinx-build -b html docs/ docs/_build/html/${current_language}/${current_version} -D language="${current_language}"
+   sphinx-build -b html docs/ docs/_build/html/${current_version}
 
    # PDF #
    #      sphinx-build -b rinoh docs/ docs/_build/rinoh -D language="${current_language}"
@@ -104,10 +98,10 @@ cat >index.html <<EOF
 <html>
    <head>
       <title>helloWorld Docs</title>
-      <meta http-equiv = "refresh" content="0; url='/${REPO_NAME}/en/main/'" />
+      <meta http-equiv = "refresh" content="0; url='/${REPO_NAME}/main/'" />
    </head>
    <body>
-      <p>Please wait while you're redirected to our <a href="/${REPO_NAME}/en/main/">documentation</a>.</p>
+      <p>Please wait while you're redirected to our <a href="/${REPO_NAME}/main/">documentation</a>.</p>
    </body>
 </html>
 EOF

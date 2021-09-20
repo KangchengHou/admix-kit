@@ -8,6 +8,107 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+
+def lanc(
+    sample_vcf: str,
+    ref_vcf: str,
+    sample_map: str,
+    genetic_map: str,
+    out_prefix: str,
+    method: str = "rfmix",
+):
+    """Estimate local ancestry from a sample vcf and reference vcf
+
+    TODO: Contents in https://kangchenghou.github.io/admix-tools/en/main/prepare_data.html
+        should be subsumed into this function
+    Parameters
+    ----------
+    sample_vcf : str
+        VCF file containing the PHASED genotype
+    ref_vcf : str
+        VCF file containing the reference genotype
+    sample_map : str
+        Text file with two column containing the population of individuals in ref_vcf
+        the unique population will be used as reference ancestral population in
+        estimation.
+    genetic_map: str
+        Text file with two column containing the genetic distance between two
+    out_prefix: str
+        Prefix for the output files.
+    method : str, optional
+        method for estimating local ancestry, by default "rfmix"
+
+    """
+    assert method in ["rfmix"], "Only rfmix is currently supported"
+
+    # Step 1: use bcftools to align the sample and reference vcf
+    align_ref_code = (
+        f"""
+        sample_vcf={sample_vcf}
+        ref_vcf={ref_vcf}
+        out_prefix={out_prefix}
+    """
+        + """
+
+        tmp_dir=${out_prefix}.tmp/
+
+        mkdir ${tmp_dir}
+
+        if [[ ! -f ${sample_vcf}.tbi ]]; then
+            echo "${sample_vcf} is not indexed. Please index it with tabix. Exiting..."
+            exit
+        fi
+
+        # match reference panel
+        bcftools isec -n =2 ${sample_vcf} ${ref_vcf} -p ${tmp_dir} -c none
+
+        cat ${tmp_dir}/0000.vcf | bgzip -c >${tmp_dir}/sample.vcf.gz
+        cat ${tmp_dir}/0001.vcf | bgzip -c >${tmp_dir}/ref.vcf.gz
+
+        # remove chr
+        for i in {1..22}; do
+            echo "chr$i $i" >>${tmp_dir}/chr_name.txt
+        done
+
+        bcftools annotate --rename-chrs ${tmp_dir}/chr_name.txt ${tmp_dir}/sample.vcf.gz |
+            bgzip >${out_prefix}.sample.vcf.gz
+        bcftools annotate --rename-chrs ${tmp_dir}/chr_name.txt ${tmp_dir}/ref.vcf.gz |
+            bgzip >${out_prefix}.ref.vcf.gz
+
+        # clean up
+        rm -rf ${tmp_dir}
+    """
+    )
+
+    # Step 2: use rfmix to estimate local ancestry
+    rfmix_code = (
+        f"""
+        sample_vcf={out_prefix}.sample.vcf.gz
+        ref_vcf={out_prefix}.ref.vcf.gz
+        sample_map={sample_map}
+        genetic_map={genetic_map}
+        out_prefix={out_prefix}
+        """
+        + """
+        rfmix \
+            -f ${sample_vcf} \
+            -r ${ref_vcf} \
+            -m ${sample_map} \
+            -g ${genetic_map} \
+            -e 1 -n 5 \
+            -o ${out_prefix}
+        """
+    )
+
+    # Step 3: clean up
+    clean_code = f"""
+        rm -f ${out_prefix}.sample.vcf.gz
+        rm -f ${out_prefix}.ref.vcf.gz
+        rm -f ${out_prefix}.sample.vcf.gz.tbi
+        rm -f ${out_prefix}.ref.vcf.gz.tbi
+        """
+
+
 # TODO: including logging functions
 def vcf_to_dataset(vcf: str, lanc: str, out: str, region: str = None):
     """
