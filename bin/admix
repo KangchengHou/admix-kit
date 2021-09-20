@@ -3,10 +3,8 @@
 import admix
 import fire
 import pandas as pd
-import logging
 from typing import List
-
-logger = logging.getLogger(__name__)
+import subprocess
 
 
 def lanc(
@@ -15,7 +13,9 @@ def lanc(
     sample_map: str,
     genetic_map: str,
     out_prefix: str,
+    chrom: int = None,
     method: str = "rfmix",
+    rfmix_path: str = "rfmix",
 ):
     """Estimate local ancestry from a sample vcf and reference vcf
 
@@ -80,6 +80,9 @@ def lanc(
     """
     )
 
+    print(align_ref_code)
+    subprocess.check_call(align_ref_code, shell=True)
+
     # Step 2: use rfmix to estimate local ancestry
     rfmix_code = (
         f"""
@@ -87,26 +90,38 @@ def lanc(
         ref_vcf={out_prefix}.ref.vcf.gz
         sample_map={sample_map}
         genetic_map={genetic_map}
+        chrom={chrom}
         out_prefix={out_prefix}
+        rfmix={rfmix_path}
         """
         + """
-        rfmix \
+        ${rfmix} \
             -f ${sample_vcf} \
             -r ${ref_vcf} \
             -m ${sample_map} \
             -g ${genetic_map} \
+            --chromosome=${chrom} \
             -e 1 -n 5 \
             -o ${out_prefix}
         """
     )
 
+    print(rfmix_code)
+    subprocess.check_call(rfmix_code, shell=True)
+
     # Step 3: clean up
-    clean_code = f"""
+    clean_code = (
+        f"""
+        out_prefix={out_prefix}
+        """
+        + """
         rm -f ${out_prefix}.sample.vcf.gz
         rm -f ${out_prefix}.ref.vcf.gz
-        rm -f ${out_prefix}.sample.vcf.gz.tbi
-        rm -f ${out_prefix}.ref.vcf.gz.tbi
         """
+    )
+
+    print(clean_code)
+    subprocess.check_call(clean_code, shell=True)
 
 
 # TODO: including logging functions
@@ -126,7 +141,6 @@ def vcf_to_dataset(vcf: str, lanc: str, out: str, region: str = None):
         Region to extract from the VCF file
 
     """
-    logger.info(f"Loading vcf from {vcf}")
     dset = admix.data.read_vcf(vcf, region=region)
     dset = admix.data.assign_lanc(dset, lanc)
     dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).to_zarr(out, mode="w")
