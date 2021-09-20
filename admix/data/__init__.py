@@ -2,8 +2,13 @@
 all about admix.Dataset
 """
 import xarray as xr
-from ._utils import make_dataset, load_toy, load_lab_dataset, quantile_normalize
-
+from ._utils import (
+    make_dataset,
+    load_toy,
+    load_lab_dataset,
+    quantile_normalize,
+    impute_lanc,
+)
 from ._read import read_digit_mat, write_digit_mat, read_vcf
 
 
