@@ -3,7 +3,7 @@ import pandas as pd
 import tempfile
 from os.path import join
 import subprocess
-from ..data import read_digit_mat, write_digit_mat
+from ..io import read_digit_mat, write_digit_mat
 
 
 def lampld_wrapper(
