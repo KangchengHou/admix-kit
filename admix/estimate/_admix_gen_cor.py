@@ -68,7 +68,7 @@ def admix_gen_cor(
     #     (np.dot(a1, a2.T) + np.dot(a1, a2.T).T) / n_snp,
     #     np.eye(n_indiv),
     # ]
-    
+
     grm_list = [dset["A1"].data, dset["A2"].data, np.eye(n_indiv)]
     grm_list = [np.dot(grm, cov_proj_mat) for grm in grm_list]
 

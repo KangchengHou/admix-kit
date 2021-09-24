@@ -1,5 +1,4 @@
 import numpy as np
-import re
 import dask.array as da
 import pandas as pd
 import xarray as xr

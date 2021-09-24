@@ -6,14 +6,16 @@ import dask.array as da
 import xarray as xr
 from typing import Union, List, Dict
 import admix
+import dask
 
 
 def continuous_pheno(
     dset: xr.Dataset,
-    var_g: float,
-    var_e: float,
+    var_g: float = None,
+    var_e: float = None,
     gamma: float = None,
     n_causal: int = None,
+    beta: np.ndarray = None,
     cov_cols: List[str] = None,
     cov_effects: List[float] = None,
     n_sim=10,
@@ -34,6 +36,8 @@ def continuous_pheno(
         Correlation between the genetic effects from two ancestral backgrounds
     n_causal: int, optional
         number of causal variables, by default None
+    beta: np.ndarray, optional
+
     cov_cols: List[str], optional
         list of covariates to include as covariates, by default None
     cov_effects: List[float], optional
@@ -54,31 +58,50 @@ def continuous_pheno(
     """
     n_anc = dset.n_anc
     assert n_anc == 2, "Only two-ancestry currently supported"
+
+    # TODO: center or not is really critical here, and should be carefully thought
     if "allele_per_anc" not in dset.data_vars:
-        admix.tools.allele_per_anc(dset, center=True)
+        admix.tools.allele_per_anc(dset, center=False)
 
     apa = dset.data_vars["allele_per_anc"]
     n_indiv, n_snp = apa.shape[0:2]
 
-    if gamma is None:
-        # covariance of effects across ancestries set to 1 if `gamma` is not specfied.
-        gamma = var_g
+    # simulate effect sizes
+    if beta is None:
+        if gamma is None:
+            # covariance of effects across ancestries set to 1 if `gamma` is not specfied.
+            gamma = var_g
 
-    if n_causal is None:
-        # n_causal = n_snp if `n_causal` is not specified
-        n_causal = n_snp
+        if n_causal is None:
+            # n_causal = n_snp if `n_causal` is not specified
+            n_causal = n_snp
 
-    beta = np.zeros((n_snp, n_anc, n_sim))
-    for i_sim in range(n_sim):
-        cau = sorted(np.random.choice(np.arange(n_snp), size=n_causal, replace=False))
+        # if `beta` is not specified, simulate effect sizes
+        beta = np.zeros((n_snp, n_anc, n_sim))
+        for i_sim in range(n_sim):
+            cau = sorted(
+                np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
+            )
 
-        i_beta = np.random.multivariate_normal(
-            mean=[0.0, 0.0],
-            cov=np.array([[var_g, gamma], [gamma, var_g]]) / n_causal,
-            size=n_causal,
-        )
-        for i_anc in range(n_anc):
-            beta[cau, i_anc, i_sim] = i_beta[:, i_anc]
+            i_beta = np.random.multivariate_normal(
+                mean=[0.0, 0.0],
+                cov=np.array([[var_g, gamma], [gamma, var_g]]) / n_causal,
+                size=n_causal,
+            )
+            for i_anc in range(n_anc):
+                beta[cau, i_anc, i_sim] = i_beta[:, i_anc]
+    else:
+        assert (
+            (var_g is None) and (gamma is None) and (n_causal is None)
+        ), "If `beta` is specified, `var_g`, `var_e`, `gamma`, and `n_causal` must be specified"
+        assert beta.shape == (n_snp, n_anc) or beta.shape == (
+            n_snp,
+            n_anc,
+            n_sim,
+        ), "`beta` must be of shape (n_snp, n_anc) or (n_snp, n_anc, n_sim)"
+        if beta.shape == (n_snp, n_anc):
+            # replicate `beta` for each simulation
+            beta = np.repeat(beta[:, :, np.newaxis], n_sim, axis=2)
 
     pheno_g = da.zeros([n_indiv, n_sim])
     for i_anc in range(n_anc):
@@ -91,6 +114,7 @@ def continuous_pheno(
         )
 
     pheno = pheno_g + pheno_e
+    pheno_g, pheno = dask.compute((pheno_g, pheno))[0]
     # TODO: could speed up using pheno_g, pheno = dask.compute((pheno_g, pheno))
     # if `cov_cols` are specified, add the covariates to the phenotype
     if cov_cols is not None:
@@ -105,8 +129,8 @@ def continuous_pheno(
 
     return {
         "beta": beta,
-        "pheno_g": pheno_g.compute(),
-        "pheno": pheno.compute(),
+        "pheno_g": pheno_g,
+        "pheno": pheno,
         "cov_effects": cov_effects,
     }
 

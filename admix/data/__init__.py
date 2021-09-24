@@ -10,7 +10,6 @@ from ._utils import (
     impute_lanc,
     match_prs_weights,
 )
-from ._read import read_digit_mat, write_digit_mat, read_vcf
 
 
 def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):

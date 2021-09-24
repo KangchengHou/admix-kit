@@ -52,7 +52,10 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
 
 
 def lanc(
-    dset: xr.Dataset = None, lanc: np.ndarray = None, ax=None, max_indiv: int = 10
+    dset: xr.Dataset = None,
+    lanc: np.ndarray = None,
+    ax=None,
+    max_indiv: int = None,
 ) -> None:
     """
     Plot local ancestry.
@@ -67,6 +70,7 @@ def lanc(
         A matplotlib axes object to plot on. If None, will create a new one.
     max_indiv: int
         The maximum number of individuals to plot.
+        If None, will plot the first 10 individuals
     Returns
     -------
     ax: matplotlib.Axes
@@ -79,12 +83,14 @@ def lanc(
     assert lanc.shape[2] == 2, "lanc must be of shape (n_indiv, n_snp, 2)"
     n_indiv, n_snp = lanc.shape[0:2]
 
-    if n_indiv > max_indiv:
-        warnings.warn(
-            f"Only the first {max_indiv} are plotted. To plot more individuals, increase `max_indiv`"
-        )
+    if max_indiv is not None:
+        n_plot_indiv = min(max_indiv, n_indiv)
     else:
-        max_indiv = n_indiv
+        n_plot_indiv = min(n_indiv, 10)
+        if n_plot_indiv < n_indiv:
+            warnings.warn(
+                f"Only the first {n_plot_indiv} are plotted. To plot more individuals, increase `max_indiv`"
+            )
     if ax is None:
         ax = plt.gca()
 
@@ -93,7 +99,8 @@ def lanc(
     label = []
     row = []
 
-    for i_indiv in range(max_indiv):
+    # TODO: extend the label categories such that n_anc labels in df_plot
+    for i_indiv in range(n_plot_indiv):
         for i_ploidy in range(2):
             a = lanc[i_indiv, :, i_ploidy]
             switch = np.where(a[1:] != a[0:-1])[0]
@@ -112,6 +119,7 @@ def lanc(
     cmap = plt.get_cmap("tab10")
 
     for i, (label, group) in enumerate(df_plot.groupby("label")):
+
         lc = mc.LineCollection(
             [lines[l_i] for l_i in group.index],
             linewidths=2,

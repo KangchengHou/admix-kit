@@ -60,9 +60,10 @@ def admix_geno(
     n_snp: int,
     n_anc: int,
     mosaic_size: float,
-    anc_props: np.ndarray = None,
-    maf_low: float = 0.05,
-    maf_high: float = 0.5,
+    anc_props: np.ndarray,
+    allele_freqs: List[np.ndarray] = None,
+    af_maf_low: float = 0.05,
+    af_maf_high: float = 0.5,
 ) -> xr.Dataset:
     """Simulate admixed genotype
     The generative model is:
@@ -87,9 +88,12 @@ def admix_geno(
     anc_props : list of float
         Proportion of ancestral populations, if not specified, the proportion
         is uniform over the ancestral populations.
-    maf_low : float
+    allele_freqs: List[np.ndarray]
+        Allele frequencies, if not specified, the frequencies are drawn from
+        using `af_maf_low` and `af_maf_high`
+    af_maf_low : float
         Lowest allowed minor allele frequency
-    maf_high : float
+    af_maf_low : float
         Highest allowed minor allele frequency
 
     Returns
@@ -115,10 +119,20 @@ def admix_geno(
     # n_indiv x n_snp x 2 (2 for each haplotype)
     rls_lanc = np.dstack([rls_lanc[0:n_indiv, :], rls_lanc[n_indiv:, :]])
     rls_geno = np.zeros_like(rls_lanc)
-    # allele frequencies for the two populations
-    allele_freqs = [
-        np.random.uniform(low=maf_low, high=maf_high, size=n_snp) for _ in range(n_anc)
-    ]
+    if allele_freqs is None:
+        # allele frequencies for the two populations
+        allele_freqs = [
+            np.random.uniform(low=af_maf_low, high=af_maf_high, size=n_snp)
+            for _ in range(n_anc)
+        ]
+    else:
+        assert (
+            len(allele_freqs) == n_anc
+        ), "allele_freqs must have the same length as n_anc"
+        assert np.all(
+            [len(af) == n_snp for af in allele_freqs]
+        ), "each element in allele_freqs must have the same length as n_snp"
+
     for i_anc in range(n_anc):
         rls_geno[rls_lanc == i_anc] = np.random.binomial(
             n=1, p=allele_freqs[i_anc][np.where(rls_lanc == i_anc)[1]]
