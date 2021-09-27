@@ -54,8 +54,8 @@ ds_admix = ds_admix.assign_coords(
         "snp": legend.id.values.astype(str),
         "indiv": ["admix_" + str(i) for i in np.arange(ds_admix.dims["indiv"])],
         "POS": ("snp", legend.position.values),
-        "EUR_freq@snp": ("snp", legend.EUR.values),
-        "AFR_freq@snp": ("snp", legend.AFR.values),
+        "EUR_freq": ("snp", legend.EUR.values),
+        "AFR_freq": ("snp", legend.AFR.values),
         "REF": ("snp", legend.a0.values.astype(str)),
         "ALT": ("snp", legend.a1.values.astype(str)),
     }

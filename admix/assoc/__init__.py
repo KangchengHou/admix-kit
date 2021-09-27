@@ -37,7 +37,8 @@ def marginal_fast(
         distribution assumption of response variable, one of "linear" and "logistic",
             by default "linear"
     method : str, optional
-        method to perform GWAS, by default "ATT"
+        method to perform GWAS, one of "ATT" / "TRACTOR" / "ADM" / "SNP1"
+        by default "ATT"
 
     Returns
     -------
