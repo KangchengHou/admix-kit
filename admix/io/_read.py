@@ -12,6 +12,7 @@ from pandas import read_csv
 import numpy as np
 import re
 from smart_open import open
+import dask.array as da
 
 
 def read_vcf(path: str, region: str = None):
@@ -32,14 +33,20 @@ def read_vcf(path: str, region: str = None):
     )
     gt = vcf["calldata/GT"]
     assert (gt == -1).sum() == 0
+
+    # used to convert chromosome to int
+    chrom_format_func = np.vectorize(lambda x: int(x.replace("chr", "")))
     dset = xr.Dataset(
         data_vars={
-            "geno": (("indiv", "snp", "ploidy"), np.swapaxes(gt, 0, 1)),
+            "geno": (("indiv", "snp", "ploidy"), da.from_array(np.swapaxes(gt, 0, 1))),
         },
         coords={
             "snp": vcf["variants/ID"].astype(str),
             "indiv": vcf["samples"].astype(str),
-            "CHROM": ("snp", vcf["variants/CHROM"].astype(int)),
+            "CHROM": (
+                "snp",
+                chrom_format_func(vcf["variants/CHROM"]),
+            ),
             "POS": ("snp", vcf["variants/POS"].astype(int)),
             "REF": ("snp", vcf["variants/REF"].astype(str)),
             "ALT": ("snp", vcf["variants/ALT"][:, 0].astype(str)),

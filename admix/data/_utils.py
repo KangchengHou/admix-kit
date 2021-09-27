@@ -74,7 +74,8 @@ def match_prs_weights(
 
 def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
     """
-    Impute local ancestry using a reference dataset.
+    Impute local ancestry using a reference dataset. The two data sets are assumed to
+    have the same haplotype order, etc. Typically they are just a subset of each other.
 
     Using the following steps:
         1. basic checks are performed for the two data sets.
@@ -91,14 +92,15 @@ def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
     -------
     dset_imputed: a data set with imputed local ancestry
     """
-    # both data sets can only have one chromosome
-    assert len(dset.coords["CHROM"].unique()) == 1
-    assert len(dset_ref.coords["CHROM"].unique()) == 1
-    assert set(dset.coords["CHROM"]) == set(dset_ref.coords["CHROM"])
+    assert (
+        len(set(dset.coords["CHROM"].data)) == 1
+    ), "Data set to be imputed can only have one chromosome"
 
     # dset.indiv is a subset of dset_ref.indiv
     assert set(dset.indiv.values) <= set(dset_ref.indiv.values)
-    dset_ref = dset_ref.sel(indiv=dset.indiv.values)
+    dset_ref = dset_ref.sel(indiv=dset.indiv.values).sel(
+        snp=(dset_ref.coords["CHROM"] == dset.coords["CHROM"][0])
+    )
 
     # find relevant regions
     ref_start = np.where(dset_ref["POS"] < dset["POS"][0])[0][-1]

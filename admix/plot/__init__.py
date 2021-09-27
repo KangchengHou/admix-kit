@@ -1,4 +1,4 @@
-from ._plot import lanc, admixture, manhattan
+from ._plot import lanc, admixture, manhattan, qq
 
 
-__all__ = ["lanc", "admixture", "manhattan"]
+__all__ = ["lanc", "admixture", "manhattan", "qq"]
