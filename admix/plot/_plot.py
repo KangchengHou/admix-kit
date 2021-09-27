@@ -10,25 +10,29 @@ from scipy import stats
 from admix.data import quantile_normalize
 
 
-def lambda_gc_ci(pval, n_resamples=999):
+def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):
     def _lambda(pval):
         chi2 = stats.norm.ppf(pval / 2) ** 2
         return np.quantile(chi2, 0.5) / stats.chi2.ppf(0.5, 1)
 
     from scipy.stats import bootstrap
 
-    res = bootstrap(
-        pval,
-        _lambda,
-        vectorized=False,
-        n_resamples=499,
-    )
     est = _lambda(pval)
-    ci = res.confidence_interval
-    return est, (ci[0], ci[1])
+    if bootstrap_ci:
+        res = bootstrap(
+            (pval,),
+            _lambda,
+            axis=-1,
+            vectorized=False,
+            n_resamples=n_resamples,
+        )
+        ci = res.confidence_interval
+        return est, (ci[0], ci[1])
+    else:
+        return est, None
 
 
-def qq(pval, ax=None, return_lambda_gc=False):
+def qq(pval, label=None, ax=None, bootstrap_ci=False):
     """qq plot of p-values
 
     Parameters
@@ -45,18 +49,18 @@ def qq(pval, ax=None, return_lambda_gc=False):
 
     pval = np.array(pval)
     expected_pval = stats.norm.sf(quantile_normalize(-pval))
-    ax.scatter(-np.log10(expected_pval), -np.log10(pval), s=2)
+    ax.scatter(-np.log10(expected_pval), -np.log10(pval), s=2, label=label)
     lim = max(-np.log10(expected_pval))
     ax.plot([0, lim], [0, lim], "r--")
     ax.set_xlabel("Expected -$\log_{10}(p)$")
     ax.set_ylabel("Observed -$\log_{10}(p)$")
-    lgc, lgc_ci = lambda_gc_ci(pval)
-    print("lambda GC: {lgc:.3g} [{lgc_ci[0]:.3g}, {lgc_ci[1]:.3g}]")
-
-    if return_lambda_gc:
+    lgc, lgc_ci = lambda_gc(pval, bootstrap_ci=bootstrap_ci)
+    if bootstrap_ci:
+        print(f"lambda GC: {lgc:.3g} [{lgc_ci[0]:.3g}, {lgc_ci[1]:.3g}]")
         return lgc, lgc_ci
     else:
-        return None
+        print(f"lambda GC: {lgc:.3g}")
+        return lgc
 
 
 def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
