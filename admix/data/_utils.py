@@ -72,122 +72,87 @@ def match_prs_weights(
     return rls_dset, rls_df_weight
 
 
-def impute_lanc(vcf, region, dset):
+def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
     """
-    TODO: finalize this function
-    This function should take two dset, rather than read the vcf file
-    Given a vcf file and a region, impute the local ancestry information
-    from dset (xr.Dataset), typically with SNPs in lower density
+    Impute local ancestry using a reference dataset.
 
-    vcf: path to the vcf file
-    region: regions of vcf of interest
-    dset: existing dataset
+    Using the following steps:
+        1. basic checks are performed for the two data sets.
+        2. `dset_ref`'s individuals is matched with `dset`, `dset`'s individuals
+            must be a subset of `dset_ref`'s individuals.
+        3. Imputation are performed
+
+    Parameters
+    ----------
+    dset: a data set to be imputed with local ancestry
+    dset_ref: a data set with local ancestry for reference
+
+    Returns
+    -------
+    dset_imputed: a data set with imputed local ancestry
     """
-    import allel
+    # both data sets can only have one chromosome
+    assert len(dset.coords["CHROM"].unique()) == 1
+    assert len(dset_ref.coords["CHROM"].unique()) == 1
+    assert set(dset.coords["CHROM"]) == set(dset_ref.coords["CHROM"])
 
-    region_chrom, region_start, region_stop = [
-        int(i) for i in region.replace("chr", "").replace(":", "-").split("-")
-    ]
-    dset = dset.sel(
-        snp=(dset["CHROM@snp"] == region_chrom)
-        & (region_start - 1e5 <= dset["POS@snp"])
-        & (dset["POS@snp"] <= region_stop + 1e5)
-    )
+    # dset.indiv is a subset of dset_ref.indiv
+    assert set(dset.indiv.values) <= set(dset_ref.indiv.values)
+    dset_ref = dset_ref.sel(indiv=dset.indiv.values)
 
-    # TODO: replace the following with admix.data.read_vcf
-    vcf = allel.read_vcf(
-        vcf, region=region, fields=["samples", "calldata/GT", "variants/*"]
-    )
-    if region.startswith("chr"):
-        vcf["variants/CHROM"] = np.array([int(c[3:]) for c in vcf["variants/CHROM"]])
-    # assume no missing data for now
-    gt = vcf["calldata/GT"]
-    assert (gt == -1).sum() == 0
-
-    dset_imputed = xr.Dataset(
-        data_vars={
-            "geno": (
-                ("indiv", "snp", "ploidy"),
-                da.from_array(np.swapaxes(gt, 0, 1), chunks=-1),
-            ),
-        },
-        coords={
-            "snp": vcf["variants/ID"].astype(str),
-            "indiv": vcf["samples"].astype(str),
-            "CHROM@snp": ("snp", vcf["variants/CHROM"].astype(int)),
-            "POS@snp": ("snp", vcf["variants/POS"].astype(int)),
-            "REF@snp": ("snp", vcf["variants/REF"].astype(str)),
-            "ALT@snp": ("snp", vcf["variants/ALT"][:, 0].astype(str)),
-            "R2@snp": ("snp", vcf["variants/R2"].astype(float)),
-            "MAF@snp": ("snp", vcf["variants/MAF"].astype(float)),
-        },
-        attrs={"n_anc": dset.attrs["n_anc"]},
-    )
-    dset_imputed = dset_imputed.sel(indiv=dset.indiv.values)
-
-    # fill in individual information
-    for col in dset:
-        if col.endswith("@indiv"):
-            if col in dset_imputed:
-                assert np.all(dset[col] == dset_imputed[col])
-            else:
-                dset_imputed[col] = ("indiv", dset[col].values)
-
-    # impute local ancestry
-
-    # relevant typed region
-    typed_start = np.where(dset["POS@snp"] < dset_imputed["POS@snp"][0])[0][-1]
-    typed_stop = np.where(dset["POS@snp"] > dset_imputed["POS@snp"][-1])[0][0]
-    dset_typed_subset = dset.isel(snp=slice(typed_start, typed_stop + 1))
-    dset_typed_margin = dset_typed_subset.isel(snp=[0, -1])
+    # find relevant regions
+    ref_start = np.where(dset_ref["POS"] < dset["POS"][0])[0][-1]
+    ref_stop = np.where(dset_ref["POS"] > dset["POS"][-1])[0][0]
+    dset_ref_subset = dset_ref.isel(snp=slice(ref_start, ref_stop + 1))
+    dset_ref_margin = dset_ref_subset.isel(snp=[0, -1])
 
     imputed_lanc = []
     for ploidy_i in range(2):
-        df_typed_margin = pd.DataFrame(
-            dset_typed_margin.lanc[:, ploidy_i].values.T,
-            columns=dset_typed_margin.indiv.values,
-            index=dset_typed_margin.snp.values,
+        df_ref_margin = pd.DataFrame(
+            dset_ref_margin.lanc[:, ploidy_i].values.T,
+            columns=dset_ref_margin.indiv.values,
+            index=dset_ref_margin.snp.values,
         )
         df_imputed = pd.DataFrame(
             {
-                "snp": dset_imputed.snp["snp"],
+                "snp": dset.snp["snp"],
             }
         ).set_index("snp")
         df_imputed = pd.concat(
             [
                 df_imputed,
-                pd.DataFrame(columns=dset_imputed["indiv"].values, dtype=float),
+                pd.DataFrame(columns=dset["indiv"].values, dtype=float),
             ]
         )
         # fill margin
         df_imputed = pd.concat(
-            [df_typed_margin.iloc[[0], :], df_imputed, df_typed_margin.iloc[[-1], :]],
+            [df_ref_margin.iloc[[0], :], df_imputed, df_ref_margin.iloc[[-1], :]],
             axis=0,
         )
         df_imputed.index.name = "snp"
         # fill inside
         df_imputed.loc[
-            dset_typed_subset.snp.values, dset_typed_subset.indiv.values
-        ] = dset_typed_subset["lanc"][:, :, ploidy_i].values.T
+            dset_ref_subset.snp.values, dset_ref_subset.indiv.values
+        ] = dset_ref_subset["lanc"][:, :, ploidy_i].values.T
         # interpolate
         df_imputed = (
             df_imputed.reset_index().interpolate(method="nearest").set_index("snp")
         )
 
         imputed_lanc.append(
-            df_imputed.loc[dset_imputed["snp"].values, dset_imputed["indiv"].values]
+            df_imputed.loc[dset["snp"].values, dset["indiv"].values]
             .values.astype(np.int8)
             .T
         )
 
-    dset_imputed = dset_imputed.assign(
+    dset = dset.assign(
         lanc=(
             ("indiv", "snp", "ploidy"),
             da.from_array(np.dstack(imputed_lanc), chunks=-1),
         )
     )
 
-    return dset_imputed
+    return dset
 
 
 def quantile_normalize(val):
