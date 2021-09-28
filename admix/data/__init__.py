@@ -71,5 +71,4 @@ __all__ = [
     "load_lab_dataset",
     "make_dataset",
     "assign_lanc",
-    "impute_lanc",
 ]
