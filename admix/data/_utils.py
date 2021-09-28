@@ -398,36 +398,6 @@ def load_toy() -> List[xr.Dataset]:
     return [dset_admix, dset_eur, dset_afr]
 
 
-def load_page_eur_afr_imputed(
-    region: str,
-    imputed_vcf_dir: str = "/u/project/pasaniuc/pasaniucdata/admixture/projects/PAGE-QC/s01_dataset/all",
-):
-    """
-    PAGE admixed individuals with EUR - AFR ancestries in imputed density
-
-    Parameters
-    ----------
-    region : str
-        Region name, in the format of "chrom:start-stop", e.g. "1:1-100000"
-    imputed_vcf_dir : str
-        Directory of imputed VCF files
-    """
-    chrom = int(region.split(":")[0])
-    start, stop = [int(i) for i in region.split(":")[1].split("-")]
-    print(chrom)
-    # load hm3 data set
-    dset_hm3 = load_page_eur_afr_hm3(chrom=chrom)
-
-    dset = admix.io.read_vcf(
-        join(imputed_vcf_dir, f"chr{chrom}.vcf.gz"),
-        region=f"{chrom}:{start}-{stop}",
-    ).sel(indiv=dset_hm3.indiv.values)
-
-    dset = admix.data.impute_lanc(dset=dset, dset_ref=dset_hm3)
-    dset.attrs["n_anc"] = 2
-    return dset
-
-
 # PAGE admixed individuals with EUR - AFR ancestries in hapmap3 density
 def load_page_eur_afr_hm3(
     chrom=None,
@@ -545,6 +515,36 @@ def load_page_eur_afr_hm3(
     return dset
 
 
+def load_page_eur_afr_imputed(
+    region: str,
+    imputed_vcf_dir: str = "/u/project/pasaniuc/pasaniucdata/admixture/projects/PAGE-QC/s01_dataset/all",
+):
+    """
+    PAGE admixed individuals with EUR - AFR ancestries in imputed density
+
+    Parameters
+    ----------
+    region : str
+        Region name, in the format of "chrom:start-stop", e.g. "1:1-100000"
+    imputed_vcf_dir : str
+        Directory of imputed VCF files
+    """
+    chrom = int(region.split(":")[0])
+    start, stop = [int(i) for i in region.split(":")[1].split("-")]
+    print(chrom)
+    # load hm3 data set
+    dset_hm3 = load_page_eur_afr_hm3(chrom=chrom)
+
+    dset = admix.io.read_vcf(
+        join(imputed_vcf_dir, f"chr{chrom}.vcf.gz"),
+        region=f"{chrom}:{start}-{stop}",
+    ).sel(indiv=dset_hm3.indiv.values)
+
+    dset = admix.data.impute_lanc(dset=dset, dset_ref=dset_hm3)
+    dset.attrs["n_anc"] = 2
+    return dset
+
+
 # UK Biobank admixed individuals with EUR - AFR ancestries in hapmap3 density
 def load_ukb_eur_afr_hm3(
     chrom=None,
@@ -556,7 +556,7 @@ def load_ukb_eur_afr_hm3(
     elif isinstance(chrom, List):
         chrom = np.array(chrom)
     elif isinstance(chrom, int):
-        chrom = np.aarray([chrom])
+        chrom = np.array([chrom])
     else:
         raise ValueError("chrom must be None, List or int")
 
@@ -611,6 +611,36 @@ def load_ukb_eur_afr_hm3(
     return dset
 
 
+def load_ukb_eur_afr_imputed(
+    region: str,
+    imputed_vcf_dir: str = "/u/project/pasaniuc/pasaniucdata/admixture/projects/admix-prs-uncertainty/data/PLINK/admix/topmed",
+):
+    print("in load_ukb_eur_afr_imputed")
+    """
+    UKB admixed individuals with EUR - AFR ancestries in imputed density
+
+    Parameters
+    ----------
+    region : str
+        Region name, in the format of "chrom:start-stop", e.g. "1:1-100000"
+    imputed_vcf_dir : str
+        Directory of imputed VCF files
+    """
+    chrom = int(region.split(":")[0])
+    start, stop = [int(i) for i in region.split(":")[1].split("-")]
+    # load hm3 data set
+    dset_hm3 = load_ukb_eur_afr_hm3(chrom=chrom)
+
+    dset = admix.io.read_vcf(
+        join(imputed_vcf_dir, f"chr{chrom}/chr{chrom}.sample.imputed.vcf.gz"),
+        region=f"chr{chrom}:{start}-{stop}",
+    ).sel(indiv=dset_hm3.indiv.values)
+
+    dset = admix.data.impute_lanc(dset=dset, dset_ref=dset_hm3)
+    dset.attrs["n_anc"] = 2
+    return dset
+
+
 def load_lab_dataset(name: str, chrom: int = None, region: str = None) -> xr.Dataset:
     """Load prepared dataset in Bogdan lab, currently available
     if you use this function on cluster, and have the proper access to the data.
@@ -651,6 +681,10 @@ def load_lab_dataset(name: str, chrom: int = None, region: str = None) -> xr.Dat
     elif name == "ukb_eur_afr_hm3":
         assert region is None, "region must not be specified when loading hm3 data"
         dset = load_ukb_eur_afr_hm3(chrom=chrom)
+    elif name == "ukb_eur_afr_imputed":
+        assert region is not None, "region must be specified when loading imputed data"
+        assert chrom is None, "chrom must not be specified when loading imputed data"
+        dset = load_ukb_eur_afr_imputed(region=region)
     elif name == "page_eur_afr_hm3":
         assert region is None, "region must not be specified when loading hm3 data"
         dset = load_page_eur_afr_hm3(chrom=chrom)
