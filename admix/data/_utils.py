@@ -269,7 +269,7 @@ def check_align(dsets: List[xr.Dataset], dim: str) -> bool:
     bool: whether the two datasets align in the given dimension
     """
     assert dim in ["snp", "indiv"]
-    return
+    return False
 
 
 def align(dsets: List[xr.Dataset], dim: str) -> List[xr.Dataset]:
@@ -389,14 +389,29 @@ def load_toy() -> List[xr.Dataset]:
     return [dset_admix, dset_eur, dset_afr]
 
 
-def load_lab_dataset(name: str) -> xr.Dataset:
+def load_lab_dataset(name: str, chrom: int = None, region: str = None) -> xr.Dataset:
     """Load prepared dataset in Bogdan lab, currently available
-    if you use this function on cluster, and have access to
-    `/u/project/pasaniuc/pasaniucdata/admixture/dataset`
+    if you use this function on cluster, and have the proper access to the data.
+    Contact kangchenghou@gmail.com before using this function.
 
-    - `simulate_eur_afr.20_80`: Simulated admixture of 20% EUR and 80% AFR
-    - `simulate_eur_afr.50_50`: Simulated admixture of 50% EUR and 50% AFR
-    - `ukb_eur_afr`: Admixed individuals in UK Biobank
+    Parameters
+    ----------
+    name : str
+        Name of the dataset
+        - `simulate_eur_afr.20_80`: Simulated admixture of 20% EUR and 80% AFR
+        - `simulate_eur_afr.50_50`: Simulated admixture of 50% EUR and 50% AFR
+        - `ukb_eur_afr_hm3`: Admixed individuals of European and African ancestries
+            in UK Biobank with hapmap3 SNPs
+        - `ukb_eur_afr_imputed`: Admixed individuals of European and African ancestries
+            in UK Biobank with imputed SNPs
+        - `page_eur_afr_hm3`: Admixed individuals of European and African ancestries
+            in PAGE with hapmap3 SNPs
+        - `page_eur_afr_imputed`: Admixed individuals of European and African ancestries
+            in PAGE with imputed SNPs
+    chrom : int, optional
+        Chromosome number
+    region : str, optional
+        Region name
 
     Returns
     -------

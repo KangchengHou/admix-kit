@@ -115,7 +115,6 @@ def continuous_pheno(
 
     pheno = pheno_g + pheno_e
     pheno_g, pheno = dask.compute((pheno_g, pheno))[0]
-    # TODO: could speed up using pheno_g, pheno = dask.compute((pheno_g, pheno))
     # if `cov_cols` are specified, add the covariates to the phenotype
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values
@@ -124,7 +123,7 @@ def continuous_pheno(
         # add the covariates to the phenotype
         cov_values = np.zeros((n_indiv, len(cov_cols)))
         for i_cov, cov_col in enumerate(cov_cols):
-            cov_values[:, i_cov] = dset[cov_col + "@indiv"].values
+            cov_values[:, i_cov] = dset[cov_col].values
         pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
 
     return {
@@ -286,3 +285,112 @@ def continuous_pheno_grm(
 #             )
 #         rls_list.append(snp_phe)
 #     return rls_list
+
+
+def continuous_pheno_1pop(
+    dset: xr.Dataset,
+    var_g: float = None,
+    var_e: float = None,
+    n_causal: int = None,
+    beta: np.ndarray = None,
+    cov_cols: List[str] = None,
+    cov_effects: List[float] = None,
+    n_sim=10,
+) -> dict:
+    """Simulate continuous phenotype for a single population [continuous]
+
+    Parameters
+    ----------
+    dset: xr.Dataset
+        Dataset containing the following variables:
+            - geno: (n_indiv, n_snp) genotype of each individual
+    var_g: float or np.ndarray
+        Variance explained by the genotype effect
+    var_e: float
+        Variance explained by the effect of the environment
+    n_causal: int, optional
+        number of causal variables, by default None
+    beta: np.ndarray, optional
+        Effect sizes
+    cov_cols: List[str], optional
+        list of covariates to include as covariates, by default None
+    cov_effects: List[float], optional
+        list of the effect of each covariate, by default None
+        for each simulation, the cov_effects will be the same
+    n_sim : int, optional
+        number of simulations, by default 10
+
+
+    Returns
+    -------
+    beta: np.ndarray
+        simulated effect sizes (2 * n_snp, n_sim)
+    phe_g: np.ndarray
+        simulated genetic component of phenotypes (n_indiv, n_sim)
+    phe: np.ndarray
+        simulated phenotype (n_indiv, n_sim)
+    """
+
+    n_indiv, n_snp = dset.dims["indiv"], dset.dims["snp"]
+
+    # simulate effect sizes
+    if beta is None:
+
+        if n_causal is None:
+            # n_causal = n_snp if `n_causal` is not specified
+            n_causal = n_snp
+        assert (
+            var_g is not None and var_e is not None
+        ), "`var_g` and `var_e` must be specified"
+        # if `beta` is not specified, simulate effect sizes
+        beta = np.zeros((n_snp, n_sim))
+        for i_sim in range(n_sim):
+            cau = sorted(
+                np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
+            )
+
+            i_beta = np.random.normal(
+                loc=0.0,
+                scale=np.sqrt(var_g / n_causal),
+                size=n_causal,
+            )
+            beta[cau, i_sim] = i_beta
+    else:
+        assert (var_g is None) and (
+            n_causal is None
+        ), "If `beta` is specified, `var_g`, `var_e`, and `n_causal` must be specified"
+        assert beta.shape == (n_snp,) or beta.shape == (
+            n_snp,
+            n_sim,
+        ), "`beta` must be of shape (n_snp,) or (n_snp, n_sim)"
+        if beta.shape == (n_snp,):
+            # replicate `beta` for each simulation
+            beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
+
+    pheno_g = da.dot(dset.geno.data, beta)
+
+    pheno_e = np.zeros(pheno_g.shape)
+    for i_sim in range(n_sim):
+        pheno_e[:, i_sim] = np.random.normal(
+            loc=0.0, scale=np.sqrt(var_e), size=n_indiv
+        )
+
+    pheno = pheno_g + pheno_e
+    pheno_g, pheno = dask.compute((pheno_g, pheno))[0]
+    # if `cov_cols` are specified, add the covariates to the phenotype
+    if cov_cols is not None:
+        # if `cov_effects` are not set, set to random normal values
+        if cov_effects is None:
+            cov_effects = np.random.normal(size=len(cov_cols))
+        # add the covariates to the phenotype
+        cov_values = np.zeros((n_indiv, len(cov_cols)))
+        for i_cov, cov_col in enumerate(cov_cols):
+            cov_values[:, i_cov] = dset[cov_col].values
+        pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
+
+    return {
+        "beta": beta,
+        "pheno_g": pheno_g,
+        "pheno": pheno,
+        "cov_effects": cov_effects,
+    }
