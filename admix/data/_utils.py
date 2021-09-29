@@ -615,7 +615,6 @@ def load_ukb_eur_afr_imputed(
     region: str,
     imputed_vcf_dir: str = "/u/project/pasaniuc/pasaniucdata/admixture/projects/admix-prs-uncertainty/data/PLINK/admix/topmed",
 ):
-    print("in load_ukb_eur_afr_imputed")
     """
     UKB admixed individuals with EUR - AFR ancestries in imputed density
 

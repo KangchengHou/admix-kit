@@ -15,6 +15,38 @@ from smart_open import open
 import dask.array as da
 
 
+def read_plink(path: str):
+    """read plink file and form xarray.Dataset
+
+    Parameters
+    ----------
+    path : str
+        path to plink file prefix without .bed/.bim/.fam
+    """
+    import xarray as xr
+    import pandas_plink
+
+    plink = pandas_plink.read_plink1_bin(
+        f"{path}.bed",
+        chunk=pandas_plink.Chunk(nsamples=None, nvariants=1024),
+        verbose=False,
+    )
+
+    dset = xr.DataArray(
+        data=plink.data,
+        coords={
+            "indiv": (plink["fid"] + "_" + plink["iid"]).values.astype(str),
+            "snp": plink["snp"].values.astype(str),
+            "CHROM": ("snp", plink["chrom"].values.astype(int)),
+            "POS": ("snp", plink["pos"].values.astype(int)),
+            "REF": ("snp", plink["a1"].values.astype(str)),
+            "ALT": ("snp", plink["a0"].values.astype(str)),
+        },
+        dims=["indiv", "snp"],
+    )
+    return dset
+
+
 def read_vcf(path: str, region: str = None):
     """read vcf file and form xarray.Dataset
 
