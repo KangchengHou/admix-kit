@@ -53,7 +53,7 @@ def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
     assert np.all(dset.indiv == lanc0.columns)
     for i_row, row in rfmix.iterrows():
         mask_row = (
-            (row.spos <= dset.snp["POS@snp"]) & (dset.snp["POS@snp"] <= row.epos)
+            (row.spos <= dset.snp["POS"]) & (dset.snp["POS"] <= row.epos)
         ).values
         lanc_full[:, mask_row, 0] = lanc0.loc[i_row, :].values[:, np.newaxis]
         lanc_full[:, mask_row, 1] = lanc1.loc[i_row, :].values[:, np.newaxis]
@@ -71,5 +71,4 @@ __all__ = [
     "load_lab_dataset",
     "make_dataset",
     "assign_lanc",
-    "impute_lanc",
 ]

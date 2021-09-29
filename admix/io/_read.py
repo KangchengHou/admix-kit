@@ -12,6 +12,39 @@ from pandas import read_csv
 import numpy as np
 import re
 from smart_open import open
+import dask.array as da
+
+
+def read_plink(path: str):
+    """read plink file and form xarray.Dataset
+
+    Parameters
+    ----------
+    path : str
+        path to plink file prefix without .bed/.bim/.fam
+    """
+    import xarray as xr
+    import pandas_plink
+
+    plink = pandas_plink.read_plink1_bin(
+        f"{path}.bed",
+        chunk=pandas_plink.Chunk(nsamples=None, nvariants=1024),
+        verbose=False,
+    )
+
+    dset = xr.DataArray(
+        data=plink.data,
+        coords={
+            "indiv": (plink["fid"] + "_" + plink["iid"]).values.astype(str),
+            "snp": plink["snp"].values.astype(str),
+            "CHROM": ("snp", plink["chrom"].values.astype(int)),
+            "POS": ("snp", plink["pos"].values.astype(int)),
+            "REF": ("snp", plink["a1"].values.astype(str)),
+            "ALT": ("snp", plink["a0"].values.astype(str)),
+        },
+        dims=["indiv", "snp"],
+    )
+    return dset
 
 
 def read_vcf(path: str, region: str = None):
@@ -32,14 +65,20 @@ def read_vcf(path: str, region: str = None):
     )
     gt = vcf["calldata/GT"]
     assert (gt == -1).sum() == 0
+
+    # used to convert chromosome to int
+    chrom_format_func = np.vectorize(lambda x: int(x.replace("chr", "")))
     dset = xr.Dataset(
         data_vars={
-            "geno": (("indiv", "snp", "ploidy"), np.swapaxes(gt, 0, 1)),
+            "geno": (("indiv", "snp", "ploidy"), da.from_array(np.swapaxes(gt, 0, 1))),
         },
         coords={
             "snp": vcf["variants/ID"].astype(str),
             "indiv": vcf["samples"].astype(str),
-            "CHROM": ("snp", vcf["variants/CHROM"].astype(int)),
+            "CHROM": (
+                "snp",
+                chrom_format_func(vcf["variants/CHROM"]),
+            ),
             "POS": ("snp", vcf["variants/POS"].astype(int)),
             "REF": ("snp", vcf["variants/REF"].astype(str)),
             "ALT": ("snp", vcf["variants/ALT"][:, 0].astype(str)),

@@ -37,7 +37,7 @@ def continuous_pheno(
     n_causal: int, optional
         number of causal variables, by default None
     beta: np.ndarray, optional
-
+        causal effect of each causal variable, by default None
     cov_cols: List[str], optional
         list of covariates to include as covariates, by default None
     cov_effects: List[float], optional
@@ -83,11 +83,17 @@ def continuous_pheno(
                 np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
             )
 
+            expected_cov = np.array([[var_g, gamma], [gamma, var_g]]) / n_causal
+
             i_beta = np.random.multivariate_normal(
                 mean=[0.0, 0.0],
-                cov=np.array([[var_g, gamma], [gamma, var_g]]) / n_causal,
+                cov=expected_cov,
                 size=n_causal,
             )
+            # normalize to expected covariance structure
+            empirical_cov = np.dot(i_beta.T, i_beta) / n_causal
+            i_beta = i_beta * np.sqrt(np.diag(expected_cov) / np.diag(empirical_cov))
+
             for i_anc in range(n_anc):
                 beta[cau, i_anc, i_sim] = i_beta[:, i_anc]
     else:

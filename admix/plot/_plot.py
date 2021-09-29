@@ -6,6 +6,61 @@ import pandas as pd
 import matplotlib
 import xarray as xr
 import warnings
+from scipy import stats
+from admix.data import quantile_normalize
+
+
+def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):
+    def _lambda(pval):
+        chi2 = stats.norm.ppf(pval / 2) ** 2
+        return np.quantile(chi2, 0.5) / stats.chi2.ppf(0.5, 1)
+
+    from scipy.stats import bootstrap
+
+    est = _lambda(pval)
+    if bootstrap_ci:
+        res = bootstrap(
+            (pval,),
+            _lambda,
+            axis=-1,
+            vectorized=False,
+            n_resamples=n_resamples,
+        )
+        ci = res.confidence_interval
+        return est, (ci[0], ci[1])
+    else:
+        return est, None
+
+
+def qq(pval, label=None, ax=None, bootstrap_ci=False):
+    """qq plot of p-values
+
+    Parameters
+    ----------
+    pval : np.ndarray
+        p-values, array-like
+    ax : matplotlib.axes, optional
+        by default None
+    return_lambda_gc : bool, optional
+        whether to return the lambda GC, by default False
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    pval = np.array(pval)
+    expected_pval = stats.norm.sf(quantile_normalize(-pval))
+    ax.scatter(-np.log10(expected_pval), -np.log10(pval), s=2, label=label)
+    lim = max(-np.log10(expected_pval))
+    ax.plot([0, lim], [0, lim], "r--")
+    ax.set_xlabel("Expected -$\log_{10}(p)$")
+    ax.set_ylabel("Observed -$\log_{10}(p)$")
+    lgc, lgc_ci = lambda_gc(pval, bootstrap_ci=bootstrap_ci)
+    if bootstrap_ci:
+        print(f"lambda GC: {lgc:.3g} [{lgc_ci[0]:.3g}, {lgc_ci[1]:.3g}]")
+        return lgc, lgc_ci
+    else:
+        print(f"lambda GC: {lgc:.3g}")
+        return lgc
 
 
 def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
@@ -26,26 +81,36 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
     """
     if ax is None:
         ax = plt.gca()
-    assert len(chrom) == len(pval)
-    color_list = ["#1b9e77", "#d95f02"]
-    # plot dots for odd and even chromosomes
-    for mod in range(2):
-        index = np.where(chrom % 2 == mod)[0]
-        ax.scatter(
-            np.arange(len(pval))[index],
-            -np.log10(pval)[index],
-            s=s,
-            color=color_list[mod],
-        )
 
-    # label unique chromosomes
-    xticks = []
-    xticklabels = []
-    for chrom_i in np.unique(chrom):
-        xticks.append(np.where(chrom == chrom_i)[0].mean())
-        xticklabels.append(chrom_i)
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(xticklabels, rotation=90, fontsize=8)
+    if chrom is None:
+        # use snp index
+        ax.scatter(np.arange(len(pval)), -np.log10(pval), s=s)
+        ax.set_xlabel("SNP index")
+
+    else:
+        assert len(chrom) == len(pval)
+        color_list = ["#1b9e77", "#d95f02"]
+        # plot dots for odd and even chromosomes
+        for mod in range(2):
+            index = np.where(chrom % 2 == mod)[0]
+            ax.scatter(
+                np.arange(len(pval))[index],
+                -np.log10(pval)[index],
+                s=s,
+                color=color_list[mod],
+            )
+
+        # label unique chromosomes
+        xticks = []
+        xticklabels = []
+        for chrom_i in np.unique(chrom):
+            xticks.append(np.where(chrom == chrom_i)[0].mean())
+            xticklabels.append(chrom_i)
+
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xticklabels, rotation=90, fontsize=8)
+        ax.set_xlabel("Chromosome")
+
     ax.set_ylabel("-$\log_{10}(P)$")
     if axh_y is not None:
         ax.axhline(y=axh_y, color="r", ls="--")

@@ -35,7 +35,7 @@ def admix_gen_cor(
     if cov_cols is not None:
         cov_values = np.zeros((n_indiv, len(cov_cols)))
         for i_cov, cov_col in enumerate(cov_cols):
-            cov_values[:, i_cov] = dset[cov_col + "@indiv"].values
+            cov_values[:, i_cov] = dset[cov_col].values
         if cov_intercept:
             cov_values = np.c_[np.ones((n_indiv, 1)), cov_values]
     else:
