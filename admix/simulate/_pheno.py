@@ -7,6 +7,7 @@ import xarray as xr
 from typing import Union, List, Dict
 import admix
 import dask
+from tqdm import tqdm
 
 
 def continuous_pheno(
@@ -338,10 +339,12 @@ def continuous_pheno_1pop(
     """
 
     n_indiv, n_snp = dset.dims["indiv"], dset.dims["snp"]
+    geno = dset.geno.data
+    centered_geno = geno - da.nanmean(geno, axis=0)
+    # snp_var = da.nanvar(centered_geno, axis=0).compute()
 
     # simulate effect sizes
     if beta is None:
-
         if n_causal is None:
             # n_causal = n_snp if `n_causal` is not specified
             n_causal = n_snp
@@ -354,7 +357,6 @@ def continuous_pheno_1pop(
             cau = sorted(
                 np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
             )
-
             i_beta = np.random.normal(
                 loc=0.0,
                 scale=np.sqrt(var_g / n_causal),
@@ -373,7 +375,12 @@ def continuous_pheno_1pop(
             # replicate `beta` for each simulation
             beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
 
-    pheno_g = da.dot(dset.geno.data, beta)
+    pheno_g = admix._utils._geno_mult_mat(centered_geno, beta)
+
+    # standardize the phe_g so that the variance of g is `var_g`
+    std_scale = np.sqrt(var_g / np.var(pheno_g, axis=0))
+    pheno_g *= std_scale
+    beta *= std_scale
 
     pheno_e = np.zeros(pheno_g.shape)
     for i_sim in range(n_sim):

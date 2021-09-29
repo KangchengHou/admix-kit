@@ -7,8 +7,10 @@ from typing import List
 from tqdm import tqdm
 import admix
 from typing import Any, Dict
+import dask.array as da
 
-__all__ = ["marginal", "marginal_fast"]
+
+__all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 
 def marginal_fast(
@@ -313,6 +315,72 @@ def marginal(
 def logistic_reg(X, y, cov):
 
     pass
+
+
+def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
+    """Simple marginal association testing for one SNP at a time
+
+    Useful in simulation study because this will be very fast
+    Parameters
+    ----------
+    dset : xr.Dataset
+        Dataset containing the (n_indiv, n_snp) genotype matrix, dset.geno
+    pheno : np.ndarray
+        (n_snp, n_sim) phenotype matrix
+
+    Returns
+    -------
+    coef : np.ndarray
+        (n_snp, n_sim) marginal association coefficient
+    coef_se: np.ndarray
+        (n_snp, n_sim) marginal association coefficient standard error
+    zscores : np.ndarray
+        (n_snp, n_sim) association z-scores for each SNP being tested
+
+    Examples
+    --------
+
+    To check the consistency of results of standard methods
+
+    n_indiv = dset_admix.dims["indiv"]
+    n_cov = 1
+
+    geno = _impute_with_mean(dset_admix.geno.values)
+    geno = (geno - geno.mean(axis=0)) / geno.std(axis=0)
+
+    f_stats = admixgwas.linear_f_test(
+        geno, np.ones((n_indiv, 1)), sim["pheno"][:, 0], 1, [0]
+    )
+    p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
+    zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
+
+    >>> dset = xr.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
+    >>> zscores = marginal_simple(dset, pheno)
+
+    """
+    geno = dset["geno"].data
+    n_indiv, n_snp = geno.shape
+    assert (
+        n_indiv == pheno.shape[0]
+    ), "Number of individuals in genotype and phenotype do not match"
+    n_sim = pheno.shape[1]
+
+    # center phenotype for each simulation
+    Y = pheno - pheno.mean(axis=0)
+    X = geno - da.nanmean(geno, axis=0)
+
+    XtY, snp_var = admix._utils._geno_mult_mat(
+        X, Y, transpose_geno=True, return_snp_var=True
+    )
+    XtX = snp_var * n_indiv
+
+    coef = XtY / XtX[:, np.newaxis]
+    coef_var = np.var(Y, axis=0) / XtX[:, np.newaxis]
+    coef_se = np.sqrt(coef_var)
+
+    zscores = coef / coef_se
+
+    return coef, coef_se, zscores
 
 
 # def mixscore_wrapper(pheno, anc, geno, theta,
