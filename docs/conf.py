@@ -13,7 +13,6 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
@@ -38,9 +37,23 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
+    "sphinx.ext.todo",  # Todo headers and todo:: directives
+    "sphinx.ext.mathjax",  # LaTeX style math
+    "sphinx.ext.viewcode",  # view code links
+    "sphinx.ext.napoleon",  # for NumPy style docstrings
     "nbsphinx",
 ]
 
+# Napoleon options
+# See: http://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
+napoleon_use_ivar = False
+napoleon_use_param = False
+napoleon_use_keyword = False
+napoleon_use_rtype = False
+napoleon_numpy_docstring = True
+napoleon_google_docstring = False
+
+# autosummary options
 autosummary_generate = True
 
 

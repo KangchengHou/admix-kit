@@ -309,8 +309,8 @@ def continuous_pheno_1pop(
     Parameters
     ----------
     dset: xr.Dataset
-        Dataset containing the following variables:
-            - geno: (n_indiv, n_snp) genotype of each individual
+        Dataset with the following variables:
+            - `geno`: (n_indiv, n_snp) genotype of each individual
     var_g: float or np.ndarray
         Variance explained by the genotype effect
     var_e: float
