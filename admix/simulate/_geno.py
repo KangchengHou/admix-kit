@@ -13,8 +13,6 @@ def _lanc(
     """Simulate local ancestries based on Poisson process.
 
 
-    TODO: we could specify the centimorgan for all the SNPs, then infer some
-    recombination rates from the centimorgans.
     Parameters
     ----------
     n_hap : int
@@ -31,6 +29,12 @@ def _lanc(
     -------
     np.ndarray
         Simulated local ancestry
+
+    Todo
+    ----
+
+    TODO: we could specify the centimorgan for all the SNPs, then infer some
+    recombination rates from the centimorgans.
     """
     assert np.sum(anc_props) == 1, "anc_props must sum to 1"
     n_total_snp = n_hap * n_snp
@@ -66,14 +70,12 @@ def admix_geno(
     af_maf_high: float = 0.5,
 ) -> xr.Dataset:
     """Simulate admixed genotype
+
     The generative model is:
-        1. for each ancestry, the allele frequencies are drawn
-        2. for each individual, breakpoints are drawn from a Poisson process.
-            and the ancestry will be filled based a multinomial distribution with `n_anc`
-            components
-        3. for each SNP, given the ancestry and the allele frequencies, the haplotype
-            is drawn
-    Haplotype are simulated under some frequencies
+
+    - for each ancestry, the allele frequencies are drawn
+    - for each individual, breakpoints are drawn from a Poisson process. and the ancestry will be filled based a multinomial distribution with `n_anc` components
+    - for each SNP, given the ancestry and the allele frequencies, the haplotype is drawn. Haplotype are simulated under some frequencies
 
     Parameters
     ----------
@@ -98,8 +100,9 @@ def admix_geno(
 
     Returns
     -------
-        xr.Dataset
+    xr.Dataset
         Simulated admixed dataset
+
 
     References
     ----------

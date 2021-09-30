@@ -23,9 +23,6 @@ def marginal_fast(
     verbose: bool = False,
 ):
     """Marginal association testing for one SNP at a time
-    TODO: what happens when the covariates perfectly correlate?
-    TODO: iterate SNPs by chunk and contatenate results for all chunks
-    TODO: also return effect sizes in additional to p-values
 
     Parameters
     ----------
@@ -37,7 +34,7 @@ def marginal_fast(
         [description], by default None
     family : str, optional
         distribution assumption of response variable, one of "linear" and "logistic",
-            by default "linear"
+        by default "linear"
     method : str, optional
         method to perform GWAS, one of "ATT" / "TRACTOR" / "ADM" / "SNP1"
         by default "ATT"
@@ -53,6 +50,12 @@ def marginal_fast(
         [description]
     NotImplementedError
         [description]
+
+    Todo
+    ----
+    TODO: what happens when the covariates perfectly correlate?
+    TODO: iterate SNPs by chunk and contatenate results for all chunks
+    TODO: also return effect sizes in additional to p-values
     """
 
     try:
@@ -321,6 +324,7 @@ def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
     """Simple marginal association testing for one SNP at a time
 
     Useful in simulation study because this will be very fast
+
     Parameters
     ----------
     dset : xr.Dataset
@@ -342,17 +346,15 @@ def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
 
     To check the consistency of results of standard methods
 
-    n_indiv = dset_admix.dims["indiv"]
-    n_cov = 1
+    >>> n_indiv = dset_admix.dims["indiv"]
+    >>> n_cov = 1
 
-    geno = _impute_with_mean(dset_admix.geno.values)
-    geno = (geno - geno.mean(axis=0)) / geno.std(axis=0)
+    >>> geno = _impute_with_mean(dset_admix.geno.values)
+    >>> geno = (geno - geno.mean(axis=0)) / geno.std(axis=0)
 
-    f_stats = admixgwas.linear_f_test(
-        geno, np.ones((n_indiv, 1)), sim["pheno"][:, 0], 1, [0]
-    )
-    p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
-    zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
+    >>> f_stats = admixgwas.linear_f_test(geno, np.ones((n_indiv, 1)), sim["pheno"][:, 0], 1, [0])
+    >>> p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
+    >>> zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
 
     >>> dset = xr.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
     >>> zscores = marginal_simple(dset, pheno)
