@@ -5,7 +5,8 @@ from numpy.lib.arraysetops import isin
 import pandas as pd
 import xarray as xr
 import tempfile
-import urllib
+import urllib.request
+
 import subprocess
 import tempfile
 from os.path import join
@@ -141,6 +142,53 @@ def plink2(cmd: str):
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
+def plink_assoc(
+    bfile: str,
+    pheno: pd.DataFrame,
+    out_prefix: str,
+    covar: pd.DataFrame = None,
+    indiv: pd.DataFrame = None,
+    snp: pd.DataFrame = None,
+):
+    """Run plink association test
+
+    Parameters
+    ----------
+    bfile : str
+        plink binary file
+    pheno : pd.DataFrame
+        phenotype data
+    out_prefix : str
+        prefix for output files
+    covar : pd.DataFrame, optional
+        covariate data
+    indiv : pd.DataFrame, optional
+        individual to subset, should contain columns FID and IID
+    snp : pd.DataFrame, optional
+        snp to subset, should contain column SNP
+    """
+
+    assert indiv is None and snp is None, "indiv and snp are not supported"
+    pheno_path = out_prefix + ".tmp_pheno"
+    covar_path = out_prefix + ".tmp_covar"
+    pheno.to_csv(pheno_path, sep="\t", index=False)
+    if covar is not None:
+        covar.to_csv(covar_path, sep="\t", index=False)
+
+    cmd = [
+        f"--bfile {bfile}",
+        f"--out {out_prefix}",
+        f"--pheno {pheno_path}",
+    ]
+    if covar is not None:
+        cmd.append("--ci 0.95 --glm omit-ref hide-covar")
+        cmd.append(f"--covar {covar_path}")
+    else:
+        cmd.append("--ci 0.95 --glm omit-ref hide-covar allow-no-covars")
+
+    plink2(" ".join(cmd))
+
+
 def gcta(cmd: str):
     """Shortcut for running plink commands
 
@@ -202,7 +250,7 @@ def plink_read_fam(fam: str):
         delim_whitespace=True,
         usecols=[0, 1],
         names=["FID", "IID"],
-    )
+    ).astype(str)
 
 
 ########################################################################################

@@ -6,6 +6,9 @@ __all__ = [
     "plink2",
     "gcta",
     "lift_over",
+    "plink_assoc",
+    "plink_read_bim",
+    "plink_read_fam",
 ]
 
 from dask.array.core import Array
@@ -14,8 +17,15 @@ import dask.array as da
 import xarray as xr
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 import dask.array as da
-import dask
-from ._ext import get_dependency, plink2, gcta, lift_over, plink_read_bim
+from ._ext import (
+    get_dependency,
+    plink2,
+    gcta,
+    lift_over,
+    plink_read_bim,
+    plink_read_fam,
+    plink_assoc,
+)
 from typing import List, Optional
 
 

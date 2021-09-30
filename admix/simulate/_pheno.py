@@ -8,6 +8,7 @@ from typing import Union, List, Dict
 import admix
 import dask
 from tqdm import tqdm
+import pandas as pd
 
 
 def continuous_pheno(
@@ -134,9 +135,15 @@ def continuous_pheno(
         pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
 
     return {
-        "beta": beta,
-        "pheno_g": pheno_g,
-        "pheno": pheno,
+        "beta": pd.DataFrame(
+            beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
+        "pheno_g": pd.DataFrame(
+            pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
+        "pheno": pd.DataFrame(
+            pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
         "cov_effects": cov_effects,
     }
 
@@ -402,8 +409,14 @@ def continuous_pheno_1pop(
         pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
 
     return {
-        "beta": beta,
-        "pheno_g": pheno_g,
-        "pheno": pheno,
+        "beta": pd.DataFrame(
+            beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
+        "pheno_g": pd.DataFrame(
+            pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
+        "pheno": pd.DataFrame(
+            pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+        ),
         "cov_effects": cov_effects,
     }
