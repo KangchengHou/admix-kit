@@ -135,17 +135,23 @@ def continuous_pheno(
         pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
 
     return {
-        "beta": pd.DataFrame(
-            beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
-        "pheno_g": pd.DataFrame(
-            pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
-        "pheno": pd.DataFrame(
-            pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
+        "beta": beta,
+        "pheno_g": pheno_g,
+        "pheno": pheno,
         "cov_effects": cov_effects,
     }
+    # return {
+    #     "beta": pd.DataFrame(
+    #         beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+    #     ),
+    #     "pheno_g": pd.DataFrame(
+    #         pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+    #     ),
+    #     "pheno": pd.DataFrame(
+    #         pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
+    #     ),
+    #     "cov_effects": cov_effects,
+    # }
 
 
 # TODO: check https://github.com/TalShor/SciLMM/blob/master/scilmm/Estimation/HE.py
