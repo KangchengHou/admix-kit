@@ -100,13 +100,86 @@ def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
 
     # dset.indiv is a subset of dset_ref.indiv
     assert set(dset.indiv.values) <= set(dset_ref.indiv.values)
+    # align the individuals order for two data sets
     dset_ref = dset_ref.sel(indiv=dset.indiv.values).sel(
         snp=(dset_ref.coords["CHROM"] == dset.coords["CHROM"][0])
     )
 
-    # find relevant regions
+    # find relevant regions in reference dataset with local ancestry (hapmap3 SNPs here)
+    ref_start = np.argmin(np.abs(dset_ref["POS"].values - dset["POS"].values[0]))
+    ref_stop = np.argmin(np.abs(dset_ref["POS"].values - dset["POS"].values[-1]))
+
+    dset_ref = dset_ref.isel(snp=slice(ref_start, ref_stop + 1))
+
+    imputed_lanc = []
+    for ploidy_i in range(2):
+        # form a dataframe which contains the known local ancestry and locations to be imputed
+        df_snp = pd.concat(
+            [dset.snp.to_dataframe()[["POS"]], dset_ref.snp.to_dataframe()[["POS"]]]
+        )
+        df_snp = df_snp[~df_snp.index.duplicated()].sort_values("POS")
+
+        df_lanc = pd.DataFrame(
+            index=df_snp.index.values, columns=dset["indiv"].values, dtype=float
+        )
+        # fill margin
+        df_lanc.iloc[0, :] = dset_ref.lanc[:, 0, ploidy_i]
+        df_lanc.iloc[-1, :] = dset_ref.lanc[:, -1, ploidy_i]
+
+        # fill inside
+        df_lanc.loc[dset_ref.snp.values, :] = dset_ref["lanc"][:, :, ploidy_i].values.T
+
+        # interpolate
+        df_lanc = df_lanc.reset_index().interpolate(method="nearest").set_index("index")
+
+        imputed_lanc.append(df_lanc.loc[dset["snp"].values, :].values.astype(np.int8).T)
+
+    dset = dset.assign(
+        lanc=(
+            ("indiv", "snp", "ploidy"),
+            da.from_array(np.dstack(imputed_lanc), chunks=-1),
+        )
+    )
+
+    return dset
+
+
+def impute_lanc_old(dset: xr.Dataset, dset_ref: xr.Dataset):
+    """
+    Impute local ancestry using a reference dataset. The two data sets are assumed to
+    have the same haplotype order, etc. Typically they are just a subset of each other.
+
+    Using the following steps:
+        1. basic checks are performed for the two data sets.
+        2. `dset_ref`'s individuals is matched with `dset`, `dset`'s individuals
+            must be a subset of `dset_ref`'s individuals.
+        3. Imputation are performed
+
+    Parameters
+    ----------
+    dset: a data set to be imputed with local ancestry
+    dset_ref: a data set with local ancestry for reference
+
+    Returns
+    -------
+    dset_imputed: a data set with imputed local ancestry
+    """
+    assert (
+        len(set(dset.coords["CHROM"].data)) == 1
+    ), "Data set to be imputed can only have one chromosome"
+
+    # dset.indiv is a subset of dset_ref.indiv
+    assert set(dset.indiv.values) <= set(dset_ref.indiv.values)
+    dset_ref = dset_ref.sel(indiv=dset.indiv.values).sel(
+        snp=(dset_ref.coords["CHROM"] == dset.coords["CHROM"][0])
+    )
+
+    # find relevant regions in reference dataset with local ancestry (hapmap3 SNPs here)
+    # ref_start = np.argmin(np.abs(dset_ref["POS"].values - dset["POS"].values[0]))
     ref_start = np.where(dset_ref["POS"] < dset["POS"][0])[0][-1]
+    # ref_stop = np.argmin(np.abs(dset_ref["POS"].values - dset["POS"].values[-1]))
     ref_stop = np.where(dset_ref["POS"] > dset["POS"][-1])[0][0]
+
     dset_ref_subset = dset_ref.isel(snp=slice(ref_start, ref_stop + 1))
     dset_ref_margin = dset_ref_subset.isel(snp=[0, -1])
 
@@ -633,8 +706,14 @@ def load_ukb_eur_afr_imputed(
     dset = admix.io.read_vcf(
         join(imputed_vcf_dir, f"chr{chrom}/chr{chrom}.sample.imputed.vcf.gz"),
         region=f"chr{chrom}:{start}-{stop}",
-    ).sel(indiv=dset_hm3.indiv.values)
+    )
+    if dset is None:
+        warnings.warn(f"No SNPs found in {region}, `None` is returned")
+        return None
 
+    dset = dset.sel(indiv=dset_hm3.indiv.values)
+
+    # impute local ancestry
     dset = admix.data.impute_lanc(dset=dset, dset_ref=dset_hm3)
     dset.attrs["n_anc"] = 2
     return dset

@@ -63,6 +63,11 @@ def read_vcf(path: str, region: str = None):
         path to vcf file
     region : str, optional
         region to read, passed to scikit-allel, by default None
+
+    Returns
+    -------
+    xarray.Dataset
+        xarray.Dataset, if no snps in region, return None
     """
     import allel
     import xarray as xr
@@ -70,6 +75,9 @@ def read_vcf(path: str, region: str = None):
     vcf = allel.read_vcf(
         path, region=region, fields=["samples", "calldata/GT", "variants/*"]
     )
+    if vcf is None:
+        return None
+
     gt = vcf["calldata/GT"]
     assert (gt == -1).sum() == 0
 
