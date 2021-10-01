@@ -106,3 +106,7 @@ def test_assoc():
         method="ATT",
         family="linear",
     )
+
+
+def test_ext_tools():
+    admix.tools.get_dependency("plink2")
