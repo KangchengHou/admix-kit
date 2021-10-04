@@ -13,6 +13,8 @@ import numpy as np
 import re
 from smart_open import open
 import dask.array as da
+from typing import List, Optional
+import xarray as xr
 
 
 def read_plink(path: str):
@@ -54,7 +56,9 @@ def read_plink(path: str):
     return dset
 
 
-def read_vcf(path: str, region: str = None):
+def read_vcf(
+    path: str, region: str = None, samples: List[str] = None
+) -> Optional[xr.Dataset]:
     """read vcf file and form xarray.Dataset
 
     Parameters
@@ -73,7 +77,10 @@ def read_vcf(path: str, region: str = None):
     import xarray as xr
 
     vcf = allel.read_vcf(
-        path, region=region, fields=["samples", "calldata/GT", "variants/*"]
+        path,
+        region=region,
+        samples=samples,
+        fields=["samples", "calldata/GT", "variants/*"],
     )
     if vcf is None:
         return None
