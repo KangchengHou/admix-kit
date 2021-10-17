@@ -137,17 +137,6 @@ def read_digit_mat(path, filter_non_numeric=False):
     return mat
 
 
-def write_digit_mat(path, mat):
-    """
-    Read a matrix of integer with [0-9], and with no delimiter.
-
-    Args
-    ----
-
-    """
-    np.savetxt(path, mat, fmt="%d", delimiter="")
-
-
 def read_gcta_grm(file_prefix) -> dict:
     """
     Reads the GRM from a GCTA formated file.
