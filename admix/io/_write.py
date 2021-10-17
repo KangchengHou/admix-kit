@@ -4,6 +4,19 @@ from numpy import (
     tril_indices_from,
 )
 import pandas as pd
+import dask
+import dask.array as da
+
+
+def write_digit_mat(path, mat):
+    """
+    Read a matrix of integer with [0-9], and with no delimiter.
+
+    Args
+    ----
+
+    """
+    np.savetxt(path, mat, fmt="%d", delimiter="")
 
 
 def write_gcta_grm(

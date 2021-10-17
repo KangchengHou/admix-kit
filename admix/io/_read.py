@@ -13,6 +13,7 @@ import numpy as np
 import re
 from smart_open import open
 import dask.array as da
+import dask
 
 
 def read_plink(path: str):
@@ -128,17 +129,6 @@ def read_digit_mat(path, filter_non_numeric=False):
                 dtype=np.int8,
             )
     return mat
-
-
-def write_digit_mat(path, mat):
-    """
-    Read a matrix of integer with [0-9], and with no delimiter.
-
-    Args
-    ----
-
-    """
-    np.savetxt(path, mat, fmt="%d", delimiter="")
 
 
 def read_gcta_grm(file_prefix) -> dict:
