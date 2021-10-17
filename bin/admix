@@ -125,7 +125,9 @@ def lanc(
 
 
 # TODO: including logging functions
-def vcf_to_dataset(vcf: str, lanc: str, out: str, region: str = None):
+def vcf_to_dataset(
+    vcf: str, lanc: str, out: str, region: str = None, samples: str = None
+):
     """
     Convert a VCF file to a zarr file
 
@@ -139,10 +141,22 @@ def vcf_to_dataset(vcf: str, lanc: str, out: str, region: str = None):
         Path to the output zarr file
     region : str
         Region to extract from the VCF file
-
+    samples : str
+        Path to the samples file to extract from vcf files, one sample per line
     """
-    dset = admix.data.read_vcf(vcf, region=region)
+    if samples is not None:
+        with open(samples) as f:
+            sample_list = [l.strip() for l in f.readlines()]
+    print(f"Loading {len(sample_list)} samples")
+
+    print(f"Reading VCF file {vcf}...")
+    dset = admix.io.read_vcf(vcf, region=region, samples=sample_list)
+    print(f"Loaded VCF file shape: {dset.dims}")
+
+    print(f"Reading and assigning local ancestry file {lanc}...")
     dset = admix.data.assign_lanc(dset, lanc)
+
+    print(f"Saving file to {out}...")
     dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).to_zarr(out, mode="w")
 
 
