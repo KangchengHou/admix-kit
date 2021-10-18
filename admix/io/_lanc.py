@@ -11,11 +11,41 @@ from tqdm import tqdm
 from dask.array import concatenate, from_delayed
 from dask.delayed import delayed
 from bisect import bisect_left
+from typing import List
+
+
+def check_lanc(break_list: List[List[int]], value_list: List[List[str]]):
+    """Check the format of .lanc file
+
+    Parameters
+    ----------
+    break_list : List[List[int]]
+        List of break points
+    value_list : List[List[str]]
+        List of value
+
+    Returns
+    -------
+    Tuple[int, int]
+        (n_snp, n_indiv)
+    """
+    assert len(break_list) == len(
+        value_list
+    ), "`break_list` and `value_list` must have the same length (same as n_indiv)"
+
+    assert np.all([len(b) == len(v) for b, v in zip(break_list, value_list)])
+    n_snp = break_list[0][-1]
+    n_indiv = len(break_list)
+    assert np.all(
+        n_snp == b[-1] for b in break_list
+    ), "The last element of break points for each individual in `break_list` must be equal"
+    return n_snp, n_indiv
+
 
 def _subset_lanc(start: int, stop: int, break_list, value_list):
     """
     Subset the .lanc file
-    
+
     Parameters
     ----------
     start : int
@@ -25,7 +55,7 @@ def _subset_lanc(start: int, stop: int, break_list, value_list):
     break_list: List[List[int]]
         list of break points
     value_list: List[List[str]]
-        
+
     """
     # For each individual, find index of break points that's within [start, stop]
     start_idx = [bisect_left(indiv_break, start) for indiv_break in break_list]
@@ -43,7 +73,7 @@ def _subset_lanc(start: int, stop: int, break_list, value_list):
     return new_break_list, new_value_list
 
 
-def _lanc_to_dense(break_list, value_list):
+def lanc_to_numpy(break_list, value_list):
     """
     Given `break_list` list of break points with `n_indiv` length
     And the corresponding `value_list`, the correponding value
@@ -62,7 +92,45 @@ def _lanc_to_dense(break_list, value_list):
             start = stop
     return mat
 
-def read_lanc(path: str, snp_chunk: int = 1024) -> da.Array:
+
+def lanc_to_dask(break_list, value_list, snp_chunk: int):
+    """
+    Given `break_list` list of break points with `n_indiv` length
+    And the corresponding `value_list`, the correponding value
+
+    Convert to dask matrix
+    """
+    n_indiv = len(break_list)
+    n_snp = break_list[0][-1]
+
+    n_snp = break_list[0][-1]
+    assert np.all(
+        n_snp == b[-1] for b in break_list
+    ), "The last element of break points for each individual in `break_list` must be equal"
+
+    # all local ancestries
+    lancs = []
+
+    read_subset_lanc = lambda start, stop: lanc_to_numpy(
+        *_subset_lanc(start, stop, break_list, value_list)
+    )
+    snp_start = 0
+    while snp_start < n_snp:
+        snp_stop = min(snp_start + snp_chunk, n_snp)
+        shape = (snp_stop - snp_start, n_indiv, 2)
+
+        lancs.append(
+            from_delayed(
+                value=delayed(read_subset_lanc)(snp_start, snp_stop),
+                shape=shape,
+                dtype=np.int8,
+            )
+        )
+        snp_start = snp_stop
+    return concatenate(lancs, 0, False)
+
+
+def read_lanc(path: str, snp_chunk: int = 1024, return_dask=True) -> da.Array:
     """Read local ancestry with .lanc format
 
     Parameters
@@ -85,27 +153,12 @@ def read_lanc(path: str, snp_chunk: int = 1024) -> da.Array:
     assert len(data_list) == n_indiv
     break_list = [[int(l.split(":")[0]) for l in line] for line in data_list]
     value_list = [[l.split(":")[1] for l in line] for line in data_list]
-    
-    # all local ancestries
-    lancs = []
-    
-    read_subset_lanc = lambda start, stop : _lanc_to_dense(*_subset_lanc(start, stop, break_list, value_list))
-    snp_start = 0
-    while snp_start < n_snp:
-        snp_stop = min(snp_start + snp_chunk, n_snp)
-        shape = (snp_stop - snp_start, n_indiv, 2)
 
-        lancs.append(
-            from_delayed(
-                value=delayed(read_subset_lanc)(
-                    snp_start, snp_stop
-                ),
-                shape=shape,
-                dtype=np.int8,
-            )
-        )
-        snp_start = snp_stop
-    return concatenate(lancs, 0, False)
+    if return_dask is True:
+        return lanc_to_dask(break_list, value_list, snp_chunk)
+    else:
+        return break_list, value_list
+
 
 def read_lanc_slow(path: str) -> da.Array:
     """Read local ancestry with .lanc format
@@ -141,39 +194,59 @@ def read_lanc_slow(path: str) -> da.Array:
             start = stop
     return lanc_mat
 
-def write_lanc(path: str, lanc: da.Array):
-    n_snp, n_indiv, _ = lanc.shape
 
-    # switch points
-    snp_pos, indiv_pos, _, = dask.compute(
-        np.where(lanc[1:, :, :] != lanc[0:-1, :, :]), scheduler="single-threaded"
-    )[0]
-    # end points for all the individuals
-    snp_pos = np.concatenate([snp_pos, [n_snp - 1] * n_indiv])
-    indiv_pos = np.concatenate([indiv_pos, np.arange(n_indiv)])
-    # (snp, indiv) -> snp * n_indiv + indiv
-    values = lanc.reshape([-1, 2])[indiv_pos + snp_pos * n_indiv, :].compute()
-    values = np.array([str(v[0]) + str(v[1]) for v in values])
+def write_lanc(
+    path: str, lanc: da.Array = None, break_list: List = None, value_list: List = None
+):
 
+    if lanc is not None:
+        assert (break_list is None) and (
+            value_list is None
+        ), "when `lanc` is specified, `break_list` and `value_list` must both be None"
+        n_snp, n_indiv, _ = lanc.shape
+
+        # switch points
+        snp_pos, indiv_pos, _, = dask.compute(
+            np.where(lanc[1:, :, :] != lanc[0:-1, :, :]), scheduler="single-threaded"
+        )[0]
+        # end points for all the individuals
+        snp_pos = np.concatenate([snp_pos, [n_snp - 1] * n_indiv])
+        indiv_pos = np.concatenate([indiv_pos, np.arange(n_indiv)])
+        # (snp, indiv) -> snp * n_indiv + indiv
+        values = lanc.reshape([-1, 2])[indiv_pos + snp_pos * n_indiv, :].compute()
+        values = np.array([str(v[0]) + str(v[1]) for v in values])
+
+        break_list = []
+        value_list = []
+        for indiv_i in range(n_indiv):
+            indiv_mask = indiv_pos == indiv_i
+            # +1 because .lanc denote the [start, stop) right-open interval
+            indiv_snp_pos, unique_mask = np.unique(
+                snp_pos[indiv_mask] + 1, return_index=True
+            )
+            indiv_values = values[indiv_mask][unique_mask]
+            break_list.append(indiv_snp_pos.tolist())
+            value_list.append(indiv_values.tolist())
+    else:
+        assert (break_list is not None) and (
+            value_list is not None
+        ), "when `lanc` is None, `break_list` and `value_list` must both be specified"
+        n_snp, n_indiv = check_lanc(break_list, value_list)
+
+    # write to file
     lines = []
 
     # header
     lines.append(f"{n_snp} {n_indiv}")
 
-    for indiv_i in range(n_indiv):
-        indiv_mask = indiv_pos == indiv_i
-        # +1 because .lanc denote the starting point
-        indiv_snp_pos, unique_mask = np.unique(
-            snp_pos[indiv_mask] + 1, return_index=True
-        )
-        indiv_values = values[indiv_mask][unique_mask]
-
+    for indiv_break, indiv_value in zip(break_list, value_list):
         lines.append(
-            " ".join([str(p) + ":" + v for (p, v) in zip(indiv_snp_pos, indiv_values)])
+            " ".join([str(b) + ":" + v for (b, v) in zip(indiv_break, indiv_value)])
         )
 
     with open(path, "w") as f:
         f.writelines("\n".join(lines))
+
 
 def write_lanc_slow(path: str, lanc: da.Array):
     """Write local ancestry `lanc` to `path`
@@ -188,8 +261,9 @@ def write_lanc_slow(path: str, lanc: da.Array):
 
     n_snp, n_indiv, _ = lanc.shape
     # find break points
-    snp_pos, indiv_pos, _ = dask.compute(np.where(lanc[1:, :, :] != lanc[0:-1, :, :]), 
-        scheduler='single-threaded')[0]
+    snp_pos, indiv_pos, _ = dask.compute(
+        np.where(lanc[1:, :, :] != lanc[0:-1, :, :]), scheduler="single-threaded"
+    )[0]
 
     f = open(path, "w")
     # write header
@@ -214,10 +288,111 @@ def write_lanc_slow(path: str, lanc: da.Array):
     f.close()
 
 
-def read_rfmix(lanc_file: str, geno: xr.DataArray, df_snp: pd.DataFrame) -> da.Array:
+def read_rfmix(
+    path: str,
+    geno: xr.DataArray,
+    df_snp: pd.DataFrame,
+    return_dask: bool = True,
+    snp_chunk: int = 1024,
+) -> da.Array:
     """
     Assign local ancestry to a dataset. Currently we assume that the rfmix file contains
     2-way admixture information.
+
+    # TODO: directly from rfmix to .lanc format
+
+    Parameters
+    ----------
+    lanc_file: str
+        Path to local ancestry data.
+    geno: xr.DataArray
+        genotype matrix
+    df_snp: pd.DataFrame
+        SNP data frames
+
+    Returns
+    -------
+    lanc: da.Array
+        Local ancestry array
+    """
+
+    # assign local ancestry
+    df_rfmix = pd.read_csv(path, sep="\t", skiprows=1)
+
+    assert np.all(geno.snp == df_snp.index), "geno.snp should match with `df_snp`"
+
+    # TODO: currently assume 2-way admixture
+    # MORE THAN 2-way admixture is easily supported by reading the header and modify
+    # the following 6 lines
+    lanc0 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".0")].rename(
+        columns=lambda x: x[:-2]
+    )
+    lanc1 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".1")].rename(
+        columns=lambda x: x[:-2]
+    )
+
+    lanc = lanc0.astype(str) + lanc1.astype(str)
+
+    df_rfmix_info = df_rfmix.iloc[:, 0:3].copy()
+    # extend local ancestry to two ends of chromosomes
+    df_rfmix_info.loc[0, "spos"] = df_snp["POS"][0] - 1
+    df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"] = df_snp["POS"][-1] + 1
+
+    assert np.all(geno.indiv == lanc.columns)
+
+    n_indiv = geno.sizes["indiv"]
+    n_snp = geno.sizes["snp"]
+
+    rfmix_break_list = []
+    # [start, stop) of SNPs for each rfmix break points
+    for chunk_i, chunk in df_rfmix_info.iterrows():
+        chunk_mask = (
+            (chunk.spos <= df_snp["POS"]) & (df_snp["POS"] < chunk.epos)
+        ).values
+        chunk_start, chunk_stop = np.where(chunk_mask)[0][[0, -1]]
+        rfmix_break_list.append(chunk_stop)
+    rfmix_break_list = np.array(rfmix_break_list)
+
+    # find break points in the data
+    chunk_pos, indiv_pos = np.where(lanc.iloc[1:, :].values != lanc.iloc[:-1, :].values)
+    # convert to SNP positions
+    snp_pos = rfmix_break_list[chunk_pos]
+    values = lanc.values[chunk_pos, indiv_pos]
+
+    # append values at the end of the chromosomes
+    snp_pos = np.concatenate([snp_pos, [n_snp - 1] * n_indiv])
+    indiv_pos = np.concatenate([indiv_pos, np.arange(n_indiv)])
+    values = np.concatenate([values, lanc.iloc[-1].values])
+
+    # snp_pos, indiv_pos, values are now triples of break points
+
+    break_list = []
+    value_list = []
+    # convert to .lanc format
+    for indiv_i in range(n_indiv):
+        indiv_mask = indiv_pos == indiv_i
+        # +1 because .lanc denote the [start, stop) of the break points
+        indiv_snp_pos, unique_mask = np.unique(
+            snp_pos[indiv_mask] + 1, return_index=True
+        )
+        indiv_values = values[indiv_mask][unique_mask]
+        break_list.append(indiv_snp_pos.tolist())
+        value_list.append(indiv_values.tolist())
+
+    if return_dask:
+        return lanc_to_dask(break_list, value_list, snp_chunk=snp_chunk)
+    else:
+        return break_list, value_list
+
+
+def read_rfmix_deprecated(
+    lanc_file: str, geno: xr.DataArray, df_snp: pd.DataFrame
+) -> da.Array:
+    """
+    Assign local ancestry to a dataset. Currently we assume that the rfmix file contains
+    2-way admixture information.
+
+    # TODO: directly from rfmix to .lanc format
 
     Parameters
     ----------
