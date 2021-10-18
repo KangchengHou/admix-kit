@@ -2,6 +2,7 @@
 all about admix.Dataset
 """
 import xarray as xr
+import dask.array as da
 from ._utils import (
     make_dataset,
     load_toy,
@@ -40,8 +41,11 @@ def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
     assert format in ["rfmix"], "Only rfmix format is supported."
     # assign local ancestry
     rfmix = pd.read_csv(lanc_file, sep="\t", skiprows=1)
-    lanc_full = np.full(
-        (dset.dims["indiv"], dset.dims["snp"], dset.dims["ploidy"]), np.nan
+
+    lanc_full = da.full(
+        shape=(dset.dims["indiv"], dset.dims["snp"], dset.dims["ploidy"]),
+        fill_value=-1,
+        dtype=np.int8,
     )
     lanc0 = rfmix.loc[:, rfmix.columns.str.endswith(".0")].rename(
         columns=lambda x: x[:-2]
@@ -51,14 +55,30 @@ def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
     )
 
     assert np.all(dset.indiv == lanc0.columns)
+    assert np.all(dset.indiv == lanc1.columns)
+
     for i_row, row in rfmix.iterrows():
         mask_row = (
             (row.spos <= dset.snp["POS"]) & (dset.snp["POS"] <= row.epos)
         ).values
         lanc_full[:, mask_row, 0] = lanc0.loc[i_row, :].values[:, np.newaxis]
         lanc_full[:, mask_row, 1] = lanc1.loc[i_row, :].values[:, np.newaxis]
-    lanc_full = lanc_full.astype(np.int8)
-    dset = dset.assign({"lanc": (("indiv", "snp", "ploidy"), lanc_full)})
+
+    dset_names = tuple(d for d in dset.dims)
+    if dset_names == ("indiv", "snp", "ploidy"):
+        # do nothing
+        pass
+    elif dset_names == ("snp", "indiv", "ploidy"):
+        lanc_full = lanc_full.swapaxes(0, 1)
+    else:
+        raise ValueError(
+            f"Unexpected dimensions {dset_names}. "
+            "Expected (indiv, snp, ploidy) or (snp, indiv, ploidy)"
+        )
+
+    lanc_full = lanc_full.rechunk(dset.geno.chunks)
+
+    dset = dset.assign({"lanc": (dset_names, lanc_full)})
     dset = dset.assign_attrs({"n_anc": 2})
     return dset
 

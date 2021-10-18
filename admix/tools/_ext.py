@@ -260,7 +260,7 @@ def plink_read_fam(fam: str):
 ########################################################################################
 
 
-def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
+def lift_over(df_chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     """Lift over between genome assembly
     Download appropriate chain file from
@@ -272,15 +272,15 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     Parameters
     ----------
-    chrom_pos: np.ndarray
-        2-column matrix where the 1st column are the chromosomes, without `chr`
+    df_chrom_pos: pd.DataFrame
+        where the 1st column are the chromosomes, without `chr`
         and the 2nd column are the positions
     chain : str
         chain file
 
     Returns
     -------
-    np.ndarray
+    index of df_chrom_pos and the corresponding positions
     SNP positions after the liftOver, unmapped SNPs are returned as -1
     """
     bin_path = get_dependency("liftOver")
@@ -293,10 +293,10 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
         "hg38->hg19": "http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz",
         "hg19->hg38": "http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz",
     }
-    df_old = pd.DataFrame(chrom_pos)
-    df_old[0] = df_old[0].apply(lambda x: "chr" + str(x))
-    df_old[2] = df_old[1] + 1
-    df_old[3] = df_old[0] + ":" + df_old[1].astype(str)
+    df_chrom_pos = df_chrom_pos.copy()
+    df_chrom_pos["CHROM"] = df_chrom_pos["CHROM"].apply(lambda x: "chr" + str(x))
+    df_chrom_pos["POS+1"] = df_chrom_pos["POS"] + 1
+    df_chrom_pos["ID"] = df_chrom_pos.index.values.astype(str)
 
     tmp_dir = tempfile.TemporaryDirectory()
 
@@ -306,23 +306,29 @@ def lift_over(chrom_pos: np.ndarray, chain: str, verbose: bool = False):
     unmapped_file = join(tmp_dir.name, "unmapped.txt")
 
     urllib.request.urlretrieve(url_dict[chain], chain_file)
-    df_old.to_csv(old_file, sep="\t", index=False, header=False)
+    df_chrom_pos.to_csv(old_file, sep="\t", index=False, header=False)
     cmd = f"{bin_path} {old_file} {chain_file} {new_file} {unmapped_file}"
     subprocess.check_call(cmd, shell=True)
-    df_new = pd.read_csv(new_file, sep="\t", header=None)
-    df_merged = df_old.set_index(3).join(
-        df_new.set_index(3), lsuffix="_old", rsuffix="_new"
-    )
+
+    # read the mapped data frame, SNPs with ambiguous mapping are dropped
+    df_new = pd.read_csv(
+        new_file, sep="\t", header=None, names=["CHROM", "POS", "POS+1", "ID"]
+    ).drop_duplicates(subset=["ID"], keep=False)
 
     subprocess.check_call(
         f"cat {unmapped_file}",
         shell=True,
     )
 
-    # df_unmapped = pd.read_csv(unmapped_file, comment="#", sep="\t", header=None)
-    # if verbose:
-    #     print("Unmapped SNPs:")
-    #     print(df_unmapped)
     tmp_dir.cleanup()
 
-    return df_merged["1_new"].fillna(-1).astype(int).values
+    # ambiguous mapping or unmapped SNPs are -1, return
+    df_ret = (
+        df_new.set_index("ID")
+        .reindex(df_chrom_pos.index.values)[["POS"]]
+        .fillna(-1)
+        .astype(int)
+    )
+
+    df_ret.index.name = df_chrom_pos.index.name
+    return df_ret
