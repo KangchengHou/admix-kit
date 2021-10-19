@@ -213,7 +213,8 @@ def allele_per_anc(ds, center=False, inplace=True):
 
         n_indiv, n_snp, n_haplo = geno_chunk.shape
         apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.float64)
-        assert af_chunk.shape[1] == n_snp
+        if af_chunk is not None:
+            assert af_chunk.shape[1] == n_snp
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
