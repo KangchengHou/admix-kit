@@ -18,7 +18,7 @@ import xarray as xr
 
 
 def read_plink(path: str):
-    """read plink file and form xarray.Dataset
+    """read plink1 file and form xarray.Dataset
 
     Parameters
     ----------

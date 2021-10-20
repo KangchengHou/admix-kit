@@ -213,7 +213,8 @@ def allele_per_anc(ds, center=False, inplace=True):
 
         n_indiv, n_snp, n_haplo = geno_chunk.shape
         apa = np.zeros((n_indiv, n_snp, n_anc), dtype=np.float64)
-
+        if af_chunk is not None:
+            assert af_chunk.shape[1] == n_snp
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
@@ -240,8 +241,8 @@ def allele_per_anc(ds, center=False, inplace=True):
         assert (
             n_anc == 2
         ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
-        af = af.rechunk({1: n_anc})
-
+        af = af.rechunk({0: geno.chunks[1], 1: n_anc})
+        # af = af.rechunk({1: n_anc})
         rls_allele_per_anc = da.map_blocks(
             lambda geno_chunk, lanc_chunk, af_chunk: helper(
                 geno_chunk=geno_chunk,

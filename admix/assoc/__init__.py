@@ -102,7 +102,7 @@ def marginal_fast(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+            p_vals = stats.chi2.sf(2 * lrt_diff, 1)
         else:
             raise NotImplementedError
 
@@ -126,7 +126,7 @@ def marginal_fast(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+            p_vals = stats.chi2.sf(2 * lrt_diff, 1)
         else:
             raise NotImplementedError
     elif method == "TRACTOR":
@@ -153,7 +153,7 @@ def marginal_fast(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            p_vals = stats.chi2.sf(-2 * lrt_diff, 2)
+            p_vals = stats.chi2.sf(2 * lrt_diff, 2)
         else:
             raise NotImplementedError
 
@@ -173,7 +173,7 @@ def marginal_fast(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            p_vals = stats.chi2.sf(-2 * lrt_diff, 1)
+            p_vals = stats.chi2.sf(2 * lrt_diff, 1)
         else:
             raise NotImplementedError
     else:
