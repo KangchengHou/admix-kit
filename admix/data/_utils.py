@@ -134,6 +134,9 @@ def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
 
         imputed_lanc.append(df_lanc.loc[dset["snp"].values, :].values.astype(np.int8).T)
 
+    # imputed_lanc is in the order of ("indiv", "snp", "ploidy")
+    # determine the dim order from dset.geno
+
     dset = dset.assign(
         lanc=(
             ("indiv", "snp", "ploidy"),

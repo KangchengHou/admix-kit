@@ -2,6 +2,93 @@ import xrpgen
 import pandas as pd
 import admix
 import numpy as np
+from typing import List
+import os
+import glob
+
+
+def plink2_gwas(
+    pfile,
+    df_sample_info: pd.DataFrame,
+    pheno_col: str,
+    out_prefix: str,
+    covar_cols: List[str] = None,
+    cat_cols: List[str] = None,
+    pheno_quantile_normalize=False,
+    covar_quantile_normalize=False,
+    clean_tmp_file=False,
+):
+
+    non_nan_index = ~np.isnan(df_sample_info[pheno_col])
+    df_pheno = (
+        df_sample_info.loc[non_nan_index, [pheno_col]]
+        .copy()
+        .rename(columns={pheno_col: "trait"})
+    )
+    df_pheno.index.name = "#IID"
+
+    pheno_path = out_prefix + f".plink2_tmp_pheno"
+    df_pheno.to_csv(pheno_path, sep="\t", na_rep="NA")
+
+    cmds = [
+        f"--pfile {pfile}",
+        f"--pheno {pheno_path}",
+        "--linear hide-covar",
+        f"--out {out_prefix}",
+    ]
+
+    if covar_cols is not None:
+        df_covar = df_sample_info.loc[non_nan_index, covar_cols].copy()
+        df_covar.index.name = "#IID"
+
+        covar_path = out_prefix + f".plink2_tmp_covar"
+        df_covar.to_csv(covar_path, sep="\t", na_rep="NA")
+        cmds.append(f"--covar {covar_path}")
+    else:
+        cmds[2] += " allow-no-covars"
+
+    if pheno_quantile_normalize:
+        cmds.append("--pheno-quantile-normalize")
+    if covar_quantile_normalize:
+        cmds.append("--covar-quantile-normalize")
+    if cat_cols:
+        cmds.append(f"--split-cat-pheno omit-most {' '.join(cat_cols)}")
+
+    print("\n".join(cmds))
+
+    admix.tools.plink2(" ".join(cmds))
+    os.rename(out_prefix + ".trait.glm.linear", out_prefix + ".assoc")
+    if clean_tmp_file:
+        for f in glob.glob(out_prefix + ".plink2_tmp_*"):
+            os.remove(f)
+
+
+def plink2_clump(pfile, assoc_path: str, out_prefix: str, p1: float = 5e-8):
+    """
+    Wrapper for plink2 clump
+    For now, first need to export to .bed format then perform the clump
+    """
+    tmp_prefix = out_prefix + ".plink2_tmp"
+    # convert to bed
+    admix.tools.plink2(f"--pfile {pfile} --make-bed --out {tmp_prefix}")
+
+    # convert plink2 association to plink1 format ID -> SNP
+    import shutil
+
+    from_file = open(assoc_path)
+    to_file = open(tmp_prefix + ".assoc", "w")
+    to_file.writelines(from_file.readline().replace("ID", "SNP"))
+    shutil.copyfileobj(from_file, to_file)
+    from_file.close()
+    to_file.close()
+
+    admix.tools.plink(
+        f"--bfile {tmp_prefix} --clump {tmp_prefix + '.assoc'} --clump-p1 {p1} --out {tmp_prefix}"
+    )
+    os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
+
+    for f in glob.glob(tmp_prefix + "*"):
+        os.remove(f)
 
 
 def plink2_lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
