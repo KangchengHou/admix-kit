@@ -78,6 +78,28 @@ def get_dependency(name, download=True):
                         subprocess.check_call(
                             f"mv dir/plink2 {cache_bin_path}", shell=True
                         )
+
+            elif name == "plink":
+                if platform == "darwin":
+                    url = (
+                        "https://s3.amazonaws.com/plink1-assets/plink_mac_20210606.zip"
+                    )
+                elif platform == "linux":
+                    url = "https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20210606.zip"
+                else:
+                    raise ValueError(f"Unsupported platform {platform}")
+
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with cd(tmp_dir):
+                        urllib.request.urlretrieve(
+                            url,
+                            "file.zip",
+                        )
+                        subprocess.check_call(f"unzip file.zip -d dir", shell=True)
+                        subprocess.check_call(
+                            f"mv dir/plink {cache_bin_path}", shell=True
+                        )
+
             elif name == "gcta64":
                 if platform == "darwin":
                     platform_wildcard = "gcta_1.93.2beta_mac"
@@ -130,6 +152,18 @@ def get_dependency(name, download=True):
             )
 
         return cache_bin_path
+
+
+def plink(cmd: str):
+    """Shortcut for running plink commands
+
+    Parameters
+    ----------
+    cmd : str
+        plink command
+    """
+    bin_path = get_dependency("plink")
+    subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
 def plink2(cmd: str):
