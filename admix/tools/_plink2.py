@@ -1,4 +1,4 @@
-import xrpgen
+import dapgen
 import pandas as pd
 import admix
 import numpy as np
@@ -25,6 +25,8 @@ def plink2_gwas(
         .copy()
         .rename(columns={pheno_col: "trait"})
     )
+    pheno_vals = df_pheno.trait.values
+    df_pheno["trait"] = (pheno_vals - pheno_vals.mean()) / pheno_vals.std()
     df_pheno.index.name = "#IID"
 
     pheno_path = out_prefix + f".plink2_tmp_pheno"
@@ -63,7 +65,15 @@ def plink2_gwas(
             os.remove(f)
 
 
-def plink2_clump(pfile, assoc_path: str, out_prefix: str, p1: float = 5e-8):
+def plink2_clump(
+    pfile,
+    assoc_path: str,
+    out_prefix: str,
+    p1: float = 5e-8,
+    p2: float = 1e-4,
+    r2: float = 0.1,
+    kb=3000,
+):
     """
     Wrapper for plink2 clump
     For now, first need to export to .bed format then perform the clump
@@ -81,11 +91,20 @@ def plink2_clump(pfile, assoc_path: str, out_prefix: str, p1: float = 5e-8):
     shutil.copyfileobj(from_file, to_file)
     from_file.close()
     to_file.close()
+    cmds = [
+        f"--bfile {tmp_prefix} --clump {tmp_prefix + '.assoc'}",
+        f"--clump-p1 {p1} --clump-p2 {p2} --clump-r2 {r2} --clump-kb {kb}",
+        f"--out {tmp_prefix}",
+    ]
 
-    admix.tools.plink(
-        f"--bfile {tmp_prefix} --clump {tmp_prefix + '.assoc'} --clump-p1 {p1} --out {tmp_prefix}"
-    )
-    os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
+    admix.tools.plink(" ".join(cmds))
+    if os.path.exists(tmp_prefix + ".clumped"):
+        os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
+    else:
+        # no clumped region
+        # write a comment to the output file
+        with open(out_prefix + ".clumped", "w") as file:
+            file.write("# No clumped region")
 
     for f in glob.glob(tmp_prefix + "*"):
         os.remove(f)

@@ -5,28 +5,22 @@ Sept. 24, 2021: this file is not in any use. After other modules are mature enou
 
 import pandas as pd
 import xarray as xr
-import os
 import numpy as np
 from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
-import warnings
 import dask.array as da
 from typing import (
     Hashable,
     List,
     Optional,
-    Tuple,
-    Union,
     Mapping,
     Any,
     Dict,
-    Sequence,
-    Iterable,
-    Literal,
     Mapping,
     MutableMapping,
 )
 
 from xarray.core.dataset import DataVariables
+import admix
 
 
 class Dataset(object):
@@ -68,21 +62,6 @@ class Dataset(object):
 
         self._snp = snp
         self._indiv = indiv
-        # coords: Dict[Hashable, Any] = {}
-        # if snp is not None:
-
-        #     # fill SNP information
-        #     coords["snp"] = snp.index.values
-        #     if not is_string_dtype(coords["snp"]):
-        #         warnings.warn("Transforming snp index to str")
-        #     coords["snp"] = coords["snp"].astype(str)
-
-        #     for col in snp.columns:
-        #         vals = snp[col].values
-        #         if is_string_dtype(snp[col]):
-        #             vals = snp[col].values.astype(str)
-
-        #         coords[f"{col}@snp"] = ("snp", vals)
 
         self._xr = xr.Dataset(data_vars=data_vars)
 
@@ -92,6 +71,8 @@ class Dataset(object):
             self._xr.attrs["n_anc"] = n_anc
         else:
             self._xr.attrs["n_anc"] = n_anc
+
+        self._path = None
         # self._check_dimensions()
         # self._check_uniqueness()
 
@@ -175,7 +156,28 @@ class Dataset(object):
     @property
     def indiv(self) -> pd.DataFrame:
         """One-dimensional annotation of observations (`pd.DataFrame`)."""
-        return self._xr
+        return self._indiv
+
+    @property
+    def snp(self) -> pd.DataFrame:
+        """One-dimensional annotation of observations (`pd.DataFrame`)."""
+        return self._snp
+
+    @property
+    def geno(self) -> da.Array:
+        """Genotype matrix"""
+        return self._xr["geno"].data
+
+    @property
+    def lanc(self) -> da.Array:
+        """Local ancestry matrix"""
+        return self._xr["lanc"].data
+
+    @property
+    def allele_per_anc(self) -> da.Array:
+        """Return the allele-per-ancestry matrix"""
+        assert False, "Not implemented"
+        return self._xr["lanc"].data
 
     @property
     def uns(self) -> MutableMapping:
@@ -183,8 +185,56 @@ class Dataset(object):
         uns = self._xr.attrs.get("uns", None)
         return uns
 
+    def load(self):
+        """load the lazy data to memory"""
+        for name in ["geno", "lanc"]:
+            if name in self._xr:
+                self._xr[name] = (
+                    self._xr[name].dims,
+                    da.from_array(self._xr[name].data.compute(), chunks=-1),
+                )
+
     def __getitem__(self, index) -> "Dataset":
         """Returns a sliced view of the object."""
+        assert False, "Not implemented"
         snp_idx, indiv_idx = index
         # snp_idx, indiv_idx = self._normalize_indices(index)
         return Dataset(geno, snp_idx=snp_idx, indiv_idx=indiv_idx)
+
+
+def read_dataset(prefix, n_anc=2):
+    """
+    Read a dataset from a directory.
+    """
+    import xrpgen
+
+    pgen, pvar, psam = xrpgen.read_pfile(prefix, phase=True)
+    geno = pgen.data
+    lanc = admix.io.read_lanc(prefix + ".lanc")
+    # return geno, lanc
+    return Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
+
+
+def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):
+    """
+    Read a dataset from a directory.
+    """
+    import xrpgen
+
+    if snp is not None:
+        snp_mask = dset.snp.index.isin(snp)
+    else:
+        snp_mask = np.ones(len(dset.snp), dtype=bool)
+
+    if indiv is not None:
+        indiv_mask = dset.indiv.index.isin(indiv)
+    else:
+        indiv_mask = np.ones(len(dset.indiv), dtype=bool)
+
+    return Dataset(
+        geno=dset.geno[snp_mask, :, :][:, indiv_mask, :],
+        lanc=dset.lanc[snp_mask, :, :][:, indiv_mask, :],
+        snp=dset.snp.loc[snp_mask],
+        indiv=dset.indiv.loc[indiv_mask],
+        n_anc=dset.n_anc,
+    )
