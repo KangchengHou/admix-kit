@@ -12,4 +12,4 @@ statsmodels
 pandas_plink
 git+https://github.com/bogdanlab/lamp-ld.git#egg=pylampld
 git+https://github.com/bogdanlab/admixgwas.git#egg=admixgwas
-git+https://github.com/KangchengHou/dask-pgen.git#egg=dapgen
+git+https://github.com/KangchengHou/dask-pgen.git#egg=dask-pgen
