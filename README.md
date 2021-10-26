@@ -14,10 +14,10 @@ pip install -r requirements.txt; pip install -e .
 
 ## File formats
 - We use PLINK2 .pgen format to store the (potentially phased) genotype
-- [TODO] we use customized .lanc format to store the local ancestry file.
+- We use customized .lanc format to store the local ancestry file (see below)
 - These two file formats allow efficient storage of genotype file (by the design of PLINK2), while allowing for fast random access of the genotype.
 - Also, all functions of PLINK2 can be used for additional analyses.
-- [TODO] zarr format for the auxilary information? such minor allele frequencies and LD scores
+
 
 ## .lanc format
 The first line contains meta-information <n_indiv> <n_snp> <n_anc> then <n_indiv> lines to follow:
