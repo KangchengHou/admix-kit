@@ -1,6 +1,4 @@
-from scipy.optimize import fsolve
 import numpy as np
-from scipy.special import logit, expit
 from typing import List
 import dask.array as da
 import xarray as xr
@@ -136,7 +134,6 @@ def quant_pheno(
         "beta": beta,
         "pheno_g": pheno_g,
         "pheno": pheno,
-        "cov_effects": cov_effects,
     }
 
 
@@ -238,59 +235,101 @@ def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
     return study_index
 
 
-# def simulate_phenotype_case_control_1snp(
-#         hap: np.ndarray,
-#         lanc: np.ndarray,
-#         case_prevalence: float,
-#         odds_ratio: float,
-#         ganc: np.ndarray = None,
-#         ganc_effect: float = None,
-#         n_sim: int = 10,
-# ) -> List[np.ndarray]:
-#     """Simulate case control phenotypes from phased genotype and ancestry (one SNP at a time)
-#
-#     Args:
-#         hap (np.ndarray): phased genotype (n_indiv, 2 * n_snp), the first `n_snp` elements are
-#             for the first ancestry, the second are for the second ancestry
-#         lanc (np.ndarray): local ancestry (n_indiv, 2 * n_snp), same as `hap`
-#         case_prevalence (float): case prevalence in the population
-#         odds_ratio (float): odds ratio for the causal SNP
-#         ganc (np.ndarray, optional): (n_indiv, ) global ancestry. Defaults to None.
-#         ganc_effect (float, optional): (n_indiv, ) Effect of the global ancestry. Defaults to None.
-#         n_sim (int, optional): Number of simulations. Defaults to 10.
-#
-#     Returns:
-#         List[np.ndarray]: `n_snp`-length of numpy array with shape (n_indiv, n_sim)
-#     """
-#
-#     n_indiv = hap.shape[0]
-#     n_snp = hap.shape[1] // 2
-#     if ganc is not None:
-#         assert len(ganc) == n_indiv
-#
-#     rls_list = []
-#     # simulate snp by snp
-#     for snp_i in range(n_snp):
-#         snp_hap = hap[:, [snp_i, snp_i + n_snp]]
-#         snp_lanc = lanc[:, [snp_i, snp_i + n_snp]]
-#         # the number of minor alleles at each location by ancestry
-#         snp_cnt = convert_anc_count(snp_hap, snp_lanc)
-#
-#         # allelic risk effect size x number of minor alleles
-#         snp_phe_g = np.dot(snp_cnt, np.log(odds_ratio) * np.ones((2, n_sim)))
-#         if ganc is not None:
-#             snp_phe_g += np.dot(ganc[:, np.newaxis], ganc_effect * np.ones((1, n_sim)))
-#         snp_phe = np.zeros_like(snp_phe_g, dtype=np.int8)
-#
-#         for sim_i in range(n_sim):
-#             # find an intercept, such that the expectation is case_prevalence.
-#             func = lambda b: np.mean(expit(b + snp_phe_g[:, sim_i])) - case_prevalence
-#             intercept = fsolve(func, logit(case_prevalence))
-#             snp_phe[:, sim_i] = np.random.binomial(
-#                 1, expit(intercept + snp_phe_g[:, sim_i])
-#             )
-#         rls_list.append(snp_phe)
-#     return rls_list
+def binary_pheno(
+    dset: admix.Dataset,
+    hsq: float = 0.5,
+    cor: float = 1,
+    n_causal: int = None,
+    case_prevalence: float = 0.1,
+    beta: np.ndarray = None,
+    cov_cols: List[str] = None,
+    cov_effects: List[float] = None,
+    n_sim=10,
+    method="probit",
+):
+    """
+    Simulate under liability threshold. First simulate quantative traits in the liability
+    scale. With the given `case_prevalence`, convert liability to binary traits.
+
+    Parameters
+    ----------
+    hsq: if method is "probit", this corresponds to the proportion of variance explained by the genotype
+        in the liability scale.
+
+        if method is "logit", this corresponds to the variance explained of (X\beta),
+        and hsq can be larger than 1, in the case.
+    """
+
+    from scipy import stats
+
+    assert method in ["probit", "logit"]
+
+    # build a skeleton of phenotype using the code from quant_pheno
+
+    if method == "probit":
+        quant_sim = quant_pheno(
+            dset=dset,
+            hsq=hsq,
+            cor=cor,
+            n_causal=n_causal,
+            beta=beta,
+            cov_cols=cov_cols,
+            cov_effects=cov_effects,
+            n_sim=n_sim,
+        )
+
+        beta = quant_sim["beta"]
+        pheno_g = quant_sim["pheno_g"]
+        qpheno = quant_sim["pheno"]
+
+        case_threshold = -stats.norm.ppf(case_prevalence)
+
+        pheno = np.zeros_like(qpheno)
+        pheno[qpheno < case_threshold] = 0
+        pheno[qpheno >= case_threshold] = 1
+
+        return {
+            "beta": beta,
+            "pheno_g": pheno_g,
+            "pheno": pheno.astype(int),
+        }
+
+    elif method == "logit":
+        from scipy.optimize import fsolve
+        from scipy.special import logit, expit
+
+        quant_sim = quant_pheno(
+            dset=dset,
+            hsq=0.5,
+            cor=cor,
+            n_causal=n_causal,
+            beta=beta,
+            cov_cols=cov_cols,
+            cov_effects=cov_effects,
+            n_sim=n_sim,
+        )
+        beta = quant_sim["beta"]
+        pheno_g = quant_sim["pheno_g"]
+
+        # scale variance of pheno_g to hsq
+        std_scale = np.sqrt(hsq / np.var(pheno_g, axis=0))
+        pheno_g *= std_scale
+        beta *= std_scale
+        pheno = np.zeros_like(pheno_g)
+        for sim_i in range(n_sim):
+            # find an intercept, such that the expectation is case_prevalence.
+            func = lambda b: np.mean(expit(b + pheno_g[:, sim_i])) - case_prevalence
+            intercept = fsolve(func, logit(case_prevalence))
+            pheno[:, sim_i] = np.random.binomial(
+                1, expit(intercept + pheno_g[:, sim_i])
+            )
+        return {
+            "beta": beta,
+            "pheno_g": pheno_g,
+            "pheno": pheno.astype(int),
+        }
+    else:
+        raise NotImplementedError
 
 
 def quant_pheno_1pop(
@@ -374,7 +413,7 @@ def quant_pheno_1pop(
             # replicate `beta` for each simulation
             beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
 
-    pheno_g = admix._utils._geno_mult_mat(centered_geno, beta)
+    pheno_g = admix.data.geno_mult_mat(centered_geno, beta)
 
     # standardize the phe_g so that the variance of g is `var_g`
     std_scale = np.sqrt(var_g / np.var(pheno_g, axis=0))

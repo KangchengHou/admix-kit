@@ -81,7 +81,7 @@ def geno_mult_mat(
             mat.shape[0] == n_snp
         ), "when transpose_geno is False, matrix should be of shape (n_snp, n_rep)"
         ret = np.zeros((n_indiv, n_rep))
-        for i in tqdm(range(len(indices) - 1), desc="_geno_mult_mat"):
+        for i in tqdm(range(len(indices) - 1), desc="admix.data.geno_mult_mat"):
             start, stop = indices[i], indices[i + 1]
             geno_chunk = geno[:, start:stop].compute()
             # impute missing genotype
@@ -97,7 +97,7 @@ def geno_mult_mat(
             mat.shape[0] == n_indiv
         ), "when transpose_geno is True, matrix should be of shape (n_indiv, n_rep)"
         ret = np.zeros((n_snp, n_rep))
-        for i in tqdm(range(len(indices) - 1), desc="_geno_mult_mat"):
+        for i in tqdm(range(len(indices) - 1), desc="admix.data.geno_mult_mat"):
             start, stop = indices[i], indices[i + 1]
             geno_chunk = geno[:, start:stop].compute()
             # impute missing genotype
@@ -235,7 +235,7 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    for i in tqdm(range(len(indices) - 1), desc="admix_genet_cor.af_per_anc"):
+    for i in tqdm(range(len(indices) - 1), desc="admix.data.af_per_anc"):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :, :].compute()
         lanc_chunk = lanc[start:stop, :, :].compute()

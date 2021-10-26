@@ -183,9 +183,9 @@ def marginal(
 
 
 def marginal_slow(
-    dset: xr.Dataset,
-    pheno: str,
-    cov: List[str] = None,
+    dset: admix.Dataset,
+    pheno_col: str,
+    cov_cols: List[str] = None,
     method: str = "ATT",
     family: str = "linear",
     verbose: bool = False,
@@ -227,17 +227,17 @@ def marginal_slow(
 
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1"]
 
-    pheno = dset[pheno].data
-    n_snp = dset.dims["snp"]
+    pheno = dset.indiv[pheno_col]
+    n_snp = dset.n_snp
     mask_indiv = ~np.isnan(pheno)
-    if cov is not None:
-        cov = np.vstack([dset[col].data for col in cov]).T
+    if cov_cols is not None:
+        cov = np.vstack([dset[col].data for col in cov_cols]).T
     else:
-        cov = np.array([], dtype=np.int64).reshape(dset.dims["indiv"], 0)
+        cov = np.array([], dtype=np.int64).reshape(dset.n_indiv, 0)
 
     # TODO: deal with missing genotype (current it is fine because of imputation)
     if method == "ATT":
-        geno = np.sum(dset["geno"].data, axis=2)
+        geno = np.swapaxes(np.sum(dset.geno.data, axis=2), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
@@ -250,8 +250,8 @@ def marginal_slow(
         pvalues = np.array(pvalues)
 
     elif method == "SNP1":
-        geno = np.sum(dset["geno"].data, axis=2)
-        lanc = np.sum(dset["lanc"].data, axis=2)
+        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
@@ -270,10 +270,11 @@ def marginal_slow(
         pvalues = np.array(pvalues)
 
     elif method == "TRACTOR":
-        # number of african alleles
-        lanc = np.sum(dset["lanc"].data, axis=2)
+
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        dset.compute_allele_per_anc()
         # alleles per ancestry
-        allele_per_anc = admix.tools.allele_per_anc(dset, inplace=False).compute()
+        allele_per_anc = np.swapaxes(dset.allele_per_anc.compute(), 0, 1)
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
@@ -297,7 +298,7 @@ def marginal_slow(
         pvalues = np.array(pvalues)
 
     elif method == "ADM":
-        lanc = np.sum(dset["lanc"].data, axis=2)
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
@@ -311,11 +312,6 @@ def marginal_slow(
         raise NotImplementedError
 
     return pd.DataFrame({"SNP": dset.snp.values, "P": pvalues}).set_index("SNP")
-
-
-def logistic_reg(X, y, cov):
-
-    pass
 
 
 def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
