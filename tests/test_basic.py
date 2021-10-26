@@ -94,18 +94,91 @@ def test_assoc():
     """
     from admix.simulate import continuous_pheno
 
+    np.random.seed(1234)
+
     admix_dset, eur_dset, afr_dset = admix.data.load_toy()
     sim = continuous_pheno(admix_dset, var_g=1.0, gamma=1.0, var_e=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
 
-    assoc = admix.assoc.marginal(
+    assoc = admix.assoc.marginal_fast(
         dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
         pheno="pheno",
         method="ATT",
         family="linear",
     )
+
+
+def test_consistent():
+    """
+    Test the consistency of results with the legacy version
+
+    test-data/test-consistent-data.json is generated using the following code.
+
+    import admix
+    import numpy as np
+    import pickle
+    np.random.seed(1234)
+
+    admix_dset, _, _ = admix.data.load_toy()
+    admix_dset = admix_dset.isel(snp=np.arange(100))
+    af = admix.tools.af_per_anc(admix_dset, inplace=False).compute()
+    apa = admix.tools.allele_per_anc(admix_dset, inplace=False, center=True).compute()
+
+    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=0.8, var_e=1.0)
+    sim_i = 3
+    sim_beta = sim["beta"][:, :, sim_i]
+    sim_pheno = sim["pheno"][:, sim_i]
+
+    assoc = admix.assoc.marginal_fast(
+        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
+        pheno="pheno",
+        method="ATT",
+        family="linear",
+    )
+    data_dict = {
+        "af": af,
+        "apa": np.swapaxes(apa, 0, 1),
+        "beta": sim_beta,
+        "pheno": sim_pheno,
+        "assoc": assoc.P.values,
+    }
+    with open("test-data/test-consistent-data.pkl", 'wb') as f:
+        pickle.dump(data_dict, f)
+    """
+
+    import pickle
+    from os.path import dirname, join
+
+    np.random.seed(1234)
+
+    admix_dset, _, _ = admix.data.load_toy()
+    admix_dset = admix_dset.isel(snp=np.arange(100))
+    af = admix.tools.af_per_anc(admix_dset, inplace=False).compute()
+    apa = admix.tools.allele_per_anc(admix_dset, inplace=False, center=True).compute()
+
+    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=0.8, var_e=1.0)
+    sim_i = 3
+    sim_beta = sim["beta"][:, :, sim_i]
+    sim_pheno = sim["pheno"][:, sim_i]
+
+    assoc = admix.assoc.marginal_fast(
+        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
+        pheno="pheno",
+        method="ATT",
+        family="linear",
+    )
+    test_data_path = join(dirname(__file__), "test-data")
+
+    with open(join(test_data_path, "test-consistent-data.pkl"), "rb") as f:
+        data_dict = pickle.load(f)
+
+    assert np.allclose(data_dict["af"], af)
+    assert np.allclose(data_dict["apa"], np.swapaxes(apa, 0, 1))
+    assert np.allclose(data_dict["beta"], sim_beta)
+    assert np.allclose(data_dict["pheno"], sim_pheno)
+    assert np.allclose(data_dict["assoc"], assoc.P.values)
 
 
 def test_ext_tools():
