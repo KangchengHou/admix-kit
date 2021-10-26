@@ -8,15 +8,15 @@ from tqdm import tqdm
 import admix
 from typing import Any, Dict
 import dask.array as da
-
+import admix
 
 __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 
-def marginal_fast(
-    dset: xr.Dataset,
-    pheno: str,
-    cov: List[str] = None,
+def marginal(
+    dset: admix.Dataset,
+    pheno_col: str,
+    cov_cols: List[str] = None,
     method: str = "ATT",
     family: str = "linear",
     logistic_kwargs: Dict[str, Any] = dict(),
@@ -72,14 +72,13 @@ def marginal_fast(
         if "tol" not in logistic_kwargs:
             logistic_kwargs["tol"] = 1e-6
 
-    n_indiv = dset.dims["indiv"]
-
-    pheno = dset[pheno].data
-    n_snp = dset.dims["snp"]
+    n_indiv = dset.n_indiv
+    n_snp = dset.n_snp
+    pheno = dset.indiv[pheno_col].values
     mask_indiv = ~np.isnan(pheno)
-    if cov is not None:
+    if cov_cols is not None:
         cov_values = np.column_stack(
-            [np.ones(n_indiv)] + [dset[col].data for col in cov]
+            [np.ones(n_indiv)] + [dset.indiv[col].data for col in cov_cols]
         )
     else:
         cov_values = np.ones((n_indiv, 1))
@@ -87,7 +86,7 @@ def marginal_fast(
     n_cov = cov_values.shape[1]
     if method == "ATT":
         # [geno]
-        geno = np.sum(dset["geno"].data, axis=2)
+        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
 
         if family == "linear":
             f_stats = admixgwas.linear_f_test(geno, cov_values, pheno, 1, [0])
@@ -108,8 +107,8 @@ def marginal_fast(
 
     elif method == "SNP1":
         # [geno] + lanc
-        geno = np.sum(dset["geno"].data, axis=2)
-        lanc = np.sum(dset["lanc"].data, axis=2)
+        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
         var = np.empty((geno.shape[0], n_snp * 2))
         var[:, 0::2] = geno
         var[:, 1::2] = lanc
@@ -132,9 +131,10 @@ def marginal_fast(
     elif method == "TRACTOR":
         # lanc + [allele1 + allele2]
         # number of african alleles
-        lanc = np.sum(dset["lanc"].data, axis=2)
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        dset.compute_allele_per_anc()
         # alleles per ancestry
-        allele_per_anc = admix.tools.allele_per_anc(dset, inplace=False).compute()
+        allele_per_anc = np.swapaxes(dset.allele_per_anc.compute(), 0, 1)
 
         var = np.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
@@ -159,7 +159,7 @@ def marginal_fast(
 
     elif method == "ADM":
         # [lanc]
-        lanc = np.sum(dset["lanc"].data, axis=2)
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1)
         if family == "linear":
             f_stats = admixgwas.linear_f_test(lanc, cov_values, pheno, 1, [0])
             p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
@@ -179,10 +179,10 @@ def marginal_fast(
     else:
         raise NotImplementedError
 
-    return pd.DataFrame({"SNP": dset.snp.values, "P": p_vals}).set_index("SNP")
+    return pd.DataFrame({"SNP": dset.snp.index.values, "P": p_vals}).set_index("SNP")
 
 
-def marginal(
+def marginal_slow(
     dset: xr.Dataset,
     pheno: str,
     cov: List[str] = None,

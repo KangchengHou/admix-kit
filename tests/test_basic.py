@@ -5,20 +5,20 @@ import pandas as pd
 import admix
 
 import xarray as xr
-from admix.data import load_toy
+from admix.dataset import load_toy
 
 
 def test_basic():
-    ds = load_toy()[0]
-    lanc = ds["lanc"]
-    geno = ds["geno"]
-    pos = ds["POS"]
+    dset = load_toy()[0]
+    lanc = dset.lanc
+    geno = dset.geno
+    pos = dset.snp["POS"]
 
     # basic shape
     assert lanc.ndim == 3
     assert geno.ndim == 3
     assert np.all(lanc.shape == geno.shape)
-    assert len(pos) == lanc.shape[1]
+    assert len(pos) == lanc.shape[0]
 
     # phenotype simulation
     # sim_pheno = admix.simulate.simulate_phenotype_case_control_1snp(
@@ -32,79 +32,72 @@ def test_utils():
     # tests convert anc count
     geno = np.array([[[0, 1], [1, 1], [0, 0]]])
     lanc = np.array([[[0, 0], [0, 0], [0, 0]]])
-    ds = xr.Dataset(
-        data_vars={
-            "geno": (("indiv", "snp", "ploidy"), da.from_array(geno)),
-            "lanc": (("indiv", "snp", "ploidy"), da.from_array(lanc)),
-        },
-        attrs={"n_anc": 2},
+
+    dset = admix.Dataset(
+        geno=da.from_array(np.swapaxes(geno, 0, 1)),
+        lanc=da.from_array(np.swapaxes(lanc, 0, 1)),
+        n_anc=2,
     )
+    dset.compute_allele_per_anc()
+    print(dset.indiv)
+    apa = dset.allele_per_anc
 
-    allele_per_anc = admix.tools.allele_per_anc(ds, inplace=False)
-    assert np.all(allele_per_anc == [[[1, 0], [2, 0], [0, 0]]])
-    ds = load_toy()[0]
-    apa = admix.tools.allele_per_anc(ds, inplace=False)
-
-
-def test_compute_grm():
-
-    ds = load_toy()[0]
-    allele_per_anc = admix.tools.allele_per_anc(ds, inplace=False).astype(float)
+    assert np.all(np.swapaxes(apa, 0, 1) == [[[1, 0], [2, 0], [0, 0]]])
 
 
-def test_simulate():
+# def test_simulate():
 
-    dset = load_toy()[0]
-    sim = admix.simulate.continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
+#     dset = load_toy()[0]
+#     sim = admix.simulate.continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
 
-    admix.tools.grm(dset, method="center")
-    ys = admix.simulate.continuous_pheno_grm(
-        dset, grm="grm", var={"grm": 1.0, "e": 1.0}
-    )
+#     admix.tools.grm(dset, method="center")
+#     ys = admix.simulate.continuous_pheno_grm(
+#         dset, grm="grm", var={"grm": 1.0, "e": 1.0}
+#     )
 
 
-def test_lamp():
-    from pylampld import LampLD
+# def test_lamp():
+#     from pylampld import LampLD
 
-    ds_admix, ds_eur, ds_afr = load_toy()
-    eur_hap = np.vstack([ds_eur["geno"][:, :, 0], ds_eur["geno"][:, :, 1]])
-    afr_hap = np.vstack([ds_afr["geno"][:, :, 0], ds_afr["geno"][:, :, 1]])
-    ref_list = [eur_hap, afr_hap]
-    n_anc = len(ref_list)
-    n_snp = ds_admix.dims["snp"]
-    model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=6, window_size=300)
-    model.set_pos(ds_admix["POS"].values)
-    model.fit(ref_list)
+#     ds_admix, ds_eur, ds_afr = load_toy()
+#     eur_hap = np.vstack([ds_eur["geno"][:, :, 0], ds_eur["geno"][:, :, 1]])
+#     afr_hap = np.vstack([ds_afr["geno"][:, :, 0], ds_afr["geno"][:, :, 1]])
+#     ref_list = [eur_hap, afr_hap]
+#     n_anc = len(ref_list)
+#     n_snp = ds_admix.dims["snp"]
+#     model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=6, window_size=300)
+#     model.set_pos(ds_admix["POS"].values)
+#     model.fit(ref_list)
 
-    est = np.dstack(
-        [
-            model.infer_lanc(ds_admix["geno"][:, :, 0].compute()),
-            model.infer_lanc(ds_admix["geno"][:, :, 1].compute()),
-        ]
-    )
+#     est = np.dstack(
+#         [
+#             model.infer_lanc(ds_admix["geno"][:, :, 0].compute()),
+#             model.infer_lanc(ds_admix["geno"][:, :, 1].compute()),
+#         ]
+#     )
 
-    acc = (est == ds_admix["lanc"].values).mean()
-    assert acc > 0.9
-    print(f"Accuracy: {acc:.2f}")
+#     acc = (est == ds_admix["lanc"].values).mean()
+#     assert acc > 0.9
+#     print(f"Accuracy: {acc:.2f}")
 
 
 def test_assoc():
     """
     TODO: add basic testing to association testing modules.
     """
-    from admix.simulate import continuous_pheno
 
     np.random.seed(1234)
 
-    admix_dset, eur_dset, afr_dset = admix.data.load_toy()
-    sim = continuous_pheno(admix_dset, var_g=1.0, gamma=1.0, var_e=1.0)
+    admix_dset, eur_dset, afr_dset = admix.dataset.load_toy()
+    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=1.0, var_e=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
 
-    assoc = admix.assoc.marginal_fast(
-        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
-        pheno="pheno",
+    admix_dset.indiv["pheno"] = sim_pheno
+    assoc = admix.assoc.marginal(
+        dset=admix_dset,
+        pheno_col="pheno",
         method="ATT",
         family="linear",
     )
@@ -152,20 +145,25 @@ def test_consistent():
     from os.path import dirname, join
 
     np.random.seed(1234)
+    dset_admix, _, _ = admix.dataset.load_toy()
+    dset_admix = admix.dataset.subset_dataset(
+        dset_admix, snp=dset_admix.snp.index.values[np.arange(100)]
+    )
+    dset_admix.compute_af_per_anc()
+    dset_admix.compute_allele_per_anc(center=True)
 
-    admix_dset, _, _ = admix.data.load_toy()
-    admix_dset = admix_dset.isel(snp=np.arange(100))
-    af = admix.tools.af_per_anc(admix_dset, inplace=False).compute()
-    apa = admix.tools.allele_per_anc(admix_dset, inplace=False, center=True).compute()
+    af = dset_admix.af_per_anc
+    apa = dset_admix.allele_per_anc
 
-    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=0.8, var_e=1.0)
+    sim = admix.simulate.continuous_pheno(dset_admix, var_g=1.0, gamma=0.8, var_e=1.0)
     sim_i = 3
     sim_beta = sim["beta"][:, :, sim_i]
     sim_pheno = sim["pheno"][:, sim_i]
 
-    assoc = admix.assoc.marginal_fast(
-        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
-        pheno="pheno",
+    dset_admix.indiv["pheno"] = sim_pheno
+    assoc = admix.assoc.marginal(
+        dset=dset_admix,
+        pheno_col="pheno",
         method="ATT",
         family="linear",
     )
@@ -175,7 +173,7 @@ def test_consistent():
         data_dict = pickle.load(f)
 
     assert np.allclose(data_dict["af"], af)
-    assert np.allclose(data_dict["apa"], np.swapaxes(apa, 0, 1))
+    assert np.allclose(data_dict["apa"], apa)
     assert np.allclose(data_dict["beta"], sim_beta)
     assert np.allclose(data_dict["pheno"], sim_pheno)
     assert np.allclose(data_dict["assoc"], assoc.P.values)

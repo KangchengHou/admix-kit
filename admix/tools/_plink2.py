@@ -114,7 +114,7 @@ def plink2_lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
     assert chain in ["hg19->hg38", "hg38->hg19"]
 
     # read the input pgen
-    pgen, pvar, psam = xrpgen.read_pfile(pfile)
+    pgen, pvar, psam = dapgen.read_pfile(pfile)
     df_snp = pd.DataFrame(
         {"CHROM": pvar.CHROM.values, "POS": pvar.POS.values}, index=pvar.index.values
     )
@@ -135,7 +135,7 @@ def plink2_lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
     )
 
     # substitute the coordinates
-    pgen, pvar, psam = xrpgen.read_pfile(out_prefix)
+    pgen, pvar, psam = dapgen.read_pfile(out_prefix)
     assert np.all(pvar.index == df_lifted.index)
 
     pvar["POS"] = df_lifted["POS"]

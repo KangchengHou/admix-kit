@@ -7,12 +7,12 @@ import xarray as xr
 from typing import Union, List, Dict
 import admix
 import dask
-from tqdm import tqdm
 import pandas as pd
+from tqdm import tqdm
 
 
 def continuous_pheno(
-    dset: xr.Dataset,
+    dset: admix.Dataset,
     var_g: float = None,
     var_e: float = None,
     gamma: float = None,
@@ -62,11 +62,10 @@ def continuous_pheno(
     assert n_anc == 2, "Only two-ancestry currently supported"
 
     # TODO: center or not is really critical here, and should be carefully thought
-    if "allele_per_anc" not in dset.data_vars:
-        admix.tools.allele_per_anc(dset, center=False)
+    dset.compute_allele_per_anc(center=False)
 
-    apa = dset.data_vars["allele_per_anc"]
-    n_indiv, n_snp = apa.shape[0:2]
+    apa = dset.allele_per_anc
+    n_snp, n_indiv = apa.shape[0:2]
 
     # simulate effect sizes
     if beta is None:
@@ -111,9 +110,17 @@ def continuous_pheno(
             # replicate `beta` for each simulation
             beta = np.repeat(beta[:, :, np.newaxis], n_sim, axis=2)
 
-    pheno_g = da.zeros([n_indiv, n_sim])
-    for i_anc in range(n_anc):
-        pheno_g += da.dot(apa[:, :, i_anc], beta[:, i_anc, :])
+    pheno_g = np.zeros([n_indiv, n_sim])
+    snp_chunks = apa.chunks[0]
+    indices = np.insert(np.cumsum(snp_chunks), 0, 0)
+
+    for i in tqdm(
+        range(len(indices) - 1), desc="admix_genet_cor.simulate_continuous_pheno"
+    ):
+        start, stop = indices[i], indices[i + 1]
+        apa_chunk = apa[start:stop, :, :].compute()
+        for i_anc in range(n_anc):
+            pheno_g += np.dot(apa_chunk[:, :, i_anc].T, beta[start:stop, i_anc, :])
 
     pheno_e = np.zeros(pheno_g.shape)
     for i_sim in range(n_sim):
@@ -122,7 +129,6 @@ def continuous_pheno(
         )
 
     pheno = pheno_g + pheno_e
-    pheno_g, pheno = dask.compute((pheno_g, pheno))[0]
     # if `cov_cols` are specified, add the covariates to the phenotype
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values
@@ -131,7 +137,7 @@ def continuous_pheno(
         # add the covariates to the phenotype
         cov_values = np.zeros((n_indiv, len(cov_cols)))
         for i_cov, cov_col in enumerate(cov_cols):
-            cov_values[:, i_cov] = dset[cov_col].values
+            cov_values[:, i_cov] = dset.indiv[cov_col].values
         pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
 
     return {
@@ -140,18 +146,6 @@ def continuous_pheno(
         "pheno": pheno,
         "cov_effects": cov_effects,
     }
-    # return {
-    #     "beta": pd.DataFrame(
-    #         beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-    #     ),
-    #     "pheno_g": pd.DataFrame(
-    #         pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-    #     ),
-    #     "pheno": pd.DataFrame(
-    #         pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-    #     ),
-    #     "cov_effects": cov_effects,
-    # }
 
 
 # TODO: check https://github.com/TalShor/SciLMM/blob/master/scilmm/Estimation/HE.py
@@ -231,25 +225,25 @@ def continuous_pheno_grm(
     return {"pheno": ys, "cov_effects": cov_effects}
 
 
-# def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
-#     """Sample case control from the population with a desired ratio
+def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
+    """Sample case control from the population with a desired ratio
 
-#     Args:
-#         pheno (np.ndarray): (n_indiv, ) binary vector representing the case control status
-#             for each individual
-#         control_ratio (float): the ratio of control / case
+    Args:
+        pheno (np.ndarray): (n_indiv, ) binary vector representing the case control status
+            for each individual
+        control_ratio (float): the ratio of control / case
 
-#     Returns:
-#         np.ndarray: (n_indiv, ) vector indicating whether i-th individual is sampled
-#     """
-#     case_index = np.where(pheno == 1)[0]
-#     control_index = np.random.choice(
-#         np.where(pheno == 0)[0],
-#         size=int(len(case_index) * control_ratio),
-#         replace=False,
-#     )
-#     study_index = np.sort(np.concatenate([case_index, control_index]))
-#     return study_index
+    Returns:
+        np.ndarray: (n_indiv, ) vector indicating whether i-th individual is sampled
+    """
+    case_index = np.where(pheno == 1)[0]
+    control_index = np.random.choice(
+        np.where(pheno == 0)[0],
+        size=int(len(case_index) * control_ratio),
+        replace=False,
+    )
+    study_index = np.sort(np.concatenate([case_index, control_index]))
+    return study_index
 
 
 # def simulate_phenotype_case_control_1snp(

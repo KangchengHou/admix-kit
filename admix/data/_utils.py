@@ -235,18 +235,6 @@ def impute_lanc_old(dset: xr.Dataset, dset_ref: xr.Dataset):
     return dset
 
 
-def quantile_normalize(val):
-    from scipy.stats import rankdata, norm
-
-    val = np.array(val)
-    non_nan_index = ~np.isnan(val)
-    results = np.full(val.shape, np.nan)
-    results[non_nan_index] = norm.ppf(
-        (rankdata(val[non_nan_index]) - 0.5) / len(val[non_nan_index])
-    )
-    return results
-
-
 def impute_std(geno, mean=None, std=None):
     """
     impute the mean and then standardize
@@ -448,30 +436,6 @@ def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
 """
 load compiled data sets
 """
-
-
-def load_toy() -> List[xr.Dataset]:
-    """Load toy dataset
-
-    Load simulated
-    (1) 50 admixed individuals
-    (2) 50 EUR individuals
-    (3) 50 AFR individuals
-
-    5000 SNPs
-
-    Returns
-    -------
-    List[xr.Dataset]
-        [dset_admix, dset_eur, dset_afr]
-    """
-
-    module_path = dirname(__file__)
-    test_data_path = join(module_path, "../../tests/test-data")
-    dset_eur = xr.open_zarr(join(test_data_path, "eur.zip"))
-    dset_afr = xr.open_zarr(join(test_data_path, "afr.zip"))
-    dset_admix = xr.open_zarr(join(test_data_path, "admix.zip"))
-    return [dset_admix, dset_eur, dset_afr]
 
 
 # PAGE admixed individuals with EUR - AFR ancestries in hapmap3 density

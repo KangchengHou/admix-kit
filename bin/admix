@@ -5,7 +5,7 @@ import fire
 import pandas as pd
 from typing import List
 import subprocess
-import xrpgen
+import dapgen
 
 
 def lanc(
@@ -138,10 +138,11 @@ def pgen_attach_lanc(pgen: str, lanc: str, out: str = None):
     out : str
         Path to the output zarr file, default to replacing .pgen to .lanc
     """
+
     if out is None:
         out = pgen.replace(".pgen", ".lanc")
 
-    dset = xrpgen.read_pfile(pgen, phase=True)
+    dset = dapgen.read_pfile(pgen, phase=True)
     dset = admix.data.assign_lanc(dset, lanc)
     dset.lanc.data.to_zarr(out)
 
