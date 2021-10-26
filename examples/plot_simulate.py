@@ -29,7 +29,7 @@ n_snp = 1000
 # plt.show()
 
 
-# sim = simulate_continuous_phenotype(
+# sim = simulate_quant_phenotype(
 #     hap=hap.reshape((n_indiv, n_snp * 2)),
 #     lanc=lanc.reshape((n_indiv, n_snp * 2)),
 #     h2g=0.1,

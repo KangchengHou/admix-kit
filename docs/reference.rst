@@ -31,9 +31,9 @@ Simulation: `simulate`
    :toctree: reference
 
     simulate.admix_geno
-    simulate.continuous_pheno
-    simulate.continuous_pheno_1pop
-    simulate.continuous_pheno_grm
+    simulate.quant_pheno
+    simulate.quant_pheno_1pop
+    simulate.quant_pheno_grm
 
 Estimation: `estimate`
 ----------------------

@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def continuous_pheno(
+def quant_pheno(
     dset: admix.Dataset,
     hsq: float = 0.5,
     cor: float = 1,
@@ -102,7 +102,7 @@ def continuous_pheno(
     snp_chunks = apa.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    for i in tqdm(range(len(indices) - 1), desc="admix.simulate.continuous_pheno"):
+    for i in tqdm(range(len(indices) - 1), desc="admix.simulate.quant_pheno"):
         start, stop = indices[i], indices[i + 1]
         apa_chunk = apa[start:stop, :, :].compute()
         for i_anc in range(n_anc):
@@ -143,7 +143,7 @@ def continuous_pheno(
 # TODO: check https://github.com/TalShor/SciLMM/blob/master/scilmm/Estimation/HE.py
 
 
-def continuous_pheno_grm(
+def quant_pheno_grm(
     dset: xr.Dataset,
     grm: Union[str, List[str], dict],
     var: Dict[str, float],
@@ -293,7 +293,7 @@ def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
 #     return rls_list
 
 
-def continuous_pheno_1pop(
+def quant_pheno_1pop(
     dset: xr.Dataset,
     var_g: float = None,
     var_e: float = None,

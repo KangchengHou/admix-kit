@@ -48,7 +48,7 @@ grms = {
 }
 grms = dask.persist(grms)[0]
 
-sim = admix.simulate.continuous_pheno_grm(
+sim = admix.simulate.quant_pheno_grm(
     dset, grm=grms, var={"A1": 1.0, "A2": 0.5, "e": 1.0}, n_sim=50
 )
 df_rls = admix.estimate.gen_cor(dset, grm=grms, pheno=sim["pheno"], cov_intercept=True)

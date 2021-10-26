@@ -48,10 +48,10 @@ def test_utils():
 # def test_simulate():
 
 #     dset = load_toy()[0]
-#     sim = admix.simulate.continuous_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
+#     sim = admix.simulate.quant_pheno(dset, var_g=1.0, gamma=1.0, var_e=1.0)
 
 #     admix.tools.grm(dset, method="center")
-#     ys = admix.simulate.continuous_pheno_grm(
+#     ys = admix.simulate.quant_pheno_grm(
 #         dset, grm="grm", var={"grm": 1.0, "e": 1.0}
 #     )
 
@@ -89,7 +89,7 @@ def test_assoc():
     np.random.seed(1234)
 
     admix_dset, eur_dset, afr_dset = admix.dataset.load_toy()
-    sim = admix.simulate.continuous_pheno(admix_dset, hsq=0.5, cor=1.0)
+    sim = admix.simulate.quant_pheno(admix_dset, hsq=0.5, cor=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
@@ -124,7 +124,7 @@ def test_consistent():
     af = admix_dset.af_per_anc
     apa = admix_dset.allele_per_anc.compute()
 
-    sim = admix.simulate.continuous_pheno(admix_dset, hsq=0.5, cor=0.8)
+    sim = admix.simulate.quant_pheno(admix_dset, hsq=0.5, cor=0.8)
     sim_i = 3
     sim_beta = sim["beta"][:, :, sim_i]
     sim_pheno = sim["pheno"][:, sim_i]
@@ -162,7 +162,7 @@ def test_consistent():
     af = dset_admix.af_per_anc
     apa = dset_admix.allele_per_anc.compute()
 
-    sim = admix.simulate.continuous_pheno(dset_admix, hsq=0.5, cor=0.8)
+    sim = admix.simulate.quant_pheno(dset_admix, hsq=0.5, cor=0.8)
     sim_i = 3
     sim_beta = sim["beta"][:, :, sim_i]
     sim_pheno = sim["pheno"][:, sim_i]
