@@ -12,7 +12,7 @@ from tqdm import tqdm
 def quant_pheno(
     dset: admix.Dataset,
     hsq: float = 0.5,
-    cor: float = 1,
+    cor: float = None,
     n_causal: int = None,
     beta: np.ndarray = None,
     cov_cols: List[str] = None,
@@ -68,6 +68,9 @@ def quant_pheno(
             # n_causal = n_snp if `n_causal` is not specified
             n_causal = n_snp
 
+        if cor is None:
+            cor = 1
+
         # if `beta` is not specified, simulate effect sizes
         beta = np.zeros((n_snp, n_anc, n_sim))
         for i_sim in range(n_sim):
@@ -84,8 +87,8 @@ def quant_pheno(
             for i_anc in range(n_anc):
                 beta[cau, i_anc, i_sim] = i_beta[:, i_anc]
     else:
-        assert (
-            (hsq is None) and (cor is None) and (n_causal is None)
+        assert (cor is None) and (
+            n_causal is None
         ), "If `beta` is specified, `var_g`, `var_e`, `gamma`, and `n_causal` must be specified"
         assert beta.shape == (n_snp, n_anc) or beta.shape == (
             n_snp,
@@ -238,7 +241,7 @@ def sample_case_control(pheno: np.ndarray, control_ratio: float) -> np.ndarray:
 def binary_pheno(
     dset: admix.Dataset,
     hsq: float = 0.5,
-    cor: float = 1,
+    cor: float = None,
     n_causal: int = None,
     case_prevalence: float = 0.1,
     beta: np.ndarray = None,
@@ -281,7 +284,7 @@ def binary_pheno(
         beta = quant_sim["beta"]
         pheno_g = quant_sim["pheno_g"]
         qpheno = quant_sim["pheno"]
-
+        qpheno -= qpheno.mean(axis=0)
         case_threshold = -stats.norm.ppf(case_prevalence)
 
         pheno = np.zeros_like(qpheno)

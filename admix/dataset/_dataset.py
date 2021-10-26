@@ -46,15 +46,23 @@ class Dataset(object):
         n_anc: int = None,
         uns: Optional[Mapping[str, Any]] = None,
     ):
-
+        assert geno is not None
         data_vars: Dict[Hashable, Any] = {}
-
         data_vars["geno"] = (("snp", "indiv", "ploidy"), geno)
+
+        n_snp, n_indiv = geno.shape[0:2]
         if lanc is not None:
             data_vars["lanc"] = (("snp", "indiv", "ploidy"), lanc)
 
-        self._snp = snp
-        self._indiv = indiv
+        if indiv is None:
+            self._indiv = pd.DataFrame(index=np.arange(n_indiv))
+        else:
+            self._indiv = indiv
+
+        if snp is None:
+            self._snp = pd.DataFrame(index=np.arange(n_snp))
+        else:
+            self._snp = snp
 
         self._xr = xr.Dataset(data_vars=data_vars)
 

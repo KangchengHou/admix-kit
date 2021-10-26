@@ -13,7 +13,7 @@ import admix
 __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 
-def marginal(
+def marginal_fast(
     dset: admix.Dataset,
     pheno_col: str,
     cov_cols: List[str] = None,
@@ -182,7 +182,7 @@ def marginal(
     return pd.DataFrame({"SNP": dset.snp.index.values, "P": p_vals}).set_index("SNP")
 
 
-def marginal_slow(
+def marginal(
     dset: admix.Dataset,
     pheno_col: str,
     cov_cols: List[str] = None,
@@ -231,20 +231,20 @@ def marginal_slow(
     n_snp = dset.n_snp
     mask_indiv = ~np.isnan(pheno)
     if cov_cols is not None:
-        cov = np.vstack([dset[col].data for col in cov_cols]).T
+        cov = np.vstack([dset.indiv[col] for col in cov_cols]).T
     else:
         cov = np.array([], dtype=np.int64).reshape(dset.n_indiv, 0)
 
     # TODO: deal with missing genotype (current it is fine because of imputation)
     if method == "ATT":
-        geno = np.swapaxes(np.sum(dset.geno.data, axis=2), 0, 1)
+        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
             if family == "linear":
-                model = sm.OLS(pheno[mask_indiv], design[mask_indiv, :]).fit()
+                model = sm.OLS(pheno[mask_indiv], design[mask_indiv, :]).fit(disp=0)
             elif family == "logistic":
-                model = sm.Logit(pheno[mask_indiv], design[mask_indiv, :]).fit()
+                model = sm.Logit(pheno[mask_indiv], design[mask_indiv, :]).fit(disp=0)
             pvalues.append(model.pvalues[1])
 
         pvalues = np.array(pvalues)
@@ -311,7 +311,7 @@ def marginal_slow(
     else:
         raise NotImplementedError
 
-    return pd.DataFrame({"SNP": dset.snp.values, "P": pvalues}).set_index("SNP")
+    return pd.DataFrame({"SNP": dset.snp.index.values, "P": pvalues}).set_index("SNP")
 
 
 def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
@@ -365,7 +365,7 @@ def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
     Y = pheno - pheno.mean(axis=0)
     X = geno - da.nanmean(geno, axis=0)
 
-    XtY, snp_var = admix._utils._geno_mult_mat(
+    XtY, snp_var = admix.data.geno_mult_mat(
         X, Y, transpose_geno=True, return_snp_var=True
     )
     XtX = snp_var * n_indiv

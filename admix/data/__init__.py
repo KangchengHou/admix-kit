@@ -13,5 +13,5 @@ from ._utils import (
     match_prs_weights,
 )
 
-from ._geno import allele_per_anc, af_per_anc
+from ._geno import allele_per_anc, af_per_anc, geno_mult_mat
 from ._stats import quantile_normalize

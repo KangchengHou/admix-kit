@@ -1,7 +1,8 @@
 import numpy as np
 import xarray as xr
-from typing import List, Collection, Optional
+from typing import List
 import dask.array as da
+import admix
 
 
 def _lanc(
@@ -141,14 +142,10 @@ def admix_geno(
             n=1, p=allele_freqs[i_anc][np.where(rls_lanc == i_anc)[1]]
         )
 
-    return xr.Dataset(
-        data_vars={
-            "geno": (["indiv", "snp", "ploidy"], da.from_array(rls_geno)),
-            "lanc": (["indiv", "snp", "ploidy"], da.from_array(rls_lanc)),
-        },
-        attrs={
-            "n_anc": n_anc,
-        },
+    return admix.Dataset(
+        geno=da.from_array(np.swapaxes(rls_geno, 0, 1)),
+        lanc=da.from_array(np.swapaxes(rls_lanc, 0, 1)),
+        n_anc=n_anc,
     )
 
 
@@ -232,13 +229,8 @@ def admix_geno2(
         rls_geno[rls_lanc == i_anc] = np.random.binomial(
             n=1, p=allele_freqs[i_anc][np.where(rls_lanc == i_anc)[1]]
         )
-
-    return xr.Dataset(
-        data_vars={
-            "geno": (["indiv", "snp", "ploidy"], da.from_array(rls_geno)),
-            "lanc": (["indiv", "snp", "ploidy"], da.from_array(rls_lanc)),
-        },
-        attrs={
-            "n_anc": n_anc,
-        },
+    return admix.Dataset(
+        geno=da.from_array(np.swapaxes(rls_geno, 0, 1)),
+        lanc=da.from_array(np.swapaxes(rls_lanc, 0, 1)),
+        n_anc=n_anc,
     )
