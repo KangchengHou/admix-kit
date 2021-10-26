@@ -246,9 +246,7 @@ def marginal_slow(
             elif family == "logistic":
                 model = sm.Logit(pheno[mask_indiv], design[mask_indiv, :]).fit()
             pvalues.append(model.pvalues[1])
-            # model = sm.GLM(
-            #     pheno[mask_indiv], design[mask_indiv, :], family=glm_family
-            # ).fit()
+
         pvalues = np.array(pvalues)
 
     elif method == "SNP1":

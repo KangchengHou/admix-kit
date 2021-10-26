@@ -13,9 +13,8 @@ from tqdm import tqdm
 
 def continuous_pheno(
     dset: admix.Dataset,
-    var_g: float = None,
-    var_e: float = None,
-    gamma: float = None,
+    hsq: float = 0.5,
+    cor: float = 1,
     n_causal: int = None,
     beta: np.ndarray = None,
     cov_cols: List[str] = None,
@@ -30,11 +29,9 @@ def continuous_pheno(
         Dataset containing the following variables:
             - geno: (n_indiv, n_snp, 2) phased genotype of each individual
             - lanc: (n_indiv, n_snp, 2) local ancestry of each SNP
-    var_g: float or np.ndarray
+    hsq: float
         Variance explained by the genotype effect
-    var_e: float
-        Variance explained by the effect of the environment
-    gamma: float
+    cor: float
         Correlation between the genetic effects from two ancestral backgrounds
     n_causal: int, optional
         number of causal variables, by default None
@@ -61,7 +58,6 @@ def continuous_pheno(
     n_anc = dset.n_anc
     assert n_anc == 2, "Only two-ancestry currently supported"
 
-    # TODO: center or not is really critical here, and should be carefully thought
     dset.compute_allele_per_anc(center=False)
 
     apa = dset.allele_per_anc
@@ -69,9 +65,6 @@ def continuous_pheno(
 
     # simulate effect sizes
     if beta is None:
-        if gamma is None:
-            # covariance of effects across ancestries set to 1 if `gamma` is not specfied.
-            gamma = var_g
 
         if n_causal is None:
             # n_causal = n_snp if `n_causal` is not specified
@@ -84,22 +77,17 @@ def continuous_pheno(
                 np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
             )
 
-            expected_cov = np.array([[var_g, gamma], [gamma, var_g]]) / n_causal
-
             i_beta = np.random.multivariate_normal(
                 mean=[0.0, 0.0],
-                cov=expected_cov,
+                cov=np.array([[1, cor], [cor, 1]]),
                 size=n_causal,
             )
-            # normalize to expected covariance structure
-            empirical_cov = np.dot(i_beta.T, i_beta) / n_causal
-            i_beta = i_beta * np.sqrt(np.diag(expected_cov) / np.diag(empirical_cov))
 
             for i_anc in range(n_anc):
                 beta[cau, i_anc, i_sim] = i_beta[:, i_anc]
     else:
         assert (
-            (var_g is None) and (gamma is None) and (n_causal is None)
+            (hsq is None) and (cor is None) and (n_causal is None)
         ), "If `beta` is specified, `var_g`, `var_e`, `gamma`, and `n_causal` must be specified"
         assert beta.shape == (n_snp, n_anc) or beta.shape == (
             n_snp,
@@ -114,21 +102,25 @@ def continuous_pheno(
     snp_chunks = apa.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    for i in tqdm(
-        range(len(indices) - 1), desc="admix_genet_cor.simulate_continuous_pheno"
-    ):
+    for i in tqdm(range(len(indices) - 1), desc="admix.simulate.continuous_pheno"):
         start, stop = indices[i], indices[i + 1]
         apa_chunk = apa[start:stop, :, :].compute()
         for i_anc in range(n_anc):
             pheno_g += np.dot(apa_chunk[:, :, i_anc].T, beta[start:stop, i_anc, :])
 
+    # scale variance of pheno_g to hsq
+    std_scale = np.sqrt(hsq / np.var(pheno_g, axis=0))
+    pheno_g *= std_scale
+    beta *= std_scale
+
     pheno_e = np.zeros(pheno_g.shape)
     for i_sim in range(n_sim):
         pheno_e[:, i_sim] = np.random.normal(
-            loc=0.0, scale=np.sqrt(var_e), size=n_indiv
+            loc=0.0, scale=np.sqrt(1 - hsq), size=n_indiv
         )
 
     pheno = pheno_g + pheno_e
+
     # if `cov_cols` are specified, add the covariates to the phenotype
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values

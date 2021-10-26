@@ -89,7 +89,7 @@ def test_assoc():
     np.random.seed(1234)
 
     admix_dset, eur_dset, afr_dset = admix.dataset.load_toy()
-    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=1.0, var_e=1.0)
+    sim = admix.simulate.continuous_pheno(admix_dset, hsq=0.5, cor=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
@@ -114,25 +114,32 @@ def test_consistent():
     import pickle
     np.random.seed(1234)
 
-    admix_dset, _, _ = admix.data.load_toy()
-    admix_dset = admix_dset.isel(snp=np.arange(100))
-    af = admix.tools.af_per_anc(admix_dset, inplace=False).compute()
-    apa = admix.tools.allele_per_anc(admix_dset, inplace=False, center=True).compute()
+    admix_dset, _, _ = admix.dataset.load_toy()
+    admix_dset = admix.dataset.subset_dataset(
+        admix_dset, snp=admix_dset.snp.index.values[np.arange(100)]
+    )
+    admix_dset.compute_af_per_anc()
+    admix_dset.compute_allele_per_anc(center=True)
 
-    sim = admix.simulate.continuous_pheno(admix_dset, var_g=1.0, gamma=0.8, var_e=1.0)
+    af = admix_dset.af_per_anc
+    apa = admix_dset.allele_per_anc.compute()
+
+    sim = admix.simulate.continuous_pheno(admix_dset, hsq=0.5, cor=0.8)
     sim_i = 3
     sim_beta = sim["beta"][:, :, sim_i]
     sim_pheno = sim["pheno"][:, sim_i]
 
-    assoc = admix.assoc.marginal_fast(
-        dset=admix_dset.assign_coords(pheno=("indiv", sim_pheno)),
-        pheno="pheno",
+    admix_dset.indiv["pheno"] = sim_pheno
+    assoc = admix.assoc.marginal(
+        dset=admix_dset,
+        pheno_col="pheno",
         method="ATT",
         family="linear",
     )
+
     data_dict = {
         "af": af,
-        "apa": np.swapaxes(apa, 0, 1),
+        "apa": apa,
         "beta": sim_beta,
         "pheno": sim_pheno,
         "assoc": assoc.P.values,
@@ -153,9 +160,9 @@ def test_consistent():
     dset_admix.compute_allele_per_anc(center=True)
 
     af = dset_admix.af_per_anc
-    apa = dset_admix.allele_per_anc
+    apa = dset_admix.allele_per_anc.compute()
 
-    sim = admix.simulate.continuous_pheno(dset_admix, var_g=1.0, gamma=0.8, var_e=1.0)
+    sim = admix.simulate.continuous_pheno(dset_admix, hsq=0.5, cor=0.8)
     sim_i = 3
     sim_beta = sim["beta"][:, :, sim_i]
     sim_pheno = sim["pheno"][:, sim_i]
