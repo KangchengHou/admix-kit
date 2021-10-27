@@ -90,11 +90,17 @@ class Dataset(object):
         pass
 
     def __repr__(self) -> str:
-        descr = f"admix.Dataset object with n_indiv={self.n_indiv}, n_snp={self.n_snp}"
+        descr = (
+            f"admix.Dataset object with n_snp x n_indiv = {self.n_snp} x {self.n_indiv}"
+        )
         if "lanc" in self._xr:
             descr += f", n_anc={self.n_anc}"
         else:
-            descr += " with no local ancestries"
+            descr += ", no local ancestry"
+
+        descr += "\n\tsnp: " + ", ".join([f"'{col}'" for col in self.snp.columns])
+        descr += "\n\tindiv: " + ", ".join([f"'{col}'" for col in self.indiv.columns])
+
         return descr
 
     def update(self, other, dim="data") -> "Dataset":

@@ -274,7 +274,13 @@ def load_ukb_eur_afr_hm3(
 
     dset = dset.rename({n: n.split("@")[0] for n in [k for k in dset.coords.keys()]})
 
-    return dset
+    return Dataset(
+        geno=np.swapaxes(dset.geno.data, 0, 1),
+        lanc=np.swapaxes(dset.lanc.data, 0, 1),
+        n_anc=2,
+        indiv=dset.indiv.to_dataframe().drop(columns=["indiv"]),
+        snp=dset.snp.to_dataframe().drop(columns=["snp"]),
+    )
 
 
 def load_ukb_eur_afr_imputed(

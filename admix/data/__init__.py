@@ -8,7 +8,6 @@ on their own alone.
 
 from ._utils import (
     make_dataset,
-    load_lab_dataset,
     impute_lanc,
     match_prs_weights,
 )
