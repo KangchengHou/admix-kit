@@ -68,7 +68,7 @@ def marginal_fast(
 
     if family == "logistic":
         if "max_iter" not in logistic_kwargs:
-            logistic_kwargs["max_iter"] = 200
+            logistic_kwargs["max_iter"] = 100
         if "tol" not in logistic_kwargs:
             logistic_kwargs["tol"] = 1e-6
 
