@@ -56,9 +56,8 @@ def quant_pheno(
     n_anc = dset.n_anc
     assert n_anc == 2, "Only two-ancestry currently supported"
 
-    dset.compute_allele_per_anc(center=False)
+    apa = dset.allele_per_anc(center=False)
 
-    apa = dset.allele_per_anc
     n_snp, n_indiv = apa.shape[0:2]
 
     # simulate effect sizes

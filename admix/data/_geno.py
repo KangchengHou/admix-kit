@@ -235,7 +235,8 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    for i in tqdm(range(len(indices) - 1), desc="admix.data.af_per_anc"):
+    # TODO: replace with the admix_genet_cor implementation
+    for i in range(len(indices) - 1):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :, :].compute()
         lanc_chunk = lanc[start:stop, :, :].compute()
@@ -252,6 +253,7 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
 
 def allele_per_anc(geno, lanc, center=False, n_anc=2):
     """Get allele count per ancestry
+
     Parameters
     ----------
     ds: xr.Dataset
@@ -277,13 +279,28 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
     geno = geno.rechunk({2: 2})
     lanc = lanc.rechunk({2: 2})
 
-    # TODO: align the chunk size along 1st axis to be the same
+    # rechunk so that all chunk of `n_anc` is passed into the helper function
+    assert (
+        n_anc == 2
+    ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
 
-    def helper(geno_chunk, lanc_chunk, n_anc, af_chunk=None):
+    assert (
+        geno.chunks == lanc.chunks
+    ), "`geno` and `lanc` should have the same chunk size"
+
+    assert (
+        len(geno.chunks[1]) == 1
+    ), "geno / lanc should not be chunked across individual dimension"
+
+    def helper(geno_chunk, lanc_chunk, n_anc, center):
 
         n_snp, n_indiv, n_haplo = geno_chunk.shape
-        if af_chunk is not None:
-            assert af_chunk.shape[0] == n_snp
+        if center:
+            af_chunk = af_per_anc(
+                da.from_array(geno_chunk), da.from_array(lanc_chunk), n_anc=n_anc
+            )
+        else:
+            af_chunk = None
         apa = np.zeros((n_snp, n_indiv, n_anc), dtype=np.float64)
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
@@ -295,49 +312,112 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
                     ]
                 else:
                     # for each SNP, find the corresponding allele frequency
-                    apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
-                        haplo_lanc == i_anc
-                    ] - af_chunk[np.where(haplo_lanc == i_anc)[0], :, i_anc].squeeze(
-                        axis=1
+                    apa[:, :, i_anc][haplo_lanc == i_anc] += (
+                        haplo_hap[haplo_lanc == i_anc]
+                        - af_chunk[np.where(haplo_lanc == i_anc)[0], i_anc]
                     )
         return apa
 
-    if center:
-        af = af_per_anc(geno=geno, lanc=lanc, n_anc=n_anc)
-        # rechunk so that all chunk of `n_anc` is passed into the helper function
-        assert (
-            n_anc == 2
-        ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
+    rls_allele_per_anc = da.map_blocks(
+        lambda geno_chunk, lanc_chunk: helper(
+            geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc, center=center
+        ),
+        geno,
+        lanc,
+        dtype=np.float64,
+    )
 
-        assert (
-            geno.chunks == lanc.chunks
-        ), "`geno` and `lanc` should have the same chunk size"
-
-        if not isinstance(af, da.Array):
-            af = da.from_array(af)
-
-        af = af.rechunk({0: geno.chunks[0], 1: n_anc})
-
-        rls_allele_per_anc = da.map_blocks(
-            lambda geno_chunk, lanc_chunk, af_chunk: helper(
-                geno_chunk=geno_chunk,
-                lanc_chunk=lanc_chunk,
-                n_anc=n_anc,
-                af_chunk=af_chunk,
-            ),
-            geno,
-            lanc,
-            af[:, None, :],
-            dtype=np.float64,
-        )
-
-    else:
-        rls_allele_per_anc = da.map_blocks(
-            lambda geno_chunk, lanc_chunk: helper(
-                geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc
-            ),
-            geno,
-            lanc,
-            dtype=np.float64,
-        )
     return rls_allele_per_anc
+
+
+# def allele_per_anc(geno, lanc, center=False, n_anc=2):
+#     """Get allele count per ancestry
+#     Parameters
+#     ----------
+#     ds: xr.Dataset
+#         Containing geno, lanc, n_anc
+#     center: bool
+#         whether to center the data around empirical frequencies of each ancestry
+#     inplace: bool
+#         whether to return a new dataset or modify the input dataset
+#     Returns
+#     -------
+#     Return allele counts per ancestries
+#     """
+#     assert np.all(geno.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
+#     assert geno.ndim == 3, "`hap` and `lanc` should have three dimension"
+#     n_snp, n_indiv, n_haplo = geno.shape
+#     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
+
+#     assert isinstance(geno, da.Array) & isinstance(
+#         lanc, da.Array
+#     ), "`geno` and `lanc` should be dask array"
+
+#     # make sure the chunk size along the ploidy axis to be 2
+#     geno = geno.rechunk({2: 2})
+#     lanc = lanc.rechunk({2: 2})
+
+#     # TODO: align the chunk size along 1st axis to be the same
+
+#     def helper(geno_chunk, lanc_chunk, n_anc, af_chunk=None):
+
+#         n_snp, n_indiv, n_haplo = geno_chunk.shape
+#         if af_chunk is not None:
+#             assert af_chunk.shape[0] == n_snp
+#         apa = np.zeros((n_snp, n_indiv, n_anc), dtype=np.float64)
+#         for i_haplo in range(n_haplo):
+#             haplo_hap = geno_chunk[:, :, i_haplo]
+#             haplo_lanc = lanc_chunk[:, :, i_haplo]
+#             for i_anc in range(n_anc):
+#                 if af_chunk is None:
+#                     apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
+#                         haplo_lanc == i_anc
+#                     ]
+#                 else:
+#                     # for each SNP, find the corresponding allele frequency
+#                     apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
+#                         haplo_lanc == i_anc
+#                     ] - af_chunk[np.where(haplo_lanc == i_anc)[0], :, i_anc].squeeze(
+#                         axis=1
+#                     )
+#         return apa
+
+#     if center:
+#         af = af_per_anc(geno=geno, lanc=lanc, n_anc=n_anc)
+#         # rechunk so that all chunk of `n_anc` is passed into the helper function
+#         assert (
+#             n_anc == 2
+#         ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
+
+#         assert (
+#             geno.chunks == lanc.chunks
+#         ), "`geno` and `lanc` should have the same chunk size"
+
+#         if not isinstance(af, da.Array):
+#             af = da.from_array(af)
+
+#         af = af.rechunk({0: geno.chunks[0], 1: n_anc})
+
+#         rls_allele_per_anc = da.map_blocks(
+#             lambda geno_chunk, lanc_chunk, af_chunk: helper(
+#                 geno_chunk=geno_chunk,
+#                 lanc_chunk=lanc_chunk,
+#                 n_anc=n_anc,
+#                 af_chunk=af_chunk,
+#             ),
+#             geno,
+#             lanc,
+#             af[:, None, :],
+#             dtype=np.float64,
+#         )
+
+#     else:
+#         rls_allele_per_anc = da.map_blocks(
+#             lambda geno_chunk, lanc_chunk: helper(
+#                 geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc
+#             ),
+#             geno,
+#             lanc,
+#             dtype=np.float64,
+#         )
+#     return rls_allele_per_anc

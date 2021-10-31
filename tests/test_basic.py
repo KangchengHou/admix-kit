@@ -38,9 +38,7 @@ def test_utils():
         lanc=da.from_array(np.swapaxes(lanc, 0, 1)),
         n_anc=2,
     )
-    dset.compute_allele_per_anc()
-    print(dset.indiv)
-    apa = dset.allele_per_anc
+    apa = dset.allele_per_anc()
 
     assert np.all(np.swapaxes(apa, 0, 1) == [[[1, 0], [2, 0], [0, 0]]])
 
@@ -153,14 +151,11 @@ def test_consistent():
 
     np.random.seed(1234)
     dset_admix, _, _ = admix.dataset.load_toy()
-    dset_admix = admix.dataset.subset_dataset(
-        dset_admix, snp=dset_admix.snp.index.values[np.arange(100)]
-    )
-    dset_admix.compute_af_per_anc()
-    dset_admix.compute_allele_per_anc(center=True)
+    dset_admix = dset_admix[0:100]
+
+    apa = dset_admix.allele_per_anc(center=True).compute()
 
     af = dset_admix.af_per_anc
-    apa = dset_admix.allele_per_anc.compute()
 
     sim = admix.simulate.quant_pheno(dset_admix, hsq=0.5, cor=0.8)
     sim_i = 3

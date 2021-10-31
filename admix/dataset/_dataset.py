@@ -3,6 +3,7 @@ import xarray as xr
 import numpy as np
 import dask.array as da
 from xarray.core.dataset import DataVariables
+import admix
 
 from typing import (
     Hashable,
@@ -14,6 +15,8 @@ from typing import (
     Mapping,
     MutableMapping,
 )
+
+from ._utils import normalize_indices
 
 
 class Dataset(object):
@@ -41,39 +44,95 @@ class Dataset(object):
         self,
         geno: Optional[da.Array] = None,
         lanc: Optional[da.Array] = None,
-        indiv: Optional[pd.DataFrame] = None,
         snp: Optional[pd.DataFrame] = None,
+        indiv: Optional[pd.DataFrame] = None,
         n_anc: int = None,
-        uns: Optional[Mapping[str, Any]] = None,
+        dset_ref=None,
+        snp_idx=None,
+        indiv_idx=None,
     ):
-        assert geno is not None
-        data_vars: Dict[Hashable, Any] = {}
-        data_vars["geno"] = (("snp", "indiv", "ploidy"), geno)
+        if dset_ref is not None:
+            # initialize from reference data set
+            if isinstance(snp_idx, (int, np.integer)):
+                assert (
+                    0 <= snp_idx < dset_ref.n_snp
+                ), "SNP index `{snp_idx}` is out of range."
+                snp_idx = slice(snp_idx, snp_idx + 1, 1)
 
-        n_snp, n_indiv = geno.shape[0:2]
-        if lanc is not None:
-            data_vars["lanc"] = (("snp", "indiv", "ploidy"), lanc)
+            if isinstance(indiv_idx, (int, np.integer)):
+                assert (
+                    0 <= indiv_idx < dset_ref.n_indiv
+                ), "SNP index `{indiv_idx}` is out of range."
+                indiv_idx = slice(indiv_idx, indiv_idx + 1, 1)
 
-        if indiv is None:
-            self._indiv = pd.DataFrame(index=np.arange(n_indiv))
+            # make sure `snp_idx` and `indiv_idx` are in sorted order according to the
+            # original index
+
+            # TODO: the following may be a performance bottleneck, optimize this if needed
+            # TODO: rather than raise an error, we could just adjust the ordering.
+            subset_indiv = dset_ref.indiv.iloc[indiv_idx, :].copy()
+
+            assert np.all(
+                dset_ref.indiv.index[
+                    dset_ref.indiv.index.isin(subset_indiv.index.values)
+                ]
+                == subset_indiv.index.values
+            ), "the index provided must be in the same order as in the original order"
+
+            subset_snp = dset_ref.snp.iloc[snp_idx, :].copy()
+
+            assert np.all(
+                dset_ref.snp.index[dset_ref.snp.index.isin(subset_snp.index.values)]
+                == subset_snp.index.values
+            ), "the index provided must be in the same order as in the original order"
+
+            self._indiv = subset_indiv
+            self._snp = subset_snp
+            self._xr = dset_ref.xr.isel(snp=snp_idx, indiv=indiv_idx)
+
         else:
-            self._indiv = indiv
+            # initialize from actual data set
 
-        if snp is None:
-            self._snp = pd.DataFrame(index=np.arange(n_snp))
-        else:
-            self._snp = snp
+            # assign `geno` and `lanc`
+            assert geno is not None, "`geno` must not be None"
+            data_vars: Dict[Hashable, Any] = {}
+            data_vars["geno"] = (("snp", "indiv", "ploidy"), geno)
 
-        self._xr = xr.Dataset(data_vars=data_vars)
+            n_snp, n_indiv = geno.shape[0:2]
+            if lanc is not None:
+                assert geno.shape == lanc.shape
+                data_vars["lanc"] = (("snp", "indiv", "ploidy"), lanc)
 
-        if ("lanc" in self._xr) and (n_anc is None):
-            # infer number of ancestors
-            n_anc = int(lanc.max().compute() + 1)
-            self._xr.attrs["n_anc"] = n_anc
-        else:
-            self._xr.attrs["n_anc"] = n_anc
+            # assign `indiv` and `snp`
+            if snp is None:
+                self._snp = pd.DataFrame(index=pd.RangeIndex(stop=n_snp))
+            else:
+                self._snp = snp
 
-        self._path = None
+            if indiv is None:
+                self._indiv = pd.DataFrame(index=pd.RangeIndex(stop=n_indiv))
+            else:
+                self._indiv = indiv
+
+            self._xr = xr.Dataset(
+                data_vars=data_vars,
+                coords={"snp": self._snp.index, "indiv": self._indiv.index},
+            )
+
+            # assign attributes
+            if ("lanc" in self._xr) and (n_anc is None):
+                # infer number of ancestors
+                n_anc = int(lanc[0:1000, :, :].max().compute() + 1)
+                print(
+                    "admix.Dataset: `n_anc` is not provided"
+                    + f", infered n_anc from the first 1,000 SNPs is {n_anc}. "
+                    + "If this is not correct, provide `n_anc` when constructing admix.Dataset"
+                )
+                self._xr.attrs["n_anc"] = n_anc
+            else:
+                self._xr.attrs["n_anc"] = n_anc
+
+            self._xr.attrs["path"] = None
         # self._check_dimensions()
         # self._check_uniqueness()
 
@@ -98,8 +157,12 @@ class Dataset(object):
         else:
             descr += ", no local ancestry"
 
-        descr += "\n\tsnp: " + ", ".join([f"'{col}'" for col in self.snp.columns])
-        descr += "\n\tindiv: " + ", ".join([f"'{col}'" for col in self.indiv.columns])
+        if len(self.snp.columns) > 0:
+            descr += "\n\tsnp: " + ", ".join([f"'{col}'" for col in self.snp.columns])
+        if len(self.indiv.columns) > 0:
+            descr += "\n\tindiv: " + ", ".join(
+                [f"'{col}'" for col in self.indiv.columns]
+            )
 
         return descr
 
@@ -181,13 +244,24 @@ class Dataset(object):
         return self._xr["lanc"].data
 
     @property
-    def allele_per_anc(self) -> da.Array:
-        """Return the allele-per-ancestry matrix"""
-        return self._xr["allele_per_anc"].data
+    def xr(self) -> xr.Dataset:
+        """Return the xr.Dataset used internally"""
+        return self._xr
+
+    def allele_per_anc(self, center=False) -> da.Array:
+        """Return the allele-per-ancestry raw count matrix"""
+        return admix.data.allele_per_anc(
+            geno=self.geno, lanc=self.lanc, center=center, n_anc=self.n_anc
+        )
 
     @property
     def af_per_anc(self) -> da.Array:
         """Return the allele-per-ancestry matrix"""
+        if "af_per_anc" not in self._xr:
+            print("`af_per_anc` not computed in self._xr, computing it right now")
+            self._xr["af_per_anc"] = ("snp", "anc"), admix.data.af_per_anc(
+                geno=self.geno, lanc=self.lanc, n_anc=self.n_anc
+            )
         return self._xr["af_per_anc"].data
 
     @property
@@ -196,8 +270,8 @@ class Dataset(object):
         uns = self._xr.attrs.get("uns", None)
         return uns
 
-    def load(self):
-        """load the lazy data to memory"""
+    def persist(self):
+        """persist the lazy data to memory"""
         for name in ["geno", "lanc"]:
             if name in self._xr:
                 self._xr[name] = (
@@ -205,59 +279,42 @@ class Dataset(object):
                     da.from_array(self._xr[name].data.compute(), chunks=-1),
                 )
 
-    def compute_allele_per_anc(self, center: bool = False):
-        """
-        Compute number of minor alleles per ancestry
-
-        Parameters
-        ----------
-        center : bool
-            whether to center the number of minor alleles by the allele frequency
-        """
-        # TODO: if "af_per_anc" already in data set, this should be
-        # fed into allele_per_anc.
-        import admix
-
-        self._xr["allele_per_anc"] = (
-            "snp",
-            "indiv",
-            "anc",
-        ), admix.data.allele_per_anc(
-            geno=self.geno, lanc=self.lanc, center=center, n_anc=self.n_anc
-        )
-
-    def compute_af_per_anc(self):
-        """
-        Compute allele frequency per ancestry
-
-        Parameters
-        ----------
-        center : bool
-            whether to center the number of minor alleles by the allele frequency
-        """
-        import admix
-
-        self._xr["af_per_anc"] = ("snp", "anc"), admix.data.af_per_anc(
-            geno=self.geno, lanc=self.lanc, n_anc=self.n_anc
-        )
-
     def __getitem__(self, index) -> "Dataset":
         """Returns a sliced view of the object."""
-        assert False, "Not implemented"
-        # snp_idx, indiv_idx = index
-        # snp_idx, indiv_idx = self._normalize_indices(index)
-        # return Dataset(geno, snp_idx=snp_idx, indiv_idx=indiv_idx)
+        snp_idx, indiv_idx = normalize_indices(index, self.snp.index, self.indiv.index)
+
+        print(f"__getitem__ snp_idx: {snp_idx}, indiv_idx: {indiv_idx}")
+        return Dataset(dset_ref=self, snp_idx=snp_idx, indiv_idx=indiv_idx)
+
+    def write(self, path):
+        """Write admix.Dataset to disk
+
+        Parameters
+        ----------
+        path : str
+            path to the destiny place
+        """
+        # TODO: when writing to the
 
 
-def read_dataset(prefix, n_anc=2):
+def read_dataset(pfile, indiv_info, n_anc=2):
     """
+    TODO: support multiple pfile, such as data/chr*
     Read a dataset from a directory.
+
+    pfile.snp_info will also be read and combined with .pvar
+
+    Parameters
+    ----------
+    pfile: prefix to the PLINK2 file.
+
     """
     import dapgen
     import admix
 
-    geno, pvar, psam = dapgen.read_pfile(prefix, phase=True)
-    lanc = admix.io.read_lanc(prefix + ".lanc")
+    geno, pvar, psam = dapgen.read_pfile(pfile, phase=True)
+    lanc = admix.io.read_lanc(pfile + ".lanc")
+
     # return geno, lanc
     return Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
 

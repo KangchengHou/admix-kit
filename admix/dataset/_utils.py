@@ -1,14 +1,54 @@
 import pandas as pd
-import xarray as xr
 import numpy as np
-import dask.array as da
 from typing import (
     List,
     Union,
     Any,
     Dict,
+    Tuple,
     Sequence,
 )
+
+
+def normalize_indices(
+    index, snp_names: pd.Index, indiv_names: pd.Index
+) -> Tuple[slice, slice]:
+    """Normalize the indices to return the snp slices, and individual slices
+
+    Parameters
+    ----------
+    index : [type]
+        [description]
+    snp_names : pd.index
+        [description]
+    indiv_names : pd.index
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ValueError
+        [description]
+    """
+    # deal with tuples of length 1
+    if isinstance(index, tuple) and len(index) == 1:
+        index = index[0]
+
+    if isinstance(index, tuple):
+        if len(index) > 2:
+            raise ValueError(
+                "AnnData can only be sliced in SNPs (first dim) and individuals (second dim)"
+            )
+
+    snp_ax, indiv_ax = unpack_index(index)
+    snp_ax = _normalize_index(snp_ax, snp_names)
+    indiv_ax = _normalize_index(indiv_ax, indiv_names)
+    return snp_ax, indiv_ax
+
 
 # convert the indexer (integer, slice, string, array) to the actual positions
 # reference: https://github.com/theislab/anndata/blob/566f8fe56f0dce52b7b3d0c96b51d22ea7498156/anndata/_core/index.py#L16
@@ -21,6 +61,29 @@ def _normalize_index(
     ],
     index: pd.Index,
 ) -> Union[slice, int, np.ndarray]:  # ndarray of int
+    """Convert the indexed (integer, slice, string, array) to the actual positions
+
+    Parameters
+    ----------
+    indexer : Union[ slice, int, str, np.ndarray, ]
+        [description]
+    index : pd.Index
+        [description]
+
+    Returns
+    -------
+    Union[slice, int, np.ndarray]
+        [description]
+
+    Raises
+    ------
+    IndexError
+        [description]
+    KeyError
+        [description]
+    IndexError
+        [description]
+    """
     if not isinstance(index, pd.RangeIndex):
         assert (
             index.dtype != float and index.dtype != int
@@ -86,19 +149,3 @@ def unpack_index(index):
         return index[0], slice(None)
     else:
         raise IndexError("invalid number of indices")
-
-
-def normalize_indices(index, snp_names, indiv_names):
-
-    # deal with tuples of length 1
-    if isinstance(index, tuple) and len(index) == 1:
-        index = index[0]
-
-    if isinstance(index, tuple):
-        if len(index) > 2:
-            raise ValueError("AnnData can only be sliced in rows and columns.")
-
-    snp_ax, indiv_ax = unpack_index(index)
-    snp_ax = _normalize_index(snp_ax, snp_names)
-    indiv_ax = _normalize_index(indiv_ax, indiv_names)
-    return snp_ax, indiv_ax
