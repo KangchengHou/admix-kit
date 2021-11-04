@@ -4,7 +4,7 @@ import numpy as np
 import dask.array as da
 from xarray.core.dataset import DataVariables
 import admix
-
+import dask
 from typing import (
     Hashable,
     List,
@@ -88,7 +88,9 @@ class Dataset(object):
 
             self._indiv = subset_indiv
             self._snp = subset_snp
-            self._xr = dset_ref.xr.isel(snp=snp_idx, indiv=indiv_idx)
+
+            with dask.config.set(**{"array.slicing.split_large_chunks": False}):
+                self._xr = dset_ref.xr.isel(snp=snp_idx, indiv=indiv_idx)
 
         else:
             # initialize from actual data set
@@ -248,17 +250,15 @@ class Dataset(object):
         """Return the xr.Dataset used internally"""
         return self._xr
 
-    def allele_per_anc(self, center=False) -> da.Array:
+    def allele_per_anc(self) -> da.Array:
         """Return the allele-per-ancestry raw count matrix"""
         return admix.data.allele_per_anc(
-            geno=self.geno, lanc=self.lanc, center=center, n_anc=self.n_anc
+            geno=self.geno, lanc=self.lanc, n_anc=self.n_anc, center=False
         )
 
-    @property
-    def af_per_anc(self) -> da.Array:
+    def af_per_anc(self, force=False) -> da.Array:
         """Return the allele-per-ancestry matrix"""
-        if "af_per_anc" not in self._xr:
-            print("`af_per_anc` not computed in self._xr, computing it right now")
+        if ("af_per_anc" not in self._xr) or force:
             self._xr["af_per_anc"] = ("snp", "anc"), admix.data.af_per_anc(
                 geno=self.geno, lanc=self.lanc, n_anc=self.n_anc
             )
@@ -282,8 +282,6 @@ class Dataset(object):
     def __getitem__(self, index) -> "Dataset":
         """Returns a sliced view of the object."""
         snp_idx, indiv_idx = normalize_indices(index, self.snp.index, self.indiv.index)
-
-        print(f"__getitem__ snp_idx: {snp_idx}, indiv_idx: {indiv_idx}")
         return Dataset(dset_ref=self, snp_idx=snp_idx, indiv_idx=indiv_idx)
 
     def write(self, path):
@@ -297,7 +295,7 @@ class Dataset(object):
         # TODO: when writing to the
 
 
-def read_dataset(pfile, indiv_info, n_anc=2):
+def read_dataset(pfile, indiv_info=None, n_anc=None, snp_chunk=1024):
     """
     TODO: support multiple pfile, such as data/chr*
     Read a dataset from a directory.
@@ -312,11 +310,28 @@ def read_dataset(pfile, indiv_info, n_anc=2):
     import dapgen
     import admix
 
-    geno, pvar, psam = dapgen.read_pfile(pfile, phase=True)
-    lanc = admix.io.read_lanc(pfile + ".lanc")
+    geno, pvar, psam = dapgen.read_pfile(pfile, phase=True, snp_chunk=snp_chunk)
+    lanc = admix.io.read_lanc(pfile + ".lanc", snp_chunk=snp_chunk)
 
-    # return geno, lanc
-    return Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
+    dset = Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
+
+    if indiv_info is not None:
+        df_indiv_info = pd.read_csv(
+            indiv_info,
+            index_col=0,
+            sep="\t",
+            low_memory=False,
+        )
+        assert (
+            len(set(dset.indiv.columns) & set(df_indiv_info.columns)) == 0
+        ), "there should be no intersection between dest.indiv.columns and indiv_info.columns"
+        dset._indiv = pd.merge(
+            dset.indiv,
+            df_indiv_info.reindex(dset.indiv.index),
+            left_index=True,
+            right_index=True,
+        )
+    return dset
 
 
 def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):
