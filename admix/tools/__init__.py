@@ -29,7 +29,7 @@ from ._ext import (
 )
 from typing import List, Optional
 
-from ._plink2 import plink2_gwas, plink2_lift_over, plink2_clump
+from ._plink2 import plink2_gwas, plink2_lift_over, plink2_clump, plink2_subset
 
 # def pca(
 #     dset: xr.Dataset,

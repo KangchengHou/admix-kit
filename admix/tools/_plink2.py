@@ -176,3 +176,29 @@ def plink2_merge(sample_pfile: str, ref_pfile: str, out_prefix: str):
     # load in the SNPs and find the intersection
 
     # Step 3: extract SNPs and merge the data
+
+
+def plink2_subset(
+    pfile: str,
+    out_prefix: str,
+    snp_list: List = None,
+    indiv_list: List = None,
+):
+
+    cmds = [
+        f"--pfile {pfile}",
+        f"--make-pgen --out {out_prefix}",
+    ]
+
+    if snp_list is not None:
+        snplist_path = out_prefix + ".plink2_tmp.snplist"
+        np.savetxt(snplist_path, snp_list, fmt="%s")
+
+        cmds.append(f"--extract {snplist_path}")
+
+    if indiv_list is not None:
+        indivlist_path = out_prefix + ".plink2_tmp.indivlist"
+        np.savetxt(indivlist_path, indiv_list, fmt="%s")
+        cmds.append(f"--keep {indivlist_path}")
+
+    admix.tools.plink2(" ".join(cmds))
