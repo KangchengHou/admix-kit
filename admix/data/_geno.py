@@ -266,6 +266,7 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
     -------
     Return allele counts per ancestries
     """
+    assert center is False, "center=True should not be used"
     assert np.all(geno.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
     assert geno.ndim == 3, "`hap` and `lanc` should have three dimension"
     n_snp, n_indiv, n_haplo = geno.shape
@@ -330,94 +331,92 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
     return rls_allele_per_anc
 
 
-# def allele_per_anc(geno, lanc, center=False, n_anc=2):
-#     """Get allele count per ancestry
+# def pca(
+#     dset: xr.Dataset,
+#     method: str = "grm",
+#     n_components: int = 10,
+#     n_power_iter: int = 4,
+#     inplace: bool = True,
+# ):
+#     """
+#     Calculate PCA of dataset
+
 #     Parameters
 #     ----------
-#     ds: xr.Dataset
-#         Containing geno, lanc, n_anc
-#     center: bool
-#         whether to center the data around empirical frequencies of each ancestry
+#     dset: xr.Dataset
+#         Dataset to get PCA
+#     method: str
+#         Method to calculate PCA, "grm" or "randomized"
+#     n_components: int
+#         Number of components to keep
+#     n_power_iter: int
+#         Number of power iterations to use for randomized PCA
 #     inplace: bool
 #         whether to return a new dataset or modify the input dataset
-#     Returns
-#     -------
-#     Return allele counts per ancestries
 #     """
-#     assert np.all(geno.shape == lanc.shape), "shape of `hap` and `lanc` are not equal"
-#     assert geno.ndim == 3, "`hap` and `lanc` should have three dimension"
-#     n_snp, n_indiv, n_haplo = geno.shape
-#     assert n_haplo == 2, "`n_haplo` should equal to 2, check your data"
 
-#     assert isinstance(geno, da.Array) & isinstance(
-#         lanc, da.Array
-#     ), "`geno` and `lanc` should be dask array"
+#     assert method in ["grm", "randomized"], "`method` should be 'grm' or 'randomized'"
+#     if method == "grm":
+#         if "grm" not in dset.data_vars:
+#             # calculate grm
+#             if inplace:
+#                 grm(dset, inplace=True)
+#                 grm_ = dset.data_vars["grm"]
+#             else:
+#                 grm_ = grm(dset, inplace=False)
+#         else:
+#             grm_ = dset.data_vars["grm"]
+#         # calculate pca
+#         u, s, v = da.linalg.svd(grm_)
+#         u, s, v = dask.compute(u, s, v)
+#         exp_var = (s ** 2) / n_indiv
+#         full_var = exp_var.sum()
+#         exp_var_ratio = exp_var / full_var
 
-#     # make sure the chunk size along the ploidy axis to be 2
-#     geno = geno.rechunk({2: 2})
-#     lanc = lanc.rechunk({2: 2})
+#         coords = u[:, :n_components] * s[:n_components]
+#         # TODO: unit test with gcta64
+#     elif method == "randomized":
+#         # n_indiv, n_snp = gn.shape
+#         # if copy:
+#         #     gn = gn.copy()
 
-#     # TODO: align the chunk size along 1st axis to be the same
-
-#     def helper(geno_chunk, lanc_chunk, n_anc, af_chunk=None):
-
-#         n_snp, n_indiv, n_haplo = geno_chunk.shape
-#         if af_chunk is not None:
-#             assert af_chunk.shape[0] == n_snp
-#         apa = np.zeros((n_snp, n_indiv, n_anc), dtype=np.float64)
-#         for i_haplo in range(n_haplo):
-#             haplo_hap = geno_chunk[:, :, i_haplo]
-#             haplo_lanc = lanc_chunk[:, :, i_haplo]
-#             for i_anc in range(n_anc):
-#                 if af_chunk is None:
-#                     apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
-#                         haplo_lanc == i_anc
-#                     ]
-#                 else:
-#                     # for each SNP, find the corresponding allele frequency
-#                     apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
-#                         haplo_lanc == i_anc
-#                     ] - af_chunk[np.where(haplo_lanc == i_anc)[0], :, i_anc].squeeze(
-#                         axis=1
-#                     )
-#         return apa
-
-#     if center:
-#         af = af_per_anc(geno=geno, lanc=lanc, n_anc=n_anc)
-#         # rechunk so that all chunk of `n_anc` is passed into the helper function
-#         assert (
-#             n_anc == 2
-#         ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
-
-#         assert (
-#             geno.chunks == lanc.chunks
-#         ), "`geno` and `lanc` should have the same chunk size"
-
-#         if not isinstance(af, da.Array):
-#             af = da.from_array(af)
-
-#         af = af.rechunk({0: geno.chunks[0], 1: n_anc})
-
-#         rls_allele_per_anc = da.map_blocks(
-#             lambda geno_chunk, lanc_chunk, af_chunk: helper(
-#                 geno_chunk=geno_chunk,
-#                 lanc_chunk=lanc_chunk,
-#                 n_anc=n_anc,
-#                 af_chunk=af_chunk,
-#             ),
-#             geno,
-#             lanc,
-#             af[:, None, :],
-#             dtype=np.float64,
+#         # mean_ = gn.mean(axis=0)
+#         # std_ = gn.std(axis=0)
+#         # gn -= mean_
+#         # gn /= std_
+#         u, s, v = da.linalg.svd_compressed(
+#             dset, n_components=n_components, n_power_iter=n_power_iter
 #         )
 
-#     else:
-#         rls_allele_per_anc = da.map_blocks(
-#             lambda geno_chunk, lanc_chunk: helper(
-#                 geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc
-#             ),
-#             geno,
-#             lanc,
-#             dtype=np.float64,
-#         )
-#     return rls_allele_per_anc
+#         # # calculate explained variance
+#         # exp_var = (s ** 2) / n_indiv
+#         # full_var = exp_var.sum()
+#         # exp_var_ratio = exp_var / full_var
+
+#         # coords = u[:, :n_components] * s[:n_components]
+
+#     # return coords
+
+
+# def pca(gn, n_components=10, copy=True):
+#     # standardize to mean 0 and variance 1
+#     # check inputs
+#         copy = copy if copy is not None else self.copy
+#         gn = asarray_ndim(gn, 2, copy=copy)
+#         if not gn.dtype.kind == 'f':
+#             gn = gn.astype('f2')
+
+#         # center
+#         gn -= self.mean_
+
+#         # scale
+#         gn /= self.std_
+
+#     u, s, v = da.linalg.svd_compressed(dset.geno.sum(axis=2).data, k=10, seed=1234)
+#     # calculate explained variance
+#     self.explained_variance_ = exp_var = (s ** 2) / n_samples
+#     full_var = np.var(x, axis=0).sum()
+#     self.explained_variance_ratio_ = exp_var / full_var
+#             # store components
+#     self.components_ = v
+#     return u, s, v

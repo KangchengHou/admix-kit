@@ -1,8 +1,8 @@
+"""
+For tools 
+"""
+
 __all__ = [
-    "allele_per_anc",
-    "admix_grm",
-    "grm",
-    "get_dependency",
     "plink2",
     "gcta",
     "lift_over",
@@ -15,152 +15,9 @@ from dask.array.core import Array
 import numpy as np
 import dask.array as da
 import xarray as xr
-from pandas.api.types import infer_dtype, is_string_dtype, is_categorical_dtype
 import dask.array as da
-from ._ext import (
-    get_dependency,
-    plink,
-    plink2,
-    gcta,
-    lift_over,
-    plink_read_bim,
-    plink_read_fam,
-    plink_assoc,
-)
-from typing import List, Optional
-
-from ._plink2 import plink2_gwas, plink2_lift_over, plink2_clump, plink2_subset
-
-# def pca(
-#     dset: xr.Dataset,
-#     method: str = "grm",
-#     n_components: int = 10,
-#     n_power_iter: int = 4,
-#     inplace: bool = True,
-# ):
-#     """
-#     Calculate PCA of dataset
-
-#     Parameters
-#     ----------
-#     dset: xr.Dataset
-#         Dataset to get PCA
-#     method: str
-#         Method to calculate PCA, "grm" or "randomized"
-#     n_components: int
-#         Number of components to keep
-#     n_power_iter: int
-#         Number of power iterations to use for randomized PCA
-#     inplace: bool
-#         whether to return a new dataset or modify the input dataset
-#     """
-
-#     assert method in ["grm", "randomized"], "`method` should be 'grm' or 'randomized'"
-#     if method == "grm":
-#         if "grm" not in dset.data_vars:
-#             # calculate grm
-#             if inplace:
-#                 grm(dset, inplace=True)
-#                 grm_ = dset.data_vars["grm"]
-#             else:
-#                 grm_ = grm(dset, inplace=False)
-#         else:
-#             grm_ = dset.data_vars["grm"]
-#         # calculate pca
-#         u, s, v = da.linalg.svd(grm_)
-#         u, s, v = dask.compute(u, s, v)
-#         exp_var = (s ** 2) / n_indiv
-#         full_var = exp_var.sum()
-#         exp_var_ratio = exp_var / full_var
-
-#         coords = u[:, :n_components] * s[:n_components]
-#         # TODO: unit test with gcta64
-#     elif method == "randomized":
-#         # n_indiv, n_snp = gn.shape
-#         # if copy:
-#         #     gn = gn.copy()
-
-#         # mean_ = gn.mean(axis=0)
-#         # std_ = gn.std(axis=0)
-#         # gn -= mean_
-#         # gn /= std_
-#         u, s, v = da.linalg.svd_compressed(
-#             dset, n_components=n_components, n_power_iter=n_power_iter
-#         )
-
-#         # # calculate explained variance
-#         # exp_var = (s ** 2) / n_indiv
-#         # full_var = exp_var.sum()
-#         # exp_var_ratio = exp_var / full_var
-
-#         # coords = u[:, :n_components] * s[:n_components]
-
-#     # return coords
-
-
-# def pca(gn, n_components=10, copy=True):
-#     # standardize to mean 0 and variance 1
-#     # check inputs
-#         copy = copy if copy is not None else self.copy
-#         gn = asarray_ndim(gn, 2, copy=copy)
-#         if not gn.dtype.kind == 'f':
-#             gn = gn.astype('f2')
-
-#         # center
-#         gn -= self.mean_
-
-#         # scale
-#         gn /= self.std_
-
-#     u, s, v = da.linalg.svd_compressed(dset.geno.sum(axis=2).data, k=10, seed=1234)
-#     # calculate explained variance
-#     self.explained_variance_ = exp_var = (s ** 2) / n_samples
-#     full_var = np.var(x, axis=0).sum()
-#     self.explained_variance_ratio_ = exp_var / full_var
-#             # store components
-#     self.components_ = v
-#     return u, s, v
-
-
-def af_per_anc(dset: xr.Dataset, inplace=True) -> Optional[np.ndarray]:
-    """
-    Calculate allele frequency per ancestry
-
-    Parameters
-    ----------
-    dset: xr.Dataset
-        Containing geno, lanc, n_anc
-
-    Returns
-    -------
-    List[np.ndarray]
-        `n_anc` length list of allele frequencies.
-    """
-    assert "geno" in dset.data_vars, "`geno` not in `ds.data_vars`"
-    assert "lanc" in dset.data_vars, "`lanc` not in `ds.data_vars`"
-    n_anc = dset.attrs["n_anc"]
-    geno = dset.data_vars["geno"]
-    lanc = dset.data_vars["lanc"]
-    rls = []
-    for i_anc in range(n_anc):
-        # mask SNPs with local ancestry not `i_anc`
-        rls.append(
-            da.ma.getdata(
-                da.ma.masked_where(lanc != i_anc, geno).mean(axis=(0, 2))
-            ).compute()
-        )
-    rls = da.from_array(np.array(rls)).T
-    if inplace:
-        dset["af_per_anc"] = xr.DataArray(
-            rls,
-            dims=(
-                "snp",
-                "anc",
-            ),
-        )
-        return None
-    else:
-        return rls
+from ._utils import get_dependency
+from . import gcta, plink2, liftover, plink
 
 
 def allele_per_anc(ds, center=False, inplace=True):
