@@ -18,6 +18,10 @@ pip install -r requirements.txt; pip install -e .
 - These two file formats allow efficient storage of genotype file (by the design of PLINK2), while allowing for fast random access of the genotype.
 - Also, all functions of PLINK2 can be used for additional analyses.
 
+- .pgen or .bed for genotype files
+- .lanc for local ancestry files
+- .freq for allele frequency files
+- .admix_freq for admixed allele frequency files
 
 ## .lanc format
 The first line contains meta-information <n_indiv> <n_snp> <n_anc> then <n_indiv> lines to follow:

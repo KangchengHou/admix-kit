@@ -69,7 +69,7 @@ def admix_geno(
     allele_freqs: List[np.ndarray] = None,
     af_maf_low: float = 0.05,
     af_maf_high: float = 0.5,
-) -> xr.Dataset:
+) -> admix.Dataset:
     """Simulate admixed genotype
 
     The generative model is:

@@ -334,13 +334,14 @@ def binary_pheno(
         raise NotImplementedError
 
 
+# follow admix_genet_cor to rewrite this code
 def quant_pheno_1pop(
-    dset: xr.Dataset,
-    var_g: float = None,
-    var_e: float = None,
+    geno: da.Array,
+    hsq: float,
     n_causal: int = None,
     beta: np.ndarray = None,
-    cov_cols: List[str] = None,
+    snp_prior_var: np.ndarray = None,
+    cov: np.ndarray = None,
     cov_effects: List[float] = None,
     n_sim=10,
 ) -> dict:
@@ -377,10 +378,7 @@ def quant_pheno_1pop(
     phe: np.ndarray
         simulated phenotype (n_indiv, n_sim)
     """
-
-    n_indiv, n_snp = dset.dims["indiv"], dset.dims["snp"]
-    geno = dset.geno.data
-    centered_geno = geno - da.nanmean(geno, axis=0)
+    n_snp, n_indiv = geno.shape
     # snp_var = da.nanvar(centered_geno, axis=0).compute()
 
     # simulate effect sizes
@@ -388,9 +386,11 @@ def quant_pheno_1pop(
         if n_causal is None:
             # n_causal = n_snp if `n_causal` is not specified
             n_causal = n_snp
-        assert (
-            var_g is not None and var_e is not None
-        ), "`var_g` and `var_e` must be specified"
+
+        if snp_prior_var is None:
+            snp_prior_var = np.ones(n_snp)
+
+        assert n_causal <= n_snp, "n_causal must be <= n_snp"
         # if `beta` is not specified, simulate effect sizes
         beta = np.zeros((n_snp, n_sim))
         for i_sim in range(n_sim):
@@ -399,12 +399,13 @@ def quant_pheno_1pop(
             )
             i_beta = np.random.normal(
                 loc=0.0,
-                scale=np.sqrt(var_g / n_causal),
+                scale=1.0,
                 size=n_causal,
             )
+            i_beta = i_beta * np.sqrt(snp_prior_var[cau])
             beta[cau, i_sim] = i_beta
     else:
-        assert (var_g is None) and (
+        assert (
             n_causal is None
         ), "If `beta` is specified, `var_g`, `var_e`, and `n_causal` must be specified"
         assert beta.shape == (n_snp,) or beta.shape == (
@@ -415,41 +416,33 @@ def quant_pheno_1pop(
             # replicate `beta` for each simulation
             beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
 
-    pheno_g = admix.data.geno_mult_mat(centered_geno, beta)
+    pheno_g = admix.data.geno_mult_mat(geno, beta)
 
     # standardize the phe_g so that the variance of g is `var_g`
-    std_scale = np.sqrt(var_g / np.var(pheno_g, axis=0))
+    std_scale = np.sqrt(hsq / np.var(pheno_g, axis=0))
     pheno_g *= std_scale
     beta *= std_scale
 
+    assert 0 <= hsq <= 1, "hsq must be between 0 and 1"
     pheno_e = np.zeros(pheno_g.shape)
     for i_sim in range(n_sim):
         pheno_e[:, i_sim] = np.random.normal(
-            loc=0.0, scale=np.sqrt(var_e), size=n_indiv
+            loc=0.0, scale=np.sqrt(1 - hsq), size=n_indiv
         )
 
     pheno = pheno_g + pheno_e
-    pheno_g, pheno = dask.compute((pheno_g, pheno))[0]
+
     # if `cov_cols` are specified, add the covariates to the phenotype
-    if cov_cols is not None:
+    if cov is not None:
         # if `cov_effects` are not set, set to random normal values
         if cov_effects is None:
-            cov_effects = np.random.normal(size=len(cov_cols))
+            cov_effects = np.random.normal(size=cov.shape[0])
         # add the covariates to the phenotype
-        cov_values = np.zeros((n_indiv, len(cov_cols)))
-        for i_cov, cov_col in enumerate(cov_cols):
-            cov_values[:, i_cov] = dset[cov_col].values
-        pheno += np.dot(cov_values, cov_effects).reshape((n_indiv, 1))
+        pheno += np.dot(cov, cov_effects).reshape((n_indiv, 1))
 
     return {
-        "beta": pd.DataFrame(
-            beta, index=dset.snp.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
-        "pheno_g": pd.DataFrame(
-            pheno_g, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
-        "pheno": pd.DataFrame(
-            pheno, index=dset.indiv.values, columns=[f"SIM_{i}" for i in range(n_sim)]
-        ),
+        "beta": beta,
+        "pheno_g": pheno_g,
+        "pheno": pheno,
         "cov_effects": cov_effects,
     }

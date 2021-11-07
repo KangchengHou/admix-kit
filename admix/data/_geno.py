@@ -4,6 +4,29 @@ import dask.array as da
 import xarray as xr
 
 
+def calc_snp_prior_var(df_snp_info, her_model):
+    """
+    Calculate the SNP prior variance from SNP information
+    """
+    assert her_model in ["uniform", "gcta", "ldak", "mafukb"]
+    if her_model == "uniform":
+        return np.ones(len(df_snp_info))
+    elif her_model == "gcta":
+        freq = df_snp_info["FREQ"].values
+        assert np.all(freq > 0), "frequencies should be larger than zero"
+        return np.float_power(freq * (1 - freq), -1)
+    elif her_model == "mafukb":
+        # MAF-dependent genetic architecture, \alpha = -0.38 estimated from meta-analysis in UKB traits
+        freq = df_snp_info["FREQ"].values
+        assert np.all(freq > 0), "frequencies should be larger than zero"
+        return np.float_power(freq * (1 - freq), -0.38)
+    elif her_model == "ldak":
+        freq, weight = df_snp_info["FREQ"].values, df_snp_info["LDAK_WEIGHT"].values
+        return np.float_power(freq * (1 - freq), -0.25) * weight
+    else:
+        raise NotImplementedError
+
+
 def impute_with_mean(geno, inplace=False):
     """impute the each entry using the mean of each column
 
