@@ -28,27 +28,28 @@ def calc_snp_prior_var(df_snp_info, her_model):
 
 
 def impute_with_mean(geno, inplace=False):
-    """impute the each entry using the mean of each column
+    """impute the each entry using the mean of each row
 
     Parameters
     ----------
     geno : np.ndarray
-        (n_indiv, n_snp) genotype matrix
+        (n_snp, n_indiv) genotype matrix
 
     Returns
     -------
     if inplace:
         geno : np.ndarray
-            (n_indiv, n_snp) genotype matrix
+            (n_snp, n_indiv) genotype matrix
     else:
         None
     """
     if not inplace:
         geno = geno.copy()
 
-    mean = np.nanmean(geno, axis=0)
+    # impute the missing genotypes with the mean of each row
+    mean = np.nanmean(geno, axis=1)
     nanidx = np.where(np.isnan(geno))
-    geno[nanidx] = mean[nanidx[1]]
+    geno[nanidx] = mean[nanidx[0]]
 
     if not inplace:
         return geno
@@ -60,7 +61,7 @@ def geno_mult_mat(
     geno: da.Array,
     mat: np.ndarray,
     impute_geno: bool = True,
-    transpose_geno: bool = False,
+    mat_dim: str = "snp",
     return_snp_var: bool = False,
 ) -> np.ndarray:
     """Multiply genotype matrix with a matrix
@@ -68,21 +69,22 @@ def geno_mult_mat(
     Chunk of genotype matrix will be read sequentially along the SNP dimension,
     and multiplied with the `mat`.
 
-    Without transpose, result will be (n_indiv, n_rep)
-    With transpose, result will be (n_snp, n_rep)
+    Without transpose, result will be (n_snp, n_rep)
+    With transpose, result will be (n_indiv, n_rep)
 
     Missing values in geno will be imputed with the mean of the genotype matrix.
 
     Parameters
     ----------
     geno : da.Array
-        Genotype matrix with shape (n_indiv, n_snp)
+        Genotype matrix with shape (n_snp, n_indiv)
         geno.chunk contains the chunk of genotype matrix to be multiplied
     mat : np.ndarray
         Matrix to be multiplied with the genotype matrix
     impute_geno : bool
         Whether to impute missing values with the mean of the genotype matrix
-    transpose_geno : bool
+    mat_dim : str
+        First dimension of the `mat`, either "snp" or "indiv"
         Whether to transpose the genotype matrix and calulate geno.T @ mat
     return_snp_var : bool
         Whether to return the variance of each SNP, useful in simple linear
@@ -93,44 +95,51 @@ def geno_mult_mat(
     np.ndarray
         Result of the multiplication
     """
-    chunks = geno.chunks[1]
+    assert mat_dim in ["snp", "indiv"], "mat_dim should be `snp` or `indiv`"
+
+    # chunks over SNPs
+    chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(chunks), 0, 0)
-    n_indiv, n_snp = geno.shape
+    n_snp, n_indiv = geno.shape
     n_rep = mat.shape[1]
 
     snp_var = np.zeros(n_snp)
-    if not transpose_geno:
+    if mat_dim == "indiv":
+        # geno: (n_snp, n_indiv)
+        # mat: (n_indiv, n_rep)
         assert (
-            mat.shape[0] == n_snp
-        ), "when transpose_geno is False, matrix should be of shape (n_snp, n_rep)"
-        ret = np.zeros((n_indiv, n_rep))
+            mat.shape[0] == n_indiv
+        ), "when mat_dim is 'indiv', matrix should be of shape (n_indiv, n_rep)"
+        ret = np.zeros((n_snp, n_rep))
         for i in tqdm(range(len(indices) - 1), desc="admix.data.geno_mult_mat"):
             start, stop = indices[i], indices[i + 1]
-            geno_chunk = geno[:, start:stop].compute()
+            geno_chunk = geno[start:stop, :].compute()
             # impute missing genotype
             if impute_geno:
                 impute_with_mean(geno_chunk, inplace=True)
-            ret += np.dot(geno_chunk, mat[start:stop, :])
+            ret[start:stop, :] = np.dot(geno_chunk, mat)
+
+            if return_snp_var:
+                snp_var[start:stop] = np.var(geno_chunk, axis=0)
+    elif mat_dim == "snp":
+        # geno: (n_indiv, n_snp)
+        # mat: (n_snp, n_rep)
+        assert (
+            mat.shape[0] == n_snp
+        ), "when mat_dim is 'snp', matrix should be of shape (n_snp, n_rep)"
+        ret = np.zeros((n_indiv, n_rep))
+        for i in tqdm(range(len(indices) - 1), desc="admix.data.geno_mult_mat"):
+            start, stop = indices[i], indices[i + 1]
+            geno_chunk = geno[start:stop, :].compute()
+            # impute missing genotype
+            if impute_geno:
+                impute_with_mean(geno_chunk, inplace=True)
+            ret += np.dot(geno_chunk.T, mat[start:stop, :])
 
             if return_snp_var:
                 snp_var[start:stop] = np.var(geno_chunk, axis=0)
     else:
-        # genotype is transposed
-        assert (
-            mat.shape[0] == n_indiv
-        ), "when transpose_geno is True, matrix should be of shape (n_indiv, n_rep)"
-        ret = np.zeros((n_snp, n_rep))
-        for i in tqdm(range(len(indices) - 1), desc="admix.data.geno_mult_mat"):
-            start, stop = indices[i], indices[i + 1]
-            geno_chunk = geno[:, start:stop].compute()
-            # impute missing genotype
-            if impute_geno:
-                impute_with_mean(geno_chunk, inplace=True)
-            ret[start:stop, :] = np.dot(geno_chunk.T, mat)
-
-            if return_snp_var:
-                snp_var[start:stop] = np.var(geno_chunk, axis=0)
-
+        raise ValueError("mat_dim should be `snp` or `indiv`")
     if return_snp_var:
         return ret, snp_var
     else:

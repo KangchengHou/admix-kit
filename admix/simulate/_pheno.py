@@ -4,7 +4,6 @@ import dask.array as da
 import xarray as xr
 from typing import Union, List, Dict
 import admix
-import dask
 import pandas as pd
 from tqdm import tqdm
 
@@ -349,17 +348,16 @@ def quant_pheno_1pop(
 
     Parameters
     ----------
-    dset: xr.Dataset
-        Dataset with the following variables:
-            - `geno`: (n_indiv, n_snp) genotype of each individual
-    var_g: float or np.ndarray
-        Variance explained by the genotype effect
-    var_e: float
-        Variance explained by the effect of the environment
+    geno: da.Array
+        (n_snp, n_indiv) array of genotype
+    hsq: float
+        Proportion of variance explained by the genotype effects
     n_causal: int, optional
         number of causal variables, by default None
     beta: np.ndarray, optional
         Effect sizes
+    snp_prior_var: np.ndarray, optional
+        Prior variance of each SNP
     cov_cols: List[str], optional
         list of covariates to include as covariates, by default None
     cov_effects: List[float], optional
@@ -372,14 +370,13 @@ def quant_pheno_1pop(
     Returns
     -------
     beta: np.ndarray
-        simulated effect sizes (2 * n_snp, n_sim)
+        simulated effect sizes (n_snp, n_sim)
     phe_g: np.ndarray
         simulated genetic component of phenotypes (n_indiv, n_sim)
     phe: np.ndarray
         simulated phenotype (n_indiv, n_sim)
     """
     n_snp, n_indiv = geno.shape
-    # snp_var = da.nanvar(centered_geno, axis=0).compute()
 
     # simulate effect sizes
     if beta is None:
@@ -416,7 +413,7 @@ def quant_pheno_1pop(
             # replicate `beta` for each simulation
             beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
 
-    pheno_g = admix.data.geno_mult_mat(geno, beta)
+    pheno_g = admix.data.geno_mult_mat(geno, beta, mat_dim="snp")
 
     # standardize the phe_g so that the variance of g is `var_g`
     std_scale = np.sqrt(hsq / np.var(pheno_g, axis=0))
