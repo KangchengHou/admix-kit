@@ -56,5 +56,4 @@ We have a set of functions
 
 ## TODO
 - Complete GWAS demonstration and pipelines.
-- Add helper function to take vcf file and RFmix local ancestry file and spit out zarr.
 - First release: complete pipeline for simulating and estimating genetic correlation.
