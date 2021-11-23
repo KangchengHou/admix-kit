@@ -16,7 +16,7 @@ plink2 --zst-decompress raw.pvar.zst >raw.pvar
 
 rm *.zst
 
-python get-toy-plink2.py
+python make-toy.py subset-indiv
 
 plink2 --pfile raw \
     --rm-dup exclude-all \
@@ -30,5 +30,9 @@ plink2 --pfile raw \
 
 rm raw.p*
 rm indiv.txt
+rm toy.log
 
-# Infer local ancestry with LAMPLD.
+python make-toy.py process
+
+# clean up
+rm toy-admix.log
