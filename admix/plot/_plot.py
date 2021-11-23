@@ -8,28 +8,7 @@ import xarray as xr
 import warnings
 from scipy import stats
 from admix.data import quantile_normalize
-
-
-def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):
-    def _lambda(pval):
-        chi2 = stats.norm.ppf(pval / 2) ** 2
-        return np.quantile(chi2, 0.5) / stats.chi2.ppf(0.5, 1)
-
-    from scipy.stats import bootstrap
-
-    est = _lambda(pval)
-    if bootstrap_ci:
-        res = bootstrap(
-            (pval,),
-            _lambda,
-            axis=-1,
-            vectorized=False,
-            n_resamples=n_resamples,
-        )
-        ci = res.confidence_interval
-        return est, (ci[0], ci[1])
-    else:
-        return est, None
+from admix.data import lambda_gc
 
 
 def qq(pval, label=None, ax=None, bootstrap_ci=False):
@@ -54,7 +33,11 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
     ax.plot([0, lim], [0, lim], "r--")
     ax.set_xlabel("Expected -$\log_{10}(p)$")
     ax.set_ylabel("Observed -$\log_{10}(p)$")
-    lgc, lgc_ci = lambda_gc(pval, bootstrap_ci=bootstrap_ci)
+    if bootstrap_ci == True:
+        lgc, lgc_ci = lambda_gc(pval, bootstrap_ci=True)
+    else:
+        lgc = lambda_gc(pval, bootstrap_ci=False)
+
     if bootstrap_ci:
         print(f"lambda GC: {lgc:.3g} [{lgc_ci[0]:.3g}, {lgc_ci[1]:.3g}]")
         return lgc, lgc_ci
@@ -63,7 +46,7 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
         return lgc
 
 
-def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
+def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=None):
     """Manhatton plot of p-values
 
     Parameters
@@ -84,7 +67,7 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
 
     if chrom is None:
         # use snp index
-        ax.scatter(np.arange(len(pval)), -np.log10(pval), s=s)
+        ax.scatter(np.arange(len(pval)), -np.log10(pval), s=s, label=label)
         ax.set_xlabel("SNP index")
 
     else:
@@ -98,6 +81,7 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, ax=None):
                 -np.log10(pval)[index],
                 s=s,
                 color=color_list[mod],
+                label=label,
             )
 
         # label unique chromosomes

@@ -2,8 +2,30 @@ import numpy as np
 from scipy import stats
 
 
+def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):
+    def _lambda(pval):
+        chi2 = stats.norm.ppf(pval / 2) ** 2
+        return np.quantile(chi2, 0.5) / stats.chi2.ppf(0.5, 1)
+
+    from scipy.stats import bootstrap
+
+    est = _lambda(pval)
+    if bootstrap_ci:
+        res = bootstrap(
+            (pval,),
+            _lambda,
+            axis=-1,
+            vectorized=False,
+            n_resamples=n_resamples,
+        )
+        ci = res.confidence_interval
+        return est, (ci[0], ci[1])
+    else:
+        return est
+
+
 def pval2chisq(pval: np.ndarray, two_sided: bool = True):
-    """Convert p-value to z-score
+    """Convert p-value to chisq
 
     Parameters
     ----------
@@ -17,6 +39,7 @@ def pval2chisq(pval: np.ndarray, two_sided: bool = True):
     np.ndarray
         z-score
     """
+    pval = np.array(pval)
     if two_sided:
         return stats.norm.ppf(pval / 2) ** 2
     else:

@@ -14,9 +14,10 @@ __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 
 def marginal_fast(
-    dset: admix.Dataset,
-    pheno_col: str,
-    cov_cols: List[str] = None,
+    geno: da.Array = None,
+    lanc: da.Array = None,
+    pheno: np.ndarray = None,
+    cov: np.ndarray = None,
     method: str = "ATT",
     family: str = "linear",
     logistic_kwargs: Dict[str, Any] = dict(),
@@ -72,29 +73,30 @@ def marginal_fast(
         if "tol" not in logistic_kwargs:
             logistic_kwargs["tol"] = 1e-6
 
-    n_indiv = dset.n_indiv
-    n_snp = dset.n_snp
-    pheno = dset.indiv[pheno_col].values
-    mask_indiv = ~np.isnan(pheno)
-    if cov_cols is not None:
-        cov_values = np.column_stack(
-            [np.ones(n_indiv)] + [dset.indiv[col].data for col in cov_cols]
-        )
-    else:
-        cov_values = np.ones((n_indiv, 1))
+    assert np.all(geno.shape == lanc.shape), "geno and lanc must have same shape"
+    n_snp, n_indiv = geno.shape[0:2]
 
-    n_cov = cov_values.shape[1]
+    assert pheno is not None, "pheno must be provided"
+    mask_indiv = ~np.isnan(pheno)
+
+    if cov is not None:
+        assert cov.shape[0] == n_indiv, "cov must have same number of rows as pheno"
+        # prepend a column of ones to the covariates
+        cov = np.hstack((np.ones((n_indiv, 1)), cov))
+    else:
+        cov = np.ones((n_indiv, 1))
+
+    n_cov = cov.shape[1]
     if method == "ATT":
         # [geno]
-        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
-
+        geno = np.swapaxes(np.sum(geno, axis=2).compute(), 0, 1)
         if family == "linear":
-            f_stats = admixgwas.linear_f_test(geno, cov_values, pheno, 1, [0])
+            f_stats = admixgwas.linear_f_test(geno, cov, pheno, 1, [0])
             p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
         elif family == "logistic":
             lrt_diff = admixgwas.logistic_lrt(
                 geno,
-                cov_values,
+                cov,
                 pheno,
                 1,
                 [0],
@@ -107,18 +109,18 @@ def marginal_fast(
 
     elif method == "SNP1":
         # [geno] + lanc
-        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
         var = np.empty((geno.shape[0], n_snp * 2))
         var[:, 0::2] = geno
         var[:, 1::2] = lanc
         if family == "linear":
-            f_stats = admixgwas.linear_f_test(var, cov_values, pheno, 2, [0])
+            f_stats = admixgwas.linear_f_test(var, cov, pheno, 2, [0])
             p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 2)
         elif family == "logistic":
             lrt_diff = admixgwas.logistic_lrt(
                 var,
-                cov_values,
+                cov,
                 pheno,
                 2,
                 [0],
@@ -131,22 +133,22 @@ def marginal_fast(
     elif method == "TRACTOR":
         # lanc + [allele1 + allele2]
         # number of african alleles
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
-        dset.compute_allele_per_anc()
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc).compute()
         # alleles per ancestry
-        allele_per_anc = np.swapaxes(dset.allele_per_anc.compute(), 0, 1)
+        allele_per_anc = np.swapaxes(allele_per_anc, 0, 1)
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
 
         var = np.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
         var[:, 1::3] = allele_per_anc[:, :, 1]
         var[:, 2::3] = lanc
         if family == "linear":
-            f_stats = admixgwas.linear_f_test(var, cov_values, pheno, 3, [0, 1])
+            f_stats = admixgwas.linear_f_test(var, cov, pheno, 3, [0, 1])
             p_vals = stats.f.sf(f_stats, 2, n_indiv - n_cov - 3)
         elif family == "logistic":
             lrt_diff = admixgwas.logistic_lrt(
                 var,
-                cov_values,
+                cov,
                 pheno,
                 3,
                 [0, 1],
@@ -159,14 +161,14 @@ def marginal_fast(
 
     elif method == "ADM":
         # [lanc]
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1)
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1)
         if family == "linear":
-            f_stats = admixgwas.linear_f_test(lanc, cov_values, pheno, 1, [0])
+            f_stats = admixgwas.linear_f_test(lanc, cov, pheno, 1, [0])
             p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
         elif family == "logistic":
             lrt_diff = admixgwas.logistic_lrt(
                 lanc,
-                cov_values,
+                cov,
                 pheno,
                 1,
                 [0],
@@ -178,8 +180,7 @@ def marginal_fast(
             raise NotImplementedError
     else:
         raise NotImplementedError
-
-    return pd.DataFrame({"SNP": dset.snp.index.values, "P": p_vals}).set_index("SNP")
+    return p_vals
 
 
 def marginal(

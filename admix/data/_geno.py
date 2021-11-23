@@ -49,6 +49,7 @@ def impute_with_mean(geno, inplace=False):
     # impute the missing genotypes with the mean of each row
     mean = np.nanmean(geno, axis=1)
     nanidx = np.where(np.isnan(geno))
+    # index the mean using the nanidx[0] (row-wise)
     geno[nanidx] = mean[nanidx[0]]
 
     if not inplace:
