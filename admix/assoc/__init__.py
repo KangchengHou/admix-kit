@@ -14,6 +14,7 @@ __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 
 def marginal_fast(
+    dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
     pheno: np.ndarray = None,
@@ -72,6 +73,17 @@ def marginal_fast(
             logistic_kwargs["max_iter"] = 100
         if "tol" not in logistic_kwargs:
             logistic_kwargs["tol"] = 1e-6
+
+    if dset is not None:
+        assert (geno is None) and (
+            lanc is None
+        ), "Cannot specify both `dset` and `geno`, `lanc`"
+        geno = dset.geno
+        lanc = dset.lanc
+    else:
+        assert (geno is not None) and (
+            lanc is not None
+        ), "Must specify `dset` or `geno`, `lanc`"
 
     assert np.all(geno.shape == lanc.shape), "geno and lanc must have same shape"
     n_snp, n_indiv = geno.shape[0:2]

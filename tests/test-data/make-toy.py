@@ -72,7 +72,7 @@ def process():
     df_indiv_info = {"PHENO": sim["pheno"][:, sim_i]}
     df_indiv_info = pd.DataFrame(df_indiv_info, index=dset_admix.indiv.index)
 
-    df_snp_info.to_csv("toy-admix.snp_info", sep="\t", float_format="%.6f")
+    df_snp_info.to_csv("toy-admix.snp_info", sep="\t", float_format="%.6f", na_rep="NA")
     df_indiv_info.to_csv("toy-admix.indiv_info", sep="\t", float_format="%.6f")
 
 
