@@ -203,7 +203,15 @@ def write_lanc(
         assert (break_list is None) and (
             value_list is None
         ), "when `lanc` is specified, `break_list` and `value_list` must both be None"
-        n_snp, n_indiv, _ = lanc.shape
+
+        n_snp, n_indiv, n_ploidy = lanc.shape
+        assert n_ploidy == 2, "`lanc` must be (n_snp, n_indiv, 2)"
+
+        # convert to dask.array if numpy array
+        if isinstance(lanc, np.ndarray):
+            lanc = da.from_array(lanc)
+
+        assert isinstance(lanc, da.Array), "`lanc` must be dask array"
 
         # switch points
         snp_pos, indiv_pos, _, = dask.compute(

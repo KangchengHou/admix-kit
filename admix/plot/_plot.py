@@ -130,7 +130,7 @@ def lanc(
     dset: xarray.Dataset
         A dataset containing the local ancestry matrix.
     lanc: np.ndarray
-        A numpy array of shape (n_indiv, n_snp, 2)
+        A numpy array of shape (n_snp, n_indiv, 2)
     ax: matplotlib.Axes
         A matplotlib axes object to plot on. If None, will create a new one.
     max_indiv: int
@@ -145,8 +145,8 @@ def lanc(
         lanc = dset.lanc.values
     else:
         assert lanc is not None, "either dataset or lanc must be provided"
-    assert lanc.shape[2] == 2, "lanc must be of shape (n_indiv, n_snp, 2)"
-    n_indiv, n_snp = lanc.shape[0:2]
+    assert lanc.shape[2] == 2, "lanc must be of shape (n_snp, n_indiv, 2)"
+    n_snp, n_indiv = lanc.shape[0:2]
 
     if max_indiv is not None:
         n_plot_indiv = min(max_indiv, n_indiv)
@@ -167,7 +167,7 @@ def lanc(
     # TODO: extend the label categories such that n_anc labels in df_plot
     for i_indiv in range(n_plot_indiv):
         for i_ploidy in range(2):
-            a = lanc[i_indiv, :, i_ploidy]
+            a = lanc[:, i_indiv, i_ploidy]
             switch = np.where(a[1:] != a[0:-1])[0]
             switch = np.concatenate([[0], switch, [len(a)]])
 

@@ -2,6 +2,7 @@ import numpy as np
 from typing import List
 from pylampld import LampLD
 import xarray as xr
+import admix
 
 """
 This will be the interface to call various local ancestry inference methods
@@ -9,8 +10,8 @@ This will be the interface to call various local ancestry inference methods
 
 
 def lanc(
-    sample_dset: xr.Dataset,
-    ref_dsets: List[xr.Dataset],
+    sample_dset: admix.Dataset,
+    ref_dsets: List[admix.Dataset],
     method="lampld",
     n_proto=6,
     window_size=100,
@@ -41,34 +42,30 @@ def lanc(
 
     # TODO: perform dataset alignment check
     # assert check_align([sample_dset, *ref_dsets])
-    n_snp = sample_dset.dims["snp"]
-    n_anc = sample_dset.n_anc
-    assert (
-        len(ref_dsets) == n_anc
-    ), "Length of `ref_dsets` should match `n_anc` in `sample_dset`"
+    n_snp = sample_dset.n_snp
 
     model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=n_proto, window_size=window_size)
     ref_list = [
         np.vstack(
             [
-                dset.geno[:, :, 0],
-                dset.geno[:, :, 1],
+                dset.geno[:, :, 0].T,
+                dset.geno[:, :, 1].T,
             ]
         )
         for dset in ref_dsets
     ]
 
     model = LampLD(n_snp=n_snp, n_anc=n_anc, n_proto=6, window_size=300)
-    model.set_pos(sample_dset["POS"].values)
+    model.set_pos(sample_dset.snp.POS.values)
     model.fit(ref_list)
 
     est = np.dstack(
         [
-            model.infer_lanc(sample_dset["geno"][:, :, 0].compute()),
-            model.infer_lanc(sample_dset["geno"][:, :, 1].compute()),
+            model.infer_lanc(sample_dset.geno[:, :, 0].T.compute()),
+            model.infer_lanc(sample_dset.geno[:, :, 1].T.compute()),
         ]
     )
-    return est.astype(np.int8)
+    return np.swapaxes(est.astype(np.int8), 0, 1)
 
 
 def estimate_local_ancestry(

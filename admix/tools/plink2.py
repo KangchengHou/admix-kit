@@ -113,7 +113,7 @@ def clump(
     """
     tmp_prefix = out_prefix + ".plink2_tmp"
     # convert to bed
-    admix.tools.run_plink2(f"--pfile {pfile} --make-bed --out {tmp_prefix}")
+    admix.tools.plink2.run(f"--pfile {pfile} --make-bed --out {tmp_prefix}")
 
     # convert plink2 association to plink1 format ID -> SNP
     import shutil
@@ -224,17 +224,21 @@ def subset(
     ]
 
     if snp_list is not None:
-        snplist_path = out_prefix + ".plink2_tmp.snplist"
+        snplist_path = out_prefix + ".admix-plink2-subset.snplist"
         np.savetxt(snplist_path, snp_list, fmt="%s")
 
         cmds.append(f"--extract {snplist_path}")
 
     if indiv_list is not None:
-        indivlist_path = out_prefix + ".plink2_tmp.indivlist"
+        indivlist_path = out_prefix + ".admix-plink2-subset.indivlist"
         np.savetxt(indivlist_path, indiv_list, fmt="%s")
         cmds.append(f"--keep {indivlist_path}")
 
     run(" ".join(cmds))
+
+    # clean up
+    for f in glob.glob(out_prefix + ".admix-plink2-subset.*"):
+        os.remove(f)
 
 
 def assoc(

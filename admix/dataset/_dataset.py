@@ -5,6 +5,8 @@ import dask.array as da
 from xarray.core.dataset import DataVariables
 import admix
 import dask
+import dapgen
+import os
 from typing import (
     Hashable,
     List,
@@ -293,45 +295,6 @@ class Dataset(object):
             path to the destiny place
         """
         # TODO: when writing to the
-
-
-def read_dataset(pfile, indiv_info=None, n_anc=None, snp_chunk=1024):
-    """
-    TODO: support multiple pfile, such as data/chr*
-    Read a dataset from a directory.
-
-    pfile.snp_info will also be read and combined with .pvar
-
-    Parameters
-    ----------
-    pfile: prefix to the PLINK2 file.
-
-    """
-    import dapgen
-    import admix
-
-    geno, pvar, psam = dapgen.read_pfile(pfile, phase=True, snp_chunk=snp_chunk)
-    lanc = admix.io.read_lanc(pfile + ".lanc", snp_chunk=snp_chunk)
-
-    dset = Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
-
-    if indiv_info is not None:
-        df_indiv_info = pd.read_csv(
-            indiv_info,
-            index_col=0,
-            sep="\t",
-            low_memory=False,
-        )
-        assert (
-            len(set(dset.indiv.columns) & set(df_indiv_info.columns)) == 0
-        ), "there should be no intersection between dest.indiv.columns and indiv_info.columns"
-        dset._indiv = pd.merge(
-            dset.indiv,
-            df_indiv_info.reindex(dset.indiv.index),
-            left_index=True,
-            right_index=True,
-        )
-    return dset
 
 
 def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):

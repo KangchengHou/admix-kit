@@ -15,6 +15,92 @@ from smart_open import open
 import dask.array as da
 from typing import List, Optional
 import xarray as xr
+import admix
+import dapgen
+import os
+import pandas as pd
+
+
+def read_dataset(
+    pfile: str,
+    lanc_file: str = None,
+    snp_info_file: str = None,
+    indiv_info_file: str = None,
+    n_anc: int = None,
+    snp_chunk: int = 1024,
+) -> admix.Dataset:
+    """
+    TODO: support multiple pfile, such as data/chr*
+    Read a dataset from a directory.
+
+    pfile.snp_info will also be read and combined with .pvar
+
+    Parameters
+    ----------
+    pfile: str
+        PLINK2 file prefix
+    lanc_file: str
+        local ancestry file, if not provided, `read_dataset` will attempt to find it
+        with <pfile>.lanc
+    snp_info_file: str
+        SNP info file, if not provided, `read_dataset` will attempt to find it
+        with <pfile>.snp_info
+    indiv_info_file: str
+        individual info file, if not provided, `read_dataset` will attempt to find it
+        with <pfile>.indiv_info
+    n_anc: int
+        number of ancestries, if not provided, `read_dataset` will attempt to infer from
+        the local ancestry file
+    snp_chunk: int
+        chunk size for reading the SNP info file (default: 1024)
+
+    Returns
+    -------
+    Dataset
+    """
+
+    # infer local ancestry file
+    if lanc_file is None:
+        if os.path.exists(pfile + ".lanc"):
+            lanc_file = pfile + ".lanc"
+    if lanc_file is not None:
+        lanc = admix.io.read_lanc(lanc_file, snp_chunk=snp_chunk)
+    else:
+        lanc = None
+
+    # infer SNP info file
+    if snp_info_file is None:
+        if os.path.exists(pfile + ".snp_info"):
+            snp_info_file = pfile + ".snp_info"
+
+    if indiv_info_file is None:
+        if os.path.exists(pfile + ".indiv_info"):
+            indiv_info_file = pfile + ".indiv_info"
+
+    geno, pvar, psam = dapgen.read_pfile(pfile, phase=True, snp_chunk=snp_chunk)
+
+    dset = admix.Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
+
+    # TODO: read snp_info_file
+    # if snp_info_file is not None:
+    #     snp_info = admix.data.read_snp_info(snp_info_file)
+    if indiv_info_file is not None:
+        df_indiv_info = pd.read_csv(
+            indiv_info_file,
+            index_col=0,
+            sep="\t",
+            low_memory=False,
+        )
+        assert (
+            len(set(dset.indiv.columns) & set(df_indiv_info.columns)) == 0
+        ), "there should be no intersection between dest.indiv.columns and indiv_info.columns"
+        dset._indiv = pd.merge(
+            dset.indiv,
+            df_indiv_info.reindex(dset.indiv.index),
+            left_index=True,
+            right_index=True,
+        )
+    return dset
 
 
 def read_plink(path: str):
