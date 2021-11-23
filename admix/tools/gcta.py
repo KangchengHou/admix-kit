@@ -53,6 +53,7 @@ def reml(
     df_pheno: pd.DataFrame,
     out_prefix: str,
     df_covar: pd.DataFrame = None,
+    n_thread: int = 4,
 ):
     """reml
 
@@ -77,7 +78,7 @@ def reml(
         f"--mgrm {mgrm_path}",
         f"--pheno {pheno_path}",
         f"--out {out_prefix}",
-        "--thread-num 4",
+        f"--thread-num {n_thread}",
     ]
 
     if df_covar is not None:

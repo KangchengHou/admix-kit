@@ -72,12 +72,23 @@ def gwas(
     )
 
     if covar_cols is not None:
-        df_covar = df_sample_info.loc[non_nan_index, covar_cols].copy()
-        df_covar.index.name = "#IID"
-
         covar_path = out_prefix + f".plink2_tmp_covar"
-        df_covar.to_csv(covar_path, sep="\t", na_rep="NA")
         cmds.append(f"--covar {covar_path}")
+        if bfile is not None:
+            # PLINK1 format
+            # FID, IID must be in the column
+            assert "FID" in df_sample_info.columns
+            assert "IID" in df_sample_info.columns
+            df_covar = df_sample_info.loc[
+                non_nan_index, ["FID", "IID"] + covar_cols
+            ].copy()
+            df_covar.to_csv(covar_path, sep="\t", index=False, na_rep="NA")
+        elif pfile is not None:
+            # PLINK2 format
+            df_covar = df_sample_info.loc[non_nan_index, covar_cols].copy()
+            df_covar.index.name = "#IID"
+            df_covar.to_csv(covar_path, sep="\t", na_rep="NA")
+
     else:
         cmds[2] += " allow-no-covars"
 
@@ -111,33 +122,42 @@ def clump(
     Wrapper for plink2 clump
     For now, first need to export to .bed format then perform the clump
     """
-    tmp_prefix = out_prefix + ".plink2_tmp"
+    tmp_prefix = out_prefix + ".admix_plink2_clump_tmp"
     # convert to bed
-    admix.tools.run_plink2(f"--pfile {pfile} --make-bed --out {tmp_prefix}")
+    admix.tools.plink2.run(f"--pfile {pfile} --make-bed --out {tmp_prefix}")
+    # perform clump
+    admix.tools.plink.clump(
+        bfile=tmp_prefix,
+        assoc_path=assoc_path,
+        out_prefix=out_prefix,
+        p1=p1,
+        p2=p2,
+        r2=r2,
+        kb=kb,
+    )
+    # # convert plink2 association to plink1 format ID -> SNP
+    # import shutil
 
-    # convert plink2 association to plink1 format ID -> SNP
-    import shutil
+    # from_file = open(assoc_path)
+    # to_file = open(tmp_prefix + ".assoc", "w")
+    # to_file.writelines(from_file.readline().replace("ID", "SNP"))
+    # shutil.copyfileobj(from_file, to_file)
+    # from_file.close()
+    # to_file.close()
+    # cmds = [
+    #     f"--bfile {tmp_prefix} --clump {tmp_prefix + '.assoc'}",
+    #     f"--clump-p1 {p1} --clump-p2 {p2} --clump-r2 {r2} --clump-kb {kb}",
+    #     f"--out {tmp_prefix}",
+    # ]
 
-    from_file = open(assoc_path)
-    to_file = open(tmp_prefix + ".assoc", "w")
-    to_file.writelines(from_file.readline().replace("ID", "SNP"))
-    shutil.copyfileobj(from_file, to_file)
-    from_file.close()
-    to_file.close()
-    cmds = [
-        f"--bfile {tmp_prefix} --clump {tmp_prefix + '.assoc'}",
-        f"--clump-p1 {p1} --clump-p2 {p2} --clump-r2 {r2} --clump-kb {kb}",
-        f"--out {tmp_prefix}",
-    ]
-
-    admix.tools.plink.run(" ".join(cmds))
-    if os.path.exists(tmp_prefix + ".clumped"):
-        os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
-    else:
-        # no clumped region
-        # write a comment to the output file
-        with open(out_prefix + ".clumped", "w") as file:
-            file.write("# No clumped region")
+    # admix.tools.plink.run(" ".join(cmds))
+    # if os.path.exists(tmp_prefix + ".clumped"):
+    #     os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
+    # else:
+    #     # no clumped region
+    #     # write a comment to the output file
+    #     with open(out_prefix + ".clumped", "w") as file:
+    #         file.write("# No clumped region")
 
     for f in glob.glob(tmp_prefix + "*"):
         os.remove(f)
@@ -197,11 +217,11 @@ def merge(sample_pfile: str, ref_pfile: str, out_prefix: str):
     # TODO: cope with allele flop in the sample pfile
 
     # Step 1: rename the SNPstwo files
-    admix.tools.run_plink2(
+    admix.tools.plink2.run(
         f"--pfile {sample_pfile} --set-all-var-ids @:#:\$r:\$a --make-pgen --out {out_prefix}"
     )
 
-    admix.tools.run_plink2(
+    admix.tools.plink2.run(
         f"--pfile {ref_pfile} --set-all-var-ids @:#:\$r:\$a --make-pgen --out {out_prefix}"
     )
 
