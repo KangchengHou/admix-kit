@@ -24,13 +24,13 @@ def subset_indiv():
 def process():
     np.random.seed(1234)
 
-    dset = admix.io.read_dataset("toy")
+    dset = admix.io.read_dataset("toy-all")
     dict_pop = {
         pop: dset.indiv[dset.indiv.Population == pop].index.values
         for pop in dset.indiv.Population.unique()
     }
 
-    admix.tools.plink2.subset("toy", "toy-admix", indiv_list=dict_pop["ASW"])
+    admix.tools.plink2.subset("toy-all", "toy-admix", indiv_list=dict_pop["ASW"])
 
     dset_admix = admix.io.read_dataset("toy-admix")
     af_per_anc = dset_admix.af_per_anc()
@@ -72,7 +72,7 @@ def process():
     df_indiv_info = {"PHENO": sim["pheno"][:, sim_i]}
     df_indiv_info = pd.DataFrame(df_indiv_info, index=dset_admix.indiv.index)
 
-    df_snp_info.to_csv("toy-admix.snp_info", sep="\t", float_format="%.6f", na_rep="NA")
+    df_snp_info.to_csv("toy-admix.snp_info", sep="\t", float_format="%.6g", na_rep="NA")
     df_indiv_info.to_csv("toy-admix.indiv_info", sep="\t", float_format="%.6f")
 
 

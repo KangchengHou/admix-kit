@@ -26,11 +26,11 @@ plink2 --pfile raw \
     --snps-only \
     --keep indiv.txt \
     --seed 0 \
-    --make-pgen --out toy
+    --make-pgen --out toy-all
 
 rm raw.p*
 rm indiv.txt
-rm toy.log
+rm toy-all.log
 
 python make-toy.py process
 

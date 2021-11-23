@@ -4,28 +4,18 @@ from numpy.lib.npyio import load
 import pandas as pd
 import admix
 
-import xarray as xr
-from admix.dataset import load_toy
 
-
-def test_basic():
-    dset = load_toy()[0]
+def test_dataset():
+    dset = admix.dataset.load_toy_admix()
     lanc = dset.lanc
     geno = dset.geno
-    pos = dset.snp["POS"]
+    pos = dset.snp.POS
 
     # basic shape
     assert lanc.ndim == 3
     assert geno.ndim == 3
     assert np.all(lanc.shape == geno.shape)
     assert len(pos) == lanc.shape[0]
-
-    # phenotype simulation
-    # sim_pheno = admix.simulate.simulate_phenotype_case_control_1snp(
-    #     hap=hap, lanc=lanc, case_prevalence=0.1, odds_ratio=1.0, n_sim=10
-    # )
-    # assert len(sim_pheno) == n_snp
-    # assert np.all(sim_pheno[0].shape == (n_hap // 2, 10))
 
 
 def test_utils():
@@ -153,9 +143,7 @@ def test_consistent():
     dset_admix, _, _ = admix.dataset.load_toy()
     dset_admix = dset_admix[0:100]
 
-    apa = dset_admix.allele_per_anc(center=True).compute()
-
-    af = dset_admix.af_per_anc
+    af = dset_admix.af_per_anc()
 
     sim = admix.simulate.quant_pheno(dset_admix, hsq=0.5, cor=0.8)
     sim_i = 3
@@ -175,7 +163,6 @@ def test_consistent():
         data_dict = pickle.load(f)
 
     assert np.allclose(data_dict["af"], af)
-    assert np.allclose(data_dict["apa"], apa)
     assert np.allclose(data_dict["beta"], sim_beta)
     assert np.allclose(data_dict["pheno"], sim_pheno)
     assert np.allclose(data_dict["assoc"], assoc.P.values)

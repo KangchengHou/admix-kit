@@ -89,7 +89,6 @@ def marginal_fast(
     n_snp, n_indiv = geno.shape[0:2]
 
     assert pheno is not None, "pheno must be provided"
-    mask_indiv = ~np.isnan(pheno)
 
     if cov is not None:
         assert cov.shape[0] == n_indiv, "cov must have same number of rows as pheno"
@@ -197,8 +196,10 @@ def marginal_fast(
 
 def marginal(
     dset: admix.Dataset,
-    pheno_col: str,
-    cov_cols: List[str] = None,
+    geno: da.Array = None,
+    lanc: da.Array = None,
+    pheno: np.ndarray = None,
+    cov: np.ndarray = None,
     method: str = "ATT",
     family: str = "linear",
     verbose: bool = False,
@@ -231,6 +232,8 @@ def marginal(
         [description]
     """
 
+    # TODO: deal with missing genotype (current it is fine because of imputation)
+
     if family == "linear":
         glm_family = sm.families.Gaussian()
     elif family == "logistic":
@@ -239,25 +242,26 @@ def marginal(
         raise NotImplementedError
 
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1"]
-
-    pheno = dset.indiv[pheno_col]
+    n_indiv = dset.n_indiv
     n_snp = dset.n_snp
-    mask_indiv = ~np.isnan(pheno)
-    if cov_cols is not None:
-        cov = np.vstack([dset.indiv[col] for col in cov_cols]).T
+    if cov is not None:
+        assert cov.shape[0] == n_indiv, "cov must have same number of rows as pheno"
+        # prepend a column of ones to the covariates
+        cov = np.hstack((np.ones((n_indiv, 1)), cov))
     else:
-        cov = np.array([], dtype=np.int64).reshape(dset.n_indiv, 0)
+        cov = np.ones((n_indiv, 1))
 
-    # TODO: deal with missing genotype (current it is fine because of imputation)
     if method == "ATT":
         geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
             if family == "linear":
-                model = sm.OLS(pheno[mask_indiv], design[mask_indiv, :]).fit(disp=0)
+                model = sm.OLS(pheno, design).fit(disp=0)
             elif family == "logistic":
-                model = sm.Logit(pheno[mask_indiv], design[mask_indiv, :]).fit(disp=0)
+                model = sm.Logit(pheno, design).fit(disp=0)
+            else:
+                raise NotImplementedError
             pvalues.append(model.pvalues[1])
 
         pvalues = np.array(pvalues)
@@ -276,18 +280,15 @@ def marginal(
                     cov,
                 ]
             )
-            model = sm.GLM(
-                pheno[mask_indiv], design[mask_indiv, :], family=glm_family
-            ).fit()
+            model = sm.GLM(pheno, design, family=glm_family).fit()
             pvalues.append(model.pvalues[1])
         pvalues = np.array(pvalues)
 
     elif method == "TRACTOR":
 
         lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
-        dset.compute_allele_per_anc()
         # alleles per ancestry
-        allele_per_anc = np.swapaxes(dset.allele_per_anc.compute(), 0, 1)
+        allele_per_anc = np.swapaxes(dset.allele_per_anc(), 0, 1)
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
@@ -296,15 +297,15 @@ def marginal(
                 [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
             )
             model_null = sm.GLM(
-                pheno[mask_indiv],
-                design_null[mask_indiv, :],
+                pheno,
+                design_null,
                 family=glm_family,
             ).fit()
             # number of african alleles, covariates + allele-per-anc
-            design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
+            design_alt = np.hstack([design_null, allele_per_anc[i_snp, :, :]])
             model_alt = sm.GLM(
-                pheno[mask_indiv],
-                design_alt[mask_indiv, :],
+                pheno,
+                design_alt,
                 family=glm_family,
             ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
             pvalues.append(stats.chi2.sf(-2 * (model_null.llf - model_alt.llf), 2))
@@ -315,16 +316,13 @@ def marginal(
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
-            model = sm.GLM(
-                pheno[mask_indiv], design[mask_indiv, :], family=sm.families.Gaussian()
-            ).fit()
+            model = sm.GLM(pheno, design, family=glm_family).fit()
             pvalues.append(model.pvalues[1])
         pvalues = np.array(pvalues)
 
     else:
         raise NotImplementedError
-
-    return pd.DataFrame({"SNP": dset.snp.index.values, "P": pvalues}).set_index("SNP")
+    return pvalues
 
 
 def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:

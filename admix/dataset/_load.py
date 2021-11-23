@@ -10,6 +10,32 @@ from tqdm import tqdm
 import pandas as pd
 import warnings
 from ._dataset import Dataset
+import admix
+
+
+def get_test_data_dir() -> str:
+    """
+    Get toy dataset directory
+
+    Returns
+    -------
+    str
+        Toy dataset directory
+    """
+    test_data_path = join(dirname(__file__), "../../tests/test-data")
+    return test_data_path
+
+
+def load_toy_admix() -> Dataset:
+    """
+    Load toy admixed data set with African and European ancestries
+
+    Returns
+    -------
+    Dataset
+    """
+    dset = admix.io.read_dataset(join(get_test_data_dir(), "toy-admix"), n_anc=2)
+    return dset
 
 
 def load_toy() -> List[Dataset]:
