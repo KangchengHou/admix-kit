@@ -166,5 +166,6 @@ def test_consistent():
 
 
 def test_ext_tools():
-    for t in ["plink2", "plink", "liftOver"]:
-        admix.tools.get_dependency(t)
+    admix.tools.get_dependency("plink2")
+    admix.tools.get_dependency("plink")
+    admix.tools.get_dependency("liftOver")
