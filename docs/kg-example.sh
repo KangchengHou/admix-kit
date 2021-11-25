@@ -6,7 +6,7 @@ OLD_DIR=$PWD
 DATA_DIR=kg-example
 
 mkdir -p ${DATA_DIR}
-cd ${DATA_DIR}
+cd ${DATA_DIR} || exit
 
 # Download 1kg plink2 files from https://www.cog-genomics.org/plink/2.0/resources#1kg_phase3
 wget https://www.dropbox.com/s/asn2ehkkwh4vjhr/all_phase3_ns.pgen.zst?dl=1 -O raw.pgen.zst
@@ -34,15 +34,48 @@ plink2 --pfile raw \
 rm raw.*
 rm tmp_indiv.txt
 
+# PCA and local ancestry inference are all based on pruned set of SNPs
+mkdir -p pruned
+admix prune --pfile ALL --out pruned/ALL
+
+admix pca --pfile pruned/ALL --out pruned/ALL.pca
 # Visualize the data in PC space
-admix pca --pfile ALL.pruned --out ALL.pca
 
 admix plot-pca \
-    --pfile ALL \
+    --pfile pruned/ALL \
     --label-col Population \
-    --pca ALL.pca.eigenvec \
-    --out ALL.pca.png
+    --pca pruned/ALL.pca.eigenvec \
+    --out pruned/ALL.pca.png
+
+# Extract the admixed individuals (ASW group)
+awk '{if ($6=="ASW") print $1}' pruned/ALL.psam >indiv.txt
+plink2 --pfile pruned/ALL \
+    --keep indiv.txt \
+    --make-pgen --out pruned/ADMIX
+rm indiv.txt
+
+# For simplicity, now we use a subset of the data from chromosome 21, 22
+# when adapting this script to your own data, you can use the whole data
+# by changing the following line to CHROM_LIST=$(seq 1 22)
 
 # Perform local ancestry inference
+for chrom in $(seq 21 22); do
+    echo "Chromosome ${chrom}"
+    # subset chromosome `chrom`
+    plink2 --pfile pruned/ADMIX \
+        --chr "${chrom}" \
+        --make-pgen --out pruned/ADMIX."${chrom}"
 
-cd ${OLD_DIR}
+    plink2 --pfile pruned/ALL \
+        --chr "${chrom}" \
+        --make-pgen --out pruned/ALL."${chrom}"
+
+    admix lanc \
+        --pfile pruned/ADMIX."${chrom}" \
+        --ref-pfile pruned/ALL."${chrom}" \
+        --ref-pop-col "Population" \
+        --ref-pops "CEU,YRI" \
+        --out pruned/ADMIX."${chrom}".lanc
+done
+
+cd "${OLD_DIR}" || exit

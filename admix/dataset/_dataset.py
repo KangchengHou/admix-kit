@@ -17,6 +17,7 @@ from typing import (
     Mapping,
     MutableMapping,
 )
+from os.path import dirname, join
 
 from ._utils import normalize_indices
 
@@ -322,4 +323,28 @@ def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None
     )
 
 
-from os.path import dirname, join
+def is_aligned(dset_list: List[Dataset], dim="snp"):
+    """Check whether the datasets align with each other.
+
+    Parameters
+    ----------
+    dset_list : List[Dataset]
+        List of datasets to check
+    dim: str
+        Dimension to check. Either "snp" or "indiv"
+    """
+    if len(dset_list) == 0:
+        return
+
+    assert dim in ["snp", "indiv"], "dim must be either 'snp' or 'indiv'"
+
+    if dim == "snp":
+        df_snp_list = [dset.snp[["CHROM", "POS", "REF", "ALT"]] for dset in dset_list]
+        return np.all([df_snp.equals(df_snp_list[0]) for df_snp in df_snp_list[1:]])
+    elif dim == "indiv":
+        df_indiv_list = [dset.indiv for dset in dset_list]
+        return np.all(
+            [df_indiv.equals(df_indiv_list[0]) for df_indiv in df_indiv_list[1:]]
+        )
+    else:
+        raise ValueError("dim must be either 'snp' or 'indiv'")

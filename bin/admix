@@ -12,6 +12,23 @@ import numpy as np
 def lanc(
     pfile: str,
     ref_pfile: str,
+    ref_pop_col: str,
+    ref_pops: str,
+    out: str,
+):
+    sample_dset = admix.io.read_dataset(pfile=pfile)
+    ref_dset = admix.io.read_dataset(pfile=ref_pfile)
+    ref_dsets = [
+        ref_dset[:, (ref_dset.indiv[ref_pop_col] == pop).values] for pop in ref_pops
+    ]
+    est = admix.ancestry.lanc(sample_dset=sample_dset, ref_dsets=ref_dsets)
+    admix.io.write_lanc(out, est)
+
+
+# TODO: remove this function
+def lanc_deprecated(
+    pfile: str,
+    ref_pfile: str,
     sample_map: str,
     genetic_map: str,
     out_prefix: str,
@@ -110,20 +127,6 @@ def lanc(
 
     print(rfmix_code)
     subprocess.check_call(rfmix_code, shell=True)
-
-    # Step 3: clean up
-    clean_code = (
-        f"""
-        out_prefix={out_prefix}
-        """
-        + """
-        rm -f ${out_prefix}.sample.vcf.gz
-        rm -f ${out_prefix}.ref.vcf.gz
-        """
-    )
-
-    print(clean_code)
-    subprocess.check_call(clean_code, shell=True)
 
 
 def pgen_attach_lanc(pgen: str, lanc: str, out: str = None):
