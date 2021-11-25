@@ -74,7 +74,7 @@ def match_prs_weights(
     return rls_dset, rls_df_weight
 
 
-def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
+def impute_lanc(dset: admix.Dataset, dset_ref: admix.Dataset):
     """
     Impute local ancestry using a reference dataset. The two data sets are assumed to
     have the same haplotype order, etc. Typically they are just a subset of each other.
@@ -99,7 +99,10 @@ def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
     ), "Data set to be imputed can only have one chromosome"
 
     # dset.indiv is a subset of dset_ref.indiv
-    assert set(dset.indiv.values) <= set(dset_ref.indiv.values)
+    assert set(dset.indiv.index) <= set(
+        dset_ref.indiv.index
+    ), "Data set to be imputed must be a subset of the reference data set"
+
     # align the individuals order for two data sets
     dset_ref = dset_ref.sel(indiv=dset.indiv.values).sel(
         snp=(dset_ref.coords["CHROM"] == dset.coords["CHROM"][0])
@@ -134,7 +137,7 @@ def impute_lanc(dset: xr.Dataset, dset_ref: xr.Dataset):
 
         imputed_lanc.append(df_lanc.loc[dset["snp"].values, :].values.astype(np.int8).T)
 
-    # imputed_lanc is in the order of ("indiv", "snp", "ploidy")
+    # imputed_lanc is in the order of ("snp", "indiv", "ploidy")
     # determine the dim order from dset.geno
 
     dset = dset.assign(
@@ -304,22 +307,6 @@ def cov(geno, mean_std, chunk_size=500):
                 np.ix_(np.arange(row_start, row_stop), np.arange(col_start, col_stop))
             ] = np.dot(std_row_geno.T, std_col_geno) / (std_row_geno.shape[0])
     return cov
-
-
-def quad_form(x, A):
-    return np.dot(np.dot(x.T, A), x)
-
-
-def zsc2pval(zsc):
-    return 1 - scipy.stats.norm.cdf(zsc)
-
-
-def pval2zsc(pval):
-    return -scipy.stats.norm.ppf(pval)
-
-
-def chi2_to_logpval(chi2, dof=1):
-    return scipy.stats.chi2.logsf(chi2, dof)
 
 
 def check_align(dsets: List[xr.Dataset], dim: str) -> bool:

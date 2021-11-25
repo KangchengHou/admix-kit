@@ -154,7 +154,7 @@ def lanc(
     """
     # if dataset is provided, use it to extract lanc
     if dset is not None:
-        lanc = dset.lanc.values
+        lanc = dset.lanc.compute()
     else:
         assert lanc is not None, "either dataset or lanc must be provided"
     assert lanc.shape[2] == 2, "lanc must be of shape (n_snp, n_indiv, 2)"
@@ -182,7 +182,6 @@ def lanc(
             a = lanc[:, i_indiv, i_ploidy]
             switch = np.where(a[1:] != a[0:-1])[0]
             switch = np.concatenate([[0], switch, [len(a)]])
-
             for i_switch in range(len(switch) - 1):
                 start.append(switch[i_switch])
                 stop.append(switch[i_switch + 1])

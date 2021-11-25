@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+import scipy
 
 
 def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):
@@ -46,6 +47,10 @@ def pval2chisq(pval: np.ndarray, two_sided: bool = True):
         return stats.norm.ppf(pval) ** 2
 
 
+def pval2zsc(pval):
+    return -scipy.stats.norm.ppf(pval)
+
+
 def zsc2pval(zscore: np.ndarray, two_sided: bool = True):
     """Convert z-score to p-value
 
@@ -77,3 +82,11 @@ def quantile_normalize(val):
         (rankdata(val[non_nan_index]) - 0.5) / len(val[non_nan_index])
     )
     return results
+
+
+def quad_form(x, A):
+    return np.dot(np.dot(x.T, A), x)
+
+
+def chi2_to_logpval(chi2, dof=1):
+    return scipy.stats.chi2.logsf(chi2, dof)
