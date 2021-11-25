@@ -81,9 +81,18 @@ def read_dataset(
 
     dset = admix.Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
 
-    # TODO: read snp_info_file
-    # if snp_info_file is not None:
-    #     snp_info = admix.data.read_snp_info(snp_info_file)
+    if snp_info_file is not None:
+        df_snp_info = pd.read_csv(snp_info_file, index_col=0, sep="\t")
+        assert (
+            len(set(dset.snp.columns) & set(df_snp_info.columns)) == 0
+        ), "SNP info file columns must not overlap with dset columns"
+        dset._snp = pd.merge(
+            dset.snp,
+            df_snp_info.reindex(dset.snp.index),
+            left_index=True,
+            right_index=True,
+        )
+
     if indiv_info_file is not None:
         df_indiv_info = pd.read_csv(
             indiv_info_file,

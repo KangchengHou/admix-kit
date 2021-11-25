@@ -1,6 +1,4 @@
 from distutils.version import LooseVersion
-from io import open
-
 import setuptools
 from setuptools import setup
 

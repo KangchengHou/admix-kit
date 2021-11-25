@@ -173,7 +173,7 @@ def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
         {"CHROM": pvar.CHROM.values, "POS": pvar.POS.values}, index=pvar.index.values
     )
     # perform the liftover
-    df_lifted = admix.tools.lift_over(df_snp, chain=chain)
+    df_lifted = admix.tools.liftover.run(df_snp, chain=chain)
     n_snp1 = len(df_lifted)
     df_lifted = df_lifted[df_lifted.POS != -1]
     n_snp2 = len(df_lifted)
@@ -262,6 +262,7 @@ def subset(
         os.remove(f)
 
 
+# TODO: check difference with plink2.gwas, consider merging these two functions
 def assoc(
     bfile: str,
     pheno: pd.DataFrame,
@@ -306,4 +307,91 @@ def assoc(
     else:
         cmd.append("--ci 0.95 --glm omit-ref hide-covar allow-no-covars")
 
+    run(" ".join(cmd))
+
+
+def prune(
+    pfile: str,
+    out_prefix: str,
+    indep_params: List = None,
+    indep_pairwise_params: List = None,
+):
+    """Run plink2 prune
+
+    For example, indep_params = [200, 5, 1.15], indep-pairwise = [100 5 0.1], then two-step
+    pruning will be performed.
+
+    Parameters
+    ----------
+    pfile : str
+        plink binary file
+    indep_params : List
+        list of parameters for indep
+    indep_pairwise_params : List
+        list of parameters for indep-pairwise
+    out_prefix : str
+        prefix for output files
+    """
+
+    assert indep_params is None, "indep_params is not supported yet"
+
+    tmp_prefix = out_prefix + ".admix_plink2_prune_tmp"
+
+    assert (indep_params is None) != (
+        indep_pairwise_params is None
+    ), "only one of indep_params and indep_pairwise_params can be specified"
+
+    # step 1: indep pruning
+    cmd = [
+        f"--pfile {pfile}",
+        f"--out {tmp_prefix}",
+    ]
+
+    if indep_params is not None:
+        cmd.append(f"--indep {' '.join([str(p) for p in indep_params])}")
+    if indep_pairwise_params is not None:
+        cmd.append(
+            f"--indep-pairwise {' '.join([str(p) for p in indep_pairwise_params])}"
+        )
+
+    run(" ".join(cmd))
+
+    cmd = [
+        f"--pfile {pfile}",
+        f"--extract {tmp_prefix}.prune.in",
+        f"--make-pgen --out {out_prefix}",
+    ]
+    run(" ".join(cmd))
+
+    # clean up
+    for f in glob.glob(tmp_prefix + ".*"):
+        os.remove(f)
+
+
+def pca(
+    pfile: str,
+    out_prefix: str,
+    approx: bool = False,
+):
+    """Run plink2 pca
+
+    TODO: include more options
+
+    Parameters
+    ----------
+    pfile : str
+        plink binary file
+    out_prefix : str
+        prefix for output files
+    approx: bool
+    """
+
+    cmd = [
+        f"--pfile {pfile}",
+        f"--out {out_prefix}",
+    ]
+    if approx:
+        cmd.append("--pca approx")
+    else:
+        cmd.append("--pca")
     run(" ".join(cmd))

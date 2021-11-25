@@ -9,6 +9,34 @@ import warnings
 from scipy import stats
 from admix.data import quantile_normalize
 from admix.data import lambda_gc
+import seaborn as sns
+
+
+def pca(
+    df_pca: pd.DataFrame,
+    x: str = "PC1",
+    y: str = "PC2",
+    label_col: str = None,
+    s=5,
+    ax=None,
+):
+    """PCA plot
+
+    Parameters
+    ----------
+    df_pca : pd.DataFrame
+        dataframe with PCA components
+    x : str, optional
+        x-axis, by default "PC1"
+    y : str, optional
+        y-axis, by default "PC2"
+    label_col : str, optional
+        column name for labels, by default None
+    s : float, optional
+    """
+    if ax is None:
+        ax = plt.gca()
+    sns.scatterplot(data=df_pca, x=x, y=y, hue=label_col, linewidth=0, s=s, ax=ax)
 
 
 def qq(pval, label=None, ax=None, bootstrap_ci=False):

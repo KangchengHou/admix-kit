@@ -6,11 +6,12 @@ import pandas as pd
 from typing import List
 import subprocess
 import dapgen
+import numpy as np
 
 
 def lanc(
-    sample_vcf: str,
-    ref_vcf: str,
+    pfile: str,
+    ref_pfile: str,
     sample_map: str,
     genetic_map: str,
     out_prefix: str,
@@ -24,10 +25,10 @@ def lanc(
         should be subsumed into this function
     Parameters
     ----------
-    sample_vcf : str
-        VCF file containing the PHASED genotype
-    ref_vcf : str
-        VCF file containing the reference genotype
+    pfile : str
+        PLINK2 pfile for admixed individuals
+    ref_pfile : str
+        PLINK2 pfile for reference individuals
     sample_map : str
         Text file with two column containing the population of individuals in ref_vcf
         the unique population will be used as reference ancestral population in
@@ -209,6 +210,96 @@ def test():
     Test the admix module
     """
     print("testing the admix module")
+
+
+def prune(pfile: str, out: str, indep_pairwise_params: List = None):
+    """Prune a pfile based on indep_pairwise_params
+
+    Parameters
+    ----------
+    pfile : str
+        pfile
+    out : str
+        out_prefix
+    indep_pairwise_params : [type], optional
+        if None, use the default [100 5 0.1]
+
+    Returns
+    -------
+    out.[pgen|pvar|psam] will be created
+    """
+    if indep_pairwise_params is None:
+        indep_pairwise_params = [100, 5, 0.1]
+
+    admix.tools.plink2.prune(
+        pfile=pfile,
+        out_prefix=out,
+        indep_pairwise_params=indep_pairwise_params,
+    )
+
+
+def pca(pfile: str, out: str, approx=False):
+    """
+    Perform PCA on a pgen file
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pgen file
+    prune : bool
+        Whether to prune the pfile using the default recipe
+        --indep 200 5 1.15, --indep-pairwise 100 5 0.1
+    out : str
+        Path to the output file
+    """
+    admix.tools.plink2.pca(pfile=pfile, out_prefix=out, approx=approx)
+
+
+def plot_pca(
+    pfile: str,
+    pca: str,
+    out: str,
+    label_col: str = None,
+    x: str = "PC1",
+    y: str = "PC2",
+):
+    """Plot PCA results to a file
+
+    Parameters
+    ----------
+    pfile : str
+        pfile
+    label_col : str
+        column in .psam file
+    pca : str
+        path to the pca file
+    out : str
+        path to the output file
+    x : str
+        x-axis (default PC1)
+    y : str
+        y-axis (default PC2)
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+
+    mpl.style.use("classic")
+
+    df_psam = dapgen.read_psam(pfile + ".psam")
+    df_pca = pd.read_csv(pca, delim_whitespace=True, index_col=0)
+    assert np.all(df_psam.index == df_pca.index)
+
+    df_plot = pd.merge(df_psam, df_pca, left_index=True, right_index=True)
+
+    fig, ax = plt.subplots(figsize=(2.5, 2.5))
+    admix.plot.pca(df_plot, x=x, y=y, label_col=label_col)
+
+    # make xticklabels and yticklabels smaller
+    ax.tick_params(axis="x", labelsize=6)
+    ax.tick_params(axis="y", labelsize=6)
+    # make legend font smaller
+    ax.legend(fontsize=8)
+    plt.savefig(out, bbox_inches="tight", dpi=300)
 
 
 if __name__ == "__main__":

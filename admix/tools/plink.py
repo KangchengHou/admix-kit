@@ -21,7 +21,7 @@ def run(cmd: str):
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
-def plink_merge(bfiles: List[str], out: str):
+def merge(bfiles: List[str], out: str):
     """Shortcut for merging a list of bfiles
 
     Parameters
