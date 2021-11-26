@@ -41,7 +41,7 @@ def normalize_indices(
     if isinstance(index, tuple):
         if len(index) > 2:
             raise ValueError(
-                "AnnData can only be sliced in SNPs (first dim) and individuals (second dim)"
+                "data can only be sliced in SNPs (first dim) and individuals (second dim)"
             )
 
     snp_ax, indiv_ax = unpack_index(index)

@@ -21,6 +21,16 @@ import os
 import pandas as pd
 
 
+def read_lanc(path: str) -> admix.data.Lanc:
+    """Read local ancestry with .lanc format
+
+    Parameters
+    ----------
+    """
+    lanc = admix.data.Lanc(path)
+    return lanc
+
+
 def read_dataset(
     pfile: str,
     lanc_file: str = None,
@@ -64,7 +74,7 @@ def read_dataset(
         if os.path.exists(pfile + ".lanc"):
             lanc_file = pfile + ".lanc"
     if lanc_file is not None:
-        lanc = admix.io.read_lanc(lanc_file, snp_chunk=snp_chunk)
+        lanc = admix.io.read_lanc(lanc_file).dask()
     else:
         lanc = None
 

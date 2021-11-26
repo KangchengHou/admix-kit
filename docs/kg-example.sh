@@ -36,11 +36,13 @@ rm tmp_indiv.txt
 
 # PCA and local ancestry inference are all based on pruned set of SNPs
 mkdir -p pruned
+# prune SNPs in LD
 admix prune --pfile ALL --out pruned/ALL
 
+# PCA
 admix pca --pfile pruned/ALL --out pruned/ALL.pca
-# Visualize the data in PC space
 
+# Visualize the data in PC space
 admix plot-pca \
     --pfile pruned/ALL \
     --label-col Population \
@@ -48,11 +50,10 @@ admix plot-pca \
     --out pruned/ALL.pca.png
 
 # Extract the admixed individuals (ASW group)
-awk '{if ($6=="ASW") print $1}' pruned/ALL.psam >indiv.txt
+awk '{if ($6=="ASW") print $1}' ALL.psam >ADMIX.indiv
 plink2 --pfile pruned/ALL \
-    --keep indiv.txt \
+    --keep ADMIX.indiv \
     --make-pgen --out pruned/ADMIX
-rm indiv.txt
 
 # For simplicity, now we use a subset of the data from chromosome 21, 22
 # when adapting this script to your own data, you can use the whole data
@@ -60,7 +61,6 @@ rm indiv.txt
 
 # Perform local ancestry inference
 for chrom in $(seq 21 22); do
-    echo "Chromosome ${chrom}"
     # subset chromosome `chrom`
     plink2 --pfile pruned/ADMIX \
         --chr "${chrom}" \
@@ -76,6 +76,26 @@ for chrom in $(seq 21 22); do
         --ref-pop-col "Population" \
         --ref-pops "CEU,YRI" \
         --out pruned/ADMIX."${chrom}".lanc
+done
+
+# Now we have obtained the local ancestry of ASW individuals
+# We can use the following command to compile the data set for later analysis.
+
+mkdir -p compiled
+for chrom in $(seq 22 22); do
+    # subset chromosome `chrom`
+
+    # subset pgen
+    plink2 --pfile ALL \
+        --chr "${chrom}" \
+        --keep ADMIX.indiv \
+        --make-pgen --out compiled/ADMIX."${chrom}"
+
+    # impute local ancestry for the full data set
+    admix lanc-impute \
+        --pfile compiled/ADMIX."${chrom}" \
+        --ref-pfile pruned/ADMIX."${chrom}" \
+        --out compiled/ADMIX."${chrom}".lanc
 done
 
 cd "${OLD_DIR}" || exit

@@ -7,6 +7,7 @@ from typing import List
 import subprocess
 import dapgen
 import numpy as np
+import os
 
 
 def lanc(
@@ -23,6 +24,34 @@ def lanc(
     ]
     est = admix.ancestry.lanc(sample_dset=sample_dset, ref_dsets=ref_dsets)
     admix.io.write_lanc(out, est)
+
+
+def lanc_impute(pfile: str, ref_pfile: str, out: str = None):
+    """Impute the local ancestry for `pfile` using `ref_pfile`
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pfile
+    ref_pfile : str
+        Path to the reference pfile
+    out : str
+        Path to the output pfile (default to pfile + ".lanc")
+    """
+    # check <pfile>.lanc does not exist
+    assert not os.path.exists(pfile + ".lanc"), "`pfile` already has a .lanc file"
+
+    sample_dset = admix.io.read_dataset(pfile=pfile)
+    ref_dset = admix.io.read_dataset(pfile=ref_pfile)
+    ref_lanc = admix.data.Lanc(ref_pfile + ".lanc")
+
+    sample_lanc = ref_lanc.impute(
+        ref_dset.snp[["CHROM", "POS"]].values, sample_dset.snp[["CHROM", "POS"]].values
+    )
+    if out is None:
+        out = pfile + ".lanc"
+    assert not os.path.exists(out), f"out={out} already exists"
+    sample_lanc.write(out)
 
 
 # TODO: remove this function

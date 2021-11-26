@@ -5,8 +5,6 @@ import dask.array as da
 from xarray.core.dataset import DataVariables
 import admix
 import dask
-import dapgen
-import os
 from typing import (
     Hashable,
     List,
@@ -17,8 +15,6 @@ from typing import (
     Mapping,
     MutableMapping,
 )
-from os.path import dirname, join
-
 from ._utils import normalize_indices
 
 
@@ -106,6 +102,7 @@ class Dataset(object):
             n_snp, n_indiv = geno.shape[0:2]
             if lanc is not None:
                 assert geno.shape == lanc.shape
+                assert isinstance(lanc, da.Array), "`lanc` must be a dask array"
                 data_vars["lanc"] = (("snp", "indiv", "ploidy"), lanc)
 
             # assign `indiv` and `snp`
