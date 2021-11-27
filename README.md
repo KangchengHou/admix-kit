@@ -12,7 +12,7 @@ pip install -r requirements.txt; pip install -e .
 ```
 
 ## File formats
-- `.pgen | .psam | .pvar`: PLINK2 format phased genotype to easily manipulate data (using PLINK2) and fast random access within python.
+- `.pgen|.psam|.pvar`: PLINK2 format phased genotype to easily manipulate data (using PLINK2) and fast random access within python.
 - `.lanc`: customized local ancestry matrix format  (see below, TODO: add link)
 - `.snp_info`: SNP information file, such as allele frequency.
 - `.indiv_info`: individual information file, such as top PCs.
@@ -44,18 +44,20 @@ for stop, anc0, anc1 in zip(break_list, anc0_list, anc1_list):
     start = stop
 ```
 
-Note these ranges are right-open intervals [start, stop) and the last position of each line always ends with <n_snp>. We provide helper function to convert between this sparse file format and dense matrix format.
+Note these ranges are right-open intervals `[start, stop)` and the last position of each line always ends with `<n_snp>`. We provide helper function to convert between this sparse file format and dense matrix format.
 
 
 ## Quick start (command line interface)
+We perform local ancestry inference, 
 ```bash
 # copy test data
 test_data_dir=$(python -c "import admix; print(admix.dataset.get_test_data_dir())")
 cp ${test_data_dir}/toy-* ./
 
-# rename the provided .lanc file
+# rename the provided .lanc as we are to compute this now
 mv toy-admix.lanc toy-admix.old.lanc
 
+# local ancestry inference
 admix lanc \
     --pfile toy-admix \
     --ref-pfile toy-all \
@@ -63,23 +65,30 @@ admix lanc \
     --ref-pops "CEU,YRI" \
     --out toy-admix.lanc
 
-# phenotype simulation
+# phenotype simulation, 
+# toy-admix.pheno (simulated phenotype) and toy-admix.beta (simulated effects) 
+# will be generated
 admix simulate-quant-pheno \
     --pfile toy-admix \
     --hsq 0.05 \
     --n-causal 2 \
     --n-sim 2 \
     --seed 1234 \
-    --out toy-admix
+    --out-prefix toy-admix
 
-# association testing
-TODO:
+# association testing for the simulated phenotype
+admix assoc-quant \
+    --pfile toy-admix \
+    --pheno toy-admix.pheno \
+    --pheno-col SIM0 \
+    --method ATT,TRACTOR \
+    --out toy-admix.assoc
 ```
 
 
 
 ## Quick start (Python API)
-**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is more stable[TODO: add link] for now.**
+**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is more stable[TODO: add link to full documentation] for now.**
 
 **At the same time, any suggestion / bug report and pull requests are welcome.**
 

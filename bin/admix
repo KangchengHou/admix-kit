@@ -3,11 +3,11 @@
 import admix
 import fire
 import pandas as pd
-from typing import List
 import subprocess
 import dapgen
 import numpy as np
 import os
+from typing import Union, List
 
 
 def lanc(
@@ -272,7 +272,7 @@ def plot_pca(
 def simulate_quant_pheno(
     pfile: str,
     hsq: float,
-    out: str,
+    out_prefix: str,
     n_causal: int = None,
     p_causal: float = None,
     seed: int = None,
@@ -340,7 +340,47 @@ def simulate_quant_pheno(
     )
 
     for suffix, df in zip(["beta", "pheno"], [df_beta, df_pheno]):
-        df.to_csv(f"{out}.{suffix}", sep="\t", float_format="%.6g")
+        df.to_csv(f"{out_prefix}.{suffix}", sep="\t", float_format="%.6g")
+
+
+def assoc_quant(
+    pfile: str,
+    pheno: str,
+    pheno_col: str,
+    out: str,
+    method: Union[str, List[str]] = "ATT",
+):
+    """
+    Perform association analysis on a pgen file
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pgen file
+    pheno : str
+        Path to the phenotype file
+    pheno_col : str
+        Column name in the phenotype file
+    out : str
+        Path the output file
+    method : Union[str, List[str]]
+        Method to use for association analysis (default ATT)
+    """
+    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0)
+    dset = admix.io.read_dataset(pfile)
+    df_pheno = df_pheno.reindex(dset.indiv.index)
+    if isinstance(method, str):
+        method = [method]
+
+    dict_rls = {}
+    for m in method:
+        dict_rls[m] = admix.assoc.marginal_fast(
+            dset=dset, pheno=df_pheno[pheno_col].values, method=m, family="linear"
+        )
+
+    pd.DataFrame(dict_rls, index=dset.snp.index).to_csv(
+        out, sep="\t", float_format="%.6g", na_rep="NA"
+    )
 
 
 if __name__ == "__main__":
