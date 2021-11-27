@@ -3,7 +3,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import admix
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 from dask.array import concatenate, from_delayed
 from dask.delayed import delayed
 from bisect import bisect_left
@@ -90,6 +90,7 @@ class Lanc(object):
             dst_dst_idx = np.where(dst_chrom_pos[:, 0] == chrom)[0]
             src_chrom_start = src_chrom_idx[0]
             src_chrom_stop = src_chrom_idx[-1] + 1
+
             chrom_src_breaks, chrom_src_values = lanc_subset_snp_range(
                 self._breaks, self._values, src_chrom_start, src_chrom_stop
             )
@@ -100,6 +101,7 @@ class Lanc(object):
                 chrom_pos[src_chrom_idx, 1],
                 dst_chrom_pos[dst_dst_idx, 1],
             )
+
             dst_lanc_list.append(Lanc(breaks=chrom_dst_breaks, values=chrom_dst_values))
         return concat_lancs(dst_lanc_list)
 
@@ -133,7 +135,7 @@ class Lanc(object):
             indiv_idx = slice(0, self.n_indiv)
         assert (
             isinstance(snp_idx, slice)
-            and (snp_idx.step == 1)
+            and ((snp_idx.step == 1) or (snp_idx.step is None))
             and (snp_idx.start is not None)
             and (snp_idx.stop is not None)
         ), "SNP index must be a slice with `step` = 1, in the form of start : stop"
@@ -236,9 +238,10 @@ def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
     return dset
 
 
-def find_closest_index(a, x):
+def find_closest_index(a, x, tie="left"):
     """
     Locate the index in a of the closest value to x.
+    When two values are equally close, return the smallest index.
 
     Parameters
     ----------
@@ -246,12 +249,22 @@ def find_closest_index(a, x):
         Values to search.
     x: float
         Value to search for.
+    tie: str
+        How to handle ties. left -> return the smallest index.
+        right -> return the largest index. default: left
     """
+    assert tie in ["left", "right"], "tie must be 'left' or 'right'"
+    if tie == "left":
+        op = np.greater_equal
+    else:
+        op = np.greater
+
     idx = bisect_left(a, x)
+
     if idx == len(a):
         # x is larger than a[-1]
         idx = len(a) - 1
-    elif idx > 0 and (a[idx] - x > x - a[idx - 1]):
+    elif idx > 0 and op(a[idx] - x, x - a[idx - 1]):
         # x is closer to a[idx-1] than a[idx]
         idx -= 1
     return idx
@@ -341,6 +354,33 @@ def check_lanc_format(breaks: List[List[int]], values: List[List[str]]):
     return n_snp, n_indiv
 
 
+def clean_lanc(breaks: List[List[int]], values: List[List[str]]):
+    """Clean up local ancestry file
+
+    Parameters
+    ----------
+    breaks : List[List[int]]
+        break points
+    values : List[List[str]]
+        values
+    """
+    new_breaks = []
+    new_values = []
+
+    for br, vl in zip(breaks, values):
+        # remove duplicated break points, only preserve the first one
+        d = dict()
+        for b, v in zip(br, vl):
+            if b not in d:
+                d[b] = v
+
+        # d = dict(zip(br, vl))
+        d.pop(0, None)
+        new_breaks.append(list(d.keys()))
+        new_values.append(list(d.values()))
+    return new_breaks, new_values
+
+
 def lanc_subset_snp_range(
     breaks: List[List[int]], values: List[List[str]], start: int, stop: int
 ):
@@ -357,6 +397,7 @@ def lanc_subset_snp_range(
         list of break points
     value_list: List[List[str]]
     """
+    # TODO: double check this function whether usage of bisect_left is correct
     # For each individual, find index of break points that's within [start, stop]
     start_idx = [bisect_left(indiv_break, start) for indiv_break in breaks]
     stop_idx = [bisect_left(indiv_break, stop) for indiv_break in breaks]
@@ -366,6 +407,8 @@ def lanc_subset_snp_range(
     # find corresponding value
     new_values = [val[s:e] + [val[e]] for s, e, val in zip(start_idx, stop_idx, values)]
 
+    # clean up
+    new_breaks, new_values = clean_lanc(new_breaks, new_values)
     return new_breaks, new_values
 
 
@@ -478,7 +521,9 @@ def lanc_impute_single_chrom(
         1. basic checks are performed for the two data sets.
         2. `dset_ref`'s individuals is matched with `dset`, `dset`'s individuals
             must be a subset of `dset_ref`'s individuals.
-        3. Imputation are performed
+        3. Imputation is performed based on that, for each position in `dst`, find the
+        nearest SNP in `src` measured by physical distance, and use the assignment in src.
+        if there is a tie, use the one in `src` with the smallest index.
 
     Parameters
     ----------
@@ -490,9 +535,9 @@ def lanc_impute_single_chrom(
         position in sample data sets to be imputed
     """
 
-    n_snp, n_indiv = check_lanc_format(src_breaks, src_values)
-
-    assert len(src_pos) == n_snp
+    src_n_snp, n_indiv = check_lanc_format(src_breaks, src_values)
+    dst_n_snp = len(dst_pos)
+    assert len(src_pos) == src_n_snp
     assert is_sorted(src_pos) & is_sorted(dst_pos), "src_pos and dst_pos must be sorted"
     assert (src_pos.ndim == 1) & (
         dst_pos.ndim == 1
@@ -501,18 +546,47 @@ def lanc_impute_single_chrom(
         dst_pos.dtype, np.integer
     ), "pos and dst_pos must be integer type"
 
+    # find physical position of break points in src data
     # `b - 1` because breaks corresponds to right-open interval
     src_break_pos = [
-        [src_pos[b - 1] for b in indiv_break] for indiv_break in src_breaks
+        [src_pos[max(b - 1, 0)] for b in indiv_break] for indiv_break in src_breaks
     ]
-    # find the closest position in dst_pos
-    # use `find_closest_index(dst_pos, p) + 1` to get the right-open interval
-    dst_breaks = [
-        [find_closest_index(dst_pos, p) + 1 for p in indiv_break_pos]  # type: ignore
-        for indiv_break_pos in src_break_pos
-    ]
-    dst_values = src_values
-    return dst_breaks, dst_values
+
+    # to be computational efficient, we start with src data
+    # for each src break point, find the closest dst break point
+    dst_breaks = []
+    dst_values = []
+    for indiv_src_break_pos, indiv_src_values in zip(src_break_pos, src_values):
+        # find a set of candidate index for dst break points
+        indiv_dst_breaks = [
+            find_closest_index(dst_pos, p, tie="right") + 1
+            for p in indiv_src_break_pos[:-1]
+        ] + [dst_n_snp]
+        # assign src values to dst break points
+        indiv_dst_values = [
+            indiv_src_values[
+                find_closest_index(indiv_src_break_pos, dst_pos[i - 1], tie="left")
+            ]
+            for i in indiv_dst_breaks
+        ]
+
+        dst_breaks.append(indiv_dst_breaks)
+        dst_values.append(indiv_dst_values)
+
+        # dict_tmp: Dict[int, Tuple] = {}
+        # for p, v in zip(indiv_src_break_pos[:-1], indiv_src_values[:-1]):
+        #     # tie is right such that for the dst, tie is always the one with the smallest index
+        #     idx = find_closest_index(dst_pos, p, tie="right")
+        #     dist = np.abs(dst_pos[idx] - p)
+        #     print(f"src_break_pos: {p}, src_value: {v}, dst_idx: {idx}, dist: {dist}")
+        #     # replace the dist, value if the new distance is smaller
+        #     if (idx not in dict_tmp) or (dist < dict_tmp[idx][0]):
+        #         dict_tmp[idx] = (dist, v)
+        # # the last src break point, always correspond to the last dst break point
+        # dst_breaks.append([k + 1 for k in dict_tmp.keys()] + [dst_n_snp])
+        # dst_values.append([v[1] for v in dict_tmp.values()] + [indiv_src_values[-1]])
+    return clean_lanc(dst_breaks, dst_values)
+    # return dst_breaks, dst_values
 
 
 # def impute_lanc(dset: admix.Dataset, dset_ref: admix.Dataset):

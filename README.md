@@ -1,4 +1,4 @@
-# admix-tools
+# admix-kit
 ![python package](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
 ![document](https://github.com/KangchengHou/admix-tools/actions/workflows/sphinx.yml/badge.svg)
 
@@ -7,8 +7,8 @@ for documentation.
 
 ## Install
 ```
-git clone https://github.com/KangchengHou/admix-tools
-cd admix-tools
+git clone https://github.com/KangchengHou/admix-kit
+cd admix-kit
 pip install -r requirements.txt; pip install -e .
 ```
 
