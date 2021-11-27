@@ -6,6 +6,7 @@ from numpy import (
 import pandas as pd
 import dask.array as da
 import xarray as xr
+import admix
 
 
 def read_rfmix(
@@ -100,6 +101,8 @@ def read_rfmix(
         value_list.append(indiv_values.tolist())
 
     if return_dask:
-        return lanc_to_dask(break_list, value_list, snp_chunk=snp_chunk)
+        return admix.data.Lanc(breaks=break_list, values=value_list).dask(
+            snp_chunk=snp_chunk
+        )
     else:
         return break_list, value_list

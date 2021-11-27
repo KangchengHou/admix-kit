@@ -23,7 +23,7 @@ def lanc(
         ref_dset[:, (ref_dset.indiv[ref_pop_col] == pop).values] for pop in ref_pops
     ]
     est = admix.ancestry.lanc(sample_dset=sample_dset, ref_dsets=ref_dsets)
-    admix.io.write_lanc(out, est)
+    admix.data.Lanc(array=est).write(out)
 
 
 def lanc_impute(pfile: str, ref_pfile: str, out: str = None):
@@ -156,28 +156,6 @@ def lanc_deprecated(
 
     print(rfmix_code)
     subprocess.check_call(rfmix_code, shell=True)
-
-
-def pgen_attach_lanc(pgen: str, lanc: str, out: str = None):
-    """
-    Attach local ancestry to pgen file
-
-    Parameters
-    ----------
-    pgen : str
-        Path to the pgen file
-    lanc : str
-        Path to the local ancestry file
-    out : str
-        Path to the output zarr file, default to replacing .pgen to .lanc
-    """
-
-    if out is None:
-        out = pgen.replace(".pgen", ".lanc")
-
-    dset = dapgen.read_pfile(pgen, phase=True)
-    dset = admix.data.assign_lanc(dset, lanc)
-    dset.lanc.data.to_zarr(out)
 
 
 # TODO: including logging functions
@@ -332,6 +310,13 @@ def plot_pca(
     # make legend font smaller
     ax.legend(fontsize=8)
     plt.savefig(out, bbox_inches="tight", dpi=300)
+
+
+def simulate_pheno(pfile: str):
+    """
+    Simulate phenotypes from a pgen file
+    """
+    pass
 
 
 if __name__ == "__main__":

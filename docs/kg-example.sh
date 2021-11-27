@@ -82,7 +82,7 @@ done
 # We can use the following command to compile the data set for later analysis.
 
 mkdir -p compiled
-for chrom in $(seq 22 22); do
+for chrom in $(seq 21 22); do
     # subset chromosome `chrom`
 
     # subset pgen
@@ -97,5 +97,16 @@ for chrom in $(seq 22 22); do
         --ref-pfile pruned/ADMIX."${chrom}" \
         --out compiled/ADMIX."${chrom}".lanc
 done
+
+# Now we have compiled the data set for later analysis.
+# Let's start with several analyses.
+
+# Simulating phenotypes
+
+admix simulate-pheno \
+    --pfile compiled/ADMIX.* \
+    --out compiled/ADMIX.pheno
+
+# Association testing using ATT or Tractor
 
 cd "${OLD_DIR}" || exit
