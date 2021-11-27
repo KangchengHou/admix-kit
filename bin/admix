@@ -374,7 +374,7 @@ def assoc_quant(
 
     dict_rls = {}
     for m in method:
-        dict_rls[m] = admix.assoc.marginal_fast(
+        dict_rls[m] = admix.assoc.marginal(
             dset=dset, pheno=df_pheno[pheno_col].values, method=m, family="linear"
         )
 
