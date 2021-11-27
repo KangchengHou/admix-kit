@@ -1,9 +1,8 @@
 # admix-kit
 ![python package](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
-![document](https://github.com/KangchengHou/admix-tools/actions/workflows/sphinx.yml/badge.svg)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-kit)
 
-See [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-tools) 
-for documentation.
+`admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed population. 
 
 ## Install
 ```
@@ -13,32 +12,91 @@ pip install -r requirements.txt; pip install -e .
 ```
 
 ## File formats
-- We use PLINK2 .pgen format to store the (potentially phased) genotype
-- We use customized .lanc format to store the local ancestry file (see below)
-- These two file formats allow efficient storage of genotype file (by the design of PLINK2), while allowing for fast random access of the genotype.
-- Also, all functions of PLINK2 can be used for additional analyses.
+- `.pgen | .psam | .pvar`: PLINK2 format phased genotype to easily manipulate data (using PLINK2) and fast random access within python.
+- `.lanc`: customized local ancestry matrix format  (see below, TODO: add link)
+- `.snp_info`: SNP information file, such as allele frequency.
+- `.indiv_info`: individual information file, such as top PCs.
 
-- .pgen or .bed for genotype files
-- .lanc for local ancestry files
-- .freq for allele frequency files
-- .admix_freq for admixed allele frequency files
+### .lanc format
+`.lanc` is a text file containing a matrix of local ancestry of shape `<n_snp> x <n_indiv> x <2 ploidy>`. 
 
-## .lanc format
-The first line contains meta-information <n_indiv> <n_snp> <n_anc> then <n_indiv> lines to follow:
-For each line, we record the information of the break points: 
-<anc_0><anc_1>:<pos> <anc_0>
-The <anc_0><anc_1> are the ordered (according the phase) local ancestry information
+The first line contains two numbers: `<n_snp>` for number of SNPs and `<n_indiv>` for number of indivduals. Then `<n_indiv>` lines follow with each line corresponds to one individual:
+For each line, the local ancestry change points are recorded as
+`<pos>:<anc1><anc2>` which records the position of the change point and the *ordered* ancestries (according to the phase) local ancestry information.
 
-An example of the file looks like
+Here is an example of `.lanc` file
 ```
-3 300 2
-01:100 00:300
-10:120 01:300
-00:300
+300 3
+100:01 300:00
+120:10 300:01
+300:00
 ```
-Note that these ranges are [start, stop) and index starts from 300. Also, the last position 
-of each line should ends with <n_snp>. We provide helper function to convert between this 
-sparse file format and dense matrix format. See XX and XX functions.
+The local ancestry dense matrix can be reconstructed using the following procedure:
+```python
+# example for the first individual in the above example file
+break_list = [100, 300]
+anc0_list = [0, 0]
+anc1_list = [1, 0]    
+start = 0
+for stop, anc0, anc1 in zip(break_list, anc0_list, anc1_list):
+    lanc[start : stop, 0] = anc0
+    lanc[start : stop, 1] = anc1
+    start = stop
+```
+
+Note these ranges are right-open intervals [start, stop) and the last position of each line always ends with <n_snp>. We provide helper function to convert between this sparse file format and dense matrix format.
+
+
+## Quick start (command line interface)
+```bash
+# copy test data
+test_data_dir=$(python -c "import admix; print(admix.dataset.get_test_data_dir())")
+cp ${test_data_dir}/toy-* ./
+
+# rename the provided .lanc file
+mv toy-admix.lanc toy-admix.old.lanc
+
+admix lanc \
+    --pfile toy-admix \
+    --ref-pfile toy-all \
+    --ref-pop-col "Population" \
+    --ref-pops "CEU,YRI" \
+    --out toy-admix.lanc
+
+# phenotype simulation
+TODO:
+
+# association testing
+TODO:
+```
+
+
+
+## Python API
+**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is more stable[TODO: add link] for now.**
+
+**At the same time, any suggestion / bug report and pull requests are welcome.**
+
+```python
+import admix
+
+# load genetic data and local ancestry seperately
+dset = admix.dataset.load_
+dset.snp
+
+dset.indiv
+
+dset.geno
+
+dset.lanc
+
+dset subset
+
+dset.allele_per_anc()
+
+dset.
+
+```
 
 ## Data structures
 - With admix-kit, we use a admix.Dataset to support various convenient operations for manipulating data sets.
@@ -51,9 +109,5 @@ sparse file format and dense matrix format. See XX and XX functions.
 - dset.geno, dset.lanc are on-disk dask arrays.
 - dset.loc[snp_subset, indiv_subset] select subset of SNPs and/or individuals
 
-## Functions
-We have a set of functions 
-
-## TODO
-- Complete GWAS demonstration and pipelines.
-- First release: complete pipeline for simulating and estimating genetic correlation.
+## Acknowledgement
+TODO:

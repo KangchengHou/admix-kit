@@ -495,8 +495,8 @@ def array_to_lanc(array: Union[da.Array, np.ndarray]) -> Tuple[List, List]:
     values = lanc.reshape([-1, 2])[indiv_pos + snp_pos * n_indiv, :].compute()
     values = np.array([str(v[0]) + str(v[1]) for v in values])
 
-    breaks = []
-    values = []
+    break_list = []
+    value_list = []
     for indiv_i in range(n_indiv):
         indiv_mask = indiv_pos == indiv_i
         # +1 because .lanc denote the [start, stop) right-open interval
@@ -504,9 +504,9 @@ def array_to_lanc(array: Union[da.Array, np.ndarray]) -> Tuple[List, List]:
             snp_pos[indiv_mask] + 1, return_index=True
         )
         indiv_values = values[indiv_mask][unique_mask]
-        breaks.append(indiv_snp_pos.tolist())
-        values.append(indiv_values.tolist())
-    return breaks, values
+        break_list.append(indiv_snp_pos.tolist())
+        value_list.append(indiv_values.tolist())
+    return break_list, value_list
 
 
 def lanc_impute_single_chrom(
