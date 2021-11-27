@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 def quant_pheno(
     dset: admix.Dataset,
-    hsq: float = 0.5,
+    hsq: float,
     cor: float = None,
     n_causal: int = None,
     beta: np.ndarray = None,
@@ -124,7 +124,7 @@ def quant_pheno(
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values
         if cov_effects is None:
-            cov_effects = np.random.normal(size=len(cov_cols))
+            cov_effects = np.random.normal(size=len(cov_cols))  # type: ignore
         # add the covariates to the phenotype
         cov_values = np.zeros((n_indiv, len(cov_cols)))
         for i_cov, cov_col in enumerate(cov_cols):
@@ -198,7 +198,7 @@ def quant_pheno_grm(
     if cov_cols is not None:
         # if `cov_effects` are not set, set to random normal values
         if cov_effects is None:
-            cov_effects = np.random.normal(size=len(cov_cols))
+            cov_effects = np.random.normal(size=len(cov_cols))  # type: ignore
         cov_values = np.zeros((n_indiv, len(cov_cols)))
         for i_cov, cov_col in enumerate(cov_cols):
             cov_values[:, i_cov] = dset[cov_col + "@indiv"].values
@@ -433,7 +433,7 @@ def quant_pheno_1pop(
     if cov is not None:
         # if `cov_effects` are not set, set to random normal values
         if cov_effects is None:
-            cov_effects = np.random.normal(size=cov.shape[0])
+            cov_effects = np.random.normal(size=cov.shape[0])  # type: ignore
         # add the covariates to the phenotype
         pheno += np.dot(cov, cov_effects).reshape((n_indiv, 1))
 

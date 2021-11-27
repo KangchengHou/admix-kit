@@ -2,7 +2,7 @@
 ![python package](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-kit)
 
-`admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed population. 
+`admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed population. Jump to [Quick start (CLI)](#quick-start-command-line-interface) or [Quick start (Python)](#quick-start-python-api).
 
 ## Install
 ```
@@ -64,7 +64,13 @@ admix lanc \
     --out toy-admix.lanc
 
 # phenotype simulation
-TODO:
+admix simulate-quant-pheno \
+    --pfile toy-admix \
+    --hsq 0.05 \
+    --n-causal 2 \
+    --n-sim 2 \
+    --seed 1234 \
+    --out toy-admix
 
 # association testing
 TODO:
@@ -72,7 +78,7 @@ TODO:
 
 
 
-## Python API
+## Quick start (Python API)
 **Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is more stable[TODO: add link] for now.**
 
 **At the same time, any suggestion / bug report and pull requests are welcome.**

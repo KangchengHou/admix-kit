@@ -158,68 +158,25 @@ def lanc_deprecated(
     subprocess.check_call(rfmix_code, shell=True)
 
 
-# TODO: including logging functions
-def vcf_to_dataset(
-    vcf: str, lanc: str, out: str, region: str = None, samples: str = None
-):
-    """
-    Convert a VCF file to a zarr file
+# def merge_dataset(path_list: str, out: str):
+#     """Merge multiple dataset [in zarr format] into one dataset, assuming the individiduals
+#     are shared typically used for merging multiple datasets from different chromosomes.
 
-    Parameters
-    ----------
-    vcf : str
-        Path to the VCF file
-    lanc : str
-        Path to the local ancestry file
-    out : str
-        Path to the output zarr file
-    region : str
-        Region to extract from the VCF file
-    samples : str
-        Path to the samples file to extract from vcf files, one sample per line
-    """
-    if samples is not None:
-        with open(samples) as f:
-            sample_list = [l.strip() for l in f.readlines()]
-    print(f"Loading {len(sample_list)} samples")
+#     Parameters
+#     ----------
+#     path_list : List[str]
+#         path of a text file pointing to the list of paths
+#     out : str
+#         Path to the output zarr file
+#     """
+#     import xarray as xr
 
-    print(f"Reading VCF file {vcf}...")
-    dset = admix.io.read_vcf(vcf, region=region, samples=sample_list)
-    print(f"Loaded VCF file shape: {dset.dims}")
+#     dset_list = [xr.open_zarr(p) for p in path_list]
 
-    print(f"Reading and assigning local ancestry file {lanc}...")
-    dset = admix.data.assign_lanc(dset, lanc)
+#     dset = xr.concat(dset_list, dim="snp")
 
-    print(f"Saving file to {out}...")
-    dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).to_zarr(out, mode="w")
-
-
-def merge_dataset(path_list: str, out: str):
-    """Merge multiple dataset [in zarr format] into one dataset, assuming the individiduals
-    are shared typically used for merging multiple datasets from different chromosomes.
-
-    Parameters
-    ----------
-    path_list : List[str]
-        path of a text file pointing to the list of paths
-    out : str
-        Path to the output zarr file
-    """
-    import xarray as xr
-
-    dset_list = [xr.open_zarr(p) for p in path_list]
-
-    dset = xr.concat(dset_list, dim="snp")
-
-    dset = dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).compute()
-    dset.to_zarr(out, mode="w", safe_chunks=False)
-
-
-def test():
-    """
-    Test the admix module
-    """
-    print("testing the admix module")
+#     dset = dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).compute()
+#     dset.to_zarr(out, mode="w", safe_chunks=False)
 
 
 def prune(pfile: str, out: str, indep_pairwise_params: List = None):
@@ -312,11 +269,78 @@ def plot_pca(
     plt.savefig(out, bbox_inches="tight", dpi=300)
 
 
-def simulate_pheno(pfile: str):
+def simulate_quant_pheno(
+    pfile: str,
+    hsq: float,
+    out: str,
+    n_causal: int = None,
+    p_causal: float = None,
+    seed: int = None,
+    snp_effect: str = None,
+    n_sim: int = 10,
+):
     """
-    Simulate phenotypes from a pgen file
+    Simulate phenotypes from a pgen file.
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pgen file
+    hsq : float
+        Heritability
+    out : str
+        Prefix to the output file, <out>.pheno, <out>.snpeffect will be created
+    n_causal : int
+        Number of causal variants to simulate
+    p_causal : float
+        Proportion of a causal variant
+    seed : int
+        Random seed
+    beta : str
+        Path to the beta file
+    n_sim : int
+        Number of simulations to perform
     """
-    pass
+
+    assert snp_effect is None, "snp_effect is not supported yet"
+    np.random.seed(seed)
+
+    # n_causal and p_causal can not be both specified
+    assert not (
+        n_causal is not None and p_causal is not None
+    ), "`n_causal` and `p_causal` can not be both specified"
+
+    dset = admix.io.read_dataset(pfile)
+
+    if p_causal is not None:
+        n_causal = int(dset.n_indiv * p_causal)
+
+    dict_sim = admix.simulate.quant_pheno(
+        dset=dset,
+        hsq=hsq,
+        n_causal=n_causal,
+        n_sim=n_sim,
+        beta=snp_effect,
+    )
+    df_snp = dset.snp.copy()
+    df_indiv = dset.indiv.copy()
+    columns = []
+    for sim_i in range(n_sim):
+        columns.extend([f"SIM{sim_i}.ANC{anc_i}" for anc_i in range(dset.n_anc)])
+
+    df_beta = pd.DataFrame(index=df_snp.index, columns=columns)
+    # fill in beta
+    for anc_i in range(dset.n_anc):
+        df_beta.iloc[:, anc_i :: dset.n_anc] = dict_sim["beta"][:, anc_i, :]
+
+    df_pheno = pd.DataFrame(
+        dict_sim["pheno"],
+        columns=[f"SIM{i}" for i in range(n_sim)],
+        index=df_indiv.index,
+    )
+
+    for suffix, df in zip(["beta", "pheno"], [df_beta, df_pheno]):
+        df.to_csv(f"{out}.{suffix}", sep="\t", float_format="%.6g")
 
 
 if __name__ == "__main__":
