@@ -48,7 +48,8 @@ Note these ranges are right-open intervals `[start, stop)` and the last position
 
 
 ## Quick start (command line interface)
-We perform local ancestry inference, 
+We perform local ancestry inference, simple phenotype simulation and association testing using
+command line interface.
 ```bash
 # copy test data
 test_data_dir=$(python -c "import admix; print(admix.dataset.get_test_data_dir())")
@@ -85,44 +86,48 @@ admix assoc-quant \
     --out toy-admix.assoc
 ```
 
-
-
 ## Quick start (Python API)
-**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is more stable[TODO: add link to full documentation] for now.**
+**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is currently more stable)**
 
 **At the same time, any suggestion / bug report and pull requests are welcome.**
 
+Central in python API is the `admix.Dataset` class, which support various convenient operations for manipulating large on-disk data sets.
+Have a try the following example in Jupyter notebook.
 ```python
 import admix
 
-# load genetic data and local ancestry seperately
-dset = admix.dataset.load_
+# load toy data
+dset = admix.dataset.load_toy_admix()
+
+# overview of data set
+dset
+
+# SNP attributes, CHROM, POS, REF, ALT, etc.
 dset.snp
 
+# individual attributes
 dset.indiv
 
+# phased genotype (n_snp, n_indiv, 2)
 dset.geno
 
+# local ancestry (n_snp, n_indiv, 2)
 dset.lanc
 
-dset subset
+# subset the first 50 SNPs
+dset[0:50, :]
 
+# subset the first 50 individuals
+dset[:, 0:50]
+
+# subset at both time
+dset[0:50:, 0:50]
+
+# calculate allele per ancestry backgrounds
 dset.allele_per_anc()
 
-dset.
-
+# calculate allele frequencies per ancestry backgrounds
+dset.af_per_anc()
 ```
 
-## Data structures
-- With admix-kit, we use a admix.Dataset to support various convenient operations for manipulating data sets.
-- admix.Dataset stores (n_snp, n_indiv, n_ploidy) genotype matrix and local ancestry matrix.
-- dset = admix.Dataset 
-- dset.snp stores SNP-level covariates
-- dset.indiv stores indiv-level covariates
-- dset.snpm stores SNP-level matrix, such as LD matrix.
-- dset.indivm stores individual-level matrix, such as GRM matrix.
-- dset.geno, dset.lanc are on-disk dask arrays.
-- dset.loc[snp_subset, indiv_subset] select subset of SNPs and/or individuals
-
 ## Acknowledgement
-TODO:
