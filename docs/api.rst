@@ -2,12 +2,22 @@
 .. automodule:: admix
    :noindex:
 
-Reference
-=========
 
 Import admix-tools as::
 
    import admix
+
+Data structures: `Dataset`
+--------------------------
+
+.. module:: admix.dataset
+.. currentmodule:: admix
+
+.. autosummary:: 
+   :toctree: _api
+
+   dataset.Dataset
+
 
 Association testing: `assoc`
 ----------------------------
@@ -16,7 +26,7 @@ Association testing: `assoc`
 .. currentmodule:: admix
 
 .. autosummary:: 
-   :toctree: reference
+   :toctree: _api
 
    assoc.marginal_fast
    assoc.marginal_simple
@@ -28,23 +38,12 @@ Simulation: `simulate`
 .. currentmodule:: admix
 
 .. autosummary::
-   :toctree: reference
+   :toctree: _api
 
     simulate.admix_geno
     simulate.quant_pheno
     simulate.quant_pheno_1pop
     simulate.quant_pheno_grm
-
-Estimation: `estimate`
-----------------------
-
-.. module:: admix.estimate
-.. currentmodule:: admix
-
-.. autosummary::
-   :toctree: reference
-
-    estimate.gen_cor
 
 Data management: `data`
 ------------------------
@@ -61,13 +60,8 @@ Tools: `tools`
 .. currentmodule:: admix
 
 .. autosummary::
-   :toctree: reference
+   :toctree: _api
 
     tools.grm
     tools.admix_grm
-
-
-
-    
-    
     

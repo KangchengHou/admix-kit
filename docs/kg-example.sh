@@ -105,6 +105,9 @@ done
 
 admix simulate-pheno \
     --pfile compiled/ADMIX.* \
+    --hsq 0.05 \
+    --n-causal 2 \
+    --seed 1234 \
     --out compiled/ADMIX.pheno
 
 # Association testing using ATT or Tractor

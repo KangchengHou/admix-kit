@@ -2,3 +2,5 @@ auto_examples/
 gen_modules/
 reference/
 kg-example
+_api/
+_examples/

@@ -8,8 +8,9 @@ admix-kit documentation
    :glob:
    :maxdepth: 1
    :caption: Usage:
-   prepare
-   .. auto_examples/plot_overview
+
+   .. prepare
+   .. examples/plot_overview
    .. notebooks/data_structure.ipynb
    .. auto_examples/plot_admix_corr
    .. assoc_test
@@ -17,6 +18,6 @@ admix-kit documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Reference
+   :caption: Python API
 
-   reference
+   api
