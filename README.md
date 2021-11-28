@@ -70,7 +70,7 @@ admix lanc \
 # will be generated
 admix simulate-quant-pheno \
     --pfile toy-admix \
-    --hsq 0.05 \
+    --hsq 0.5 \
     --n-causal 2 \
     --n-sim 2 \
     --seed 1234 \

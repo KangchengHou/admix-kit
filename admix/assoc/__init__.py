@@ -294,18 +294,29 @@ def marginal(
             design_null = np.hstack(
                 [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
             )
-            model_null = sm.GLM(
-                pheno,
-                design_null,
-                family=glm_family,
-            ).fit()
+            if family == "linear":
+                model_null = sm.OLS(pheno, design_null).fit(disp=0)
+            elif family == "logistic":
+                model_null = sm.Logit(pheno, design_null).fit(disp=0)
+            else:
+                raise NotImplementedError
             # number of african alleles, covariates + allele-per-anc
             design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
-            model_alt = sm.GLM(
-                pheno,
-                design_alt,
-                family=glm_family,
-            ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
+            if family == "linear":
+                model_alt = sm.OLS(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            elif family == "logistic":
+                model_alt = sm.Logit(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            else:
+                raise NotImplementedError
+            # model_alt = sm.GLM(
+            #     pheno,
+            #     design_alt,
+            #     family=glm_family,
+            # ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
             # determine p-values using difference in log-likelihood and difference in degrees of freedom
             pvalues.append(
                 stats.chi2.sf(
