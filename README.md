@@ -13,7 +13,7 @@ pip install -r requirements.txt; pip install -e .
 
 ## File formats
 - `.pgen|.psam|.pvar`: PLINK2 format phased genotype to easily manipulate data (using PLINK2) and fast random access within python.
-- `.lanc`: customized local ancestry matrix format  (see below, TODO: add link)
+- `.lanc`: customized local ancestry matrix format  (see [.lanc format](#lanc-format) below)
 - `.snp_info`: SNP information file, such as allele frequency.
 - `.indiv_info`: individual information file, such as top PCs.
 
@@ -31,6 +31,7 @@ Here is an example of `.lanc` file
 120:10 300:01
 300:00
 ```
+
 The local ancestry dense matrix can be reconstructed using the following procedure:
 ```python
 # example for the first individual in the above example file
@@ -87,12 +88,10 @@ admix assoc-quant \
 ```
 
 ## Quick start (Python API)
-**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is currently more stable)**
-
-**At the same time, any suggestion / bug report and pull requests are welcome.**
+**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is currently more stable). Meanwhile, any suggestion / bug report and pull request is welcome.**
 
 Central in python API is the `admix.Dataset` class, which support various convenient operations for manipulating large on-disk data sets.
-Have a try the following example in Jupyter notebook.
+Have a try on the following example in Jupyter notebook.
 ```python
 import admix
 
@@ -120,7 +119,7 @@ dset[0:50, :]
 # subset the first 50 individuals
 dset[:, 0:50]
 
-# subset at both time
+# subset the first 50 SNPs and first 50 individuals
 dset[0:50:, 0:50]
 
 # calculate allele per ancestry backgrounds
@@ -129,5 +128,3 @@ dset.allele_per_anc()
 # calculate allele frequencies per ancestry backgrounds
 dset.af_per_anc()
 ```
-
-## Acknowledgement

@@ -16,7 +16,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "admix-tools"
+project = "admix-kit"
 copyright = "2021, Kangcheng Hou"
 author = "Kangcheng Hou"
 
