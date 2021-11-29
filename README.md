@@ -53,13 +53,15 @@ We perform local ancestry inference, simple phenotype simulation and association
 command line interface.
 ```bash
 # copy test data
+# the test data is built from ASW, CEU and YRI individuals 1,000 Genome projects 
+# see tests/test-data/make-toy.sh for scripts to build the toy data
 test_data_dir=$(python -c "import admix; print(admix.dataset.get_test_data_dir())")
 cp ${test_data_dir}/toy-* ./
 
 # rename the provided .lanc as we are to compute this now
 mv toy-admix.lanc toy-admix.old.lanc
 
-# local ancestry inference
+# local ancestry inference for ASW individuals with CEU and YRI individuals
 admix lanc \
     --pfile toy-admix \
     --ref-pfile toy-all \
@@ -67,7 +69,7 @@ admix lanc \
     --ref-pops "CEU,YRI" \
     --out toy-admix.lanc
 
-# phenotype simulation, 
+# quantitative phenotype simulation 
 # toy-admix.pheno (simulated phenotype) and toy-admix.beta (simulated effects) 
 # will be generated
 admix simulate-quant-pheno \
@@ -78,7 +80,7 @@ admix simulate-quant-pheno \
     --seed 1234 \
     --out-prefix toy-admix
 
-# association testing for the simulated phenotype
+# association testing of individual SNPs of simulated phenotype
 admix assoc-quant \
     --pfile toy-admix \
     --pheno toy-admix.pheno \

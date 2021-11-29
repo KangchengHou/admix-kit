@@ -1,3 +1,9 @@
+"""
+Tutorial for admix.Dataset
+==========================
+
+"""
+
 # We use `xr.Dataset` as a container for data. We pose some addtional requirements to `xr.Dataset`:
 # - It must have `snp` and `indiv` coordinates.
 # - Each variable on the `snp` coordinate will have `@snp` as the suffix.

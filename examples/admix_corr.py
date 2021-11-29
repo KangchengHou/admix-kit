@@ -2,8 +2,6 @@
 Estimating genetic correlation within admixed individuals
 =========================================================
 
-We should be able to estimate the genetic correlation SNPs in two ancestral backgrounds
-within the admixed individuals.
 """
 
 # %%

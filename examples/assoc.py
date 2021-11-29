@@ -1,5 +1,8 @@
-# Association testing in admixed population
-# -----------------------------------------
+"""
+Association testing in admixed population
+=========================================
+
+"""
 
 
 # Basics of association testing
