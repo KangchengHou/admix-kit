@@ -3,10 +3,10 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import admix
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Sequence
 from dask.array import concatenate, from_delayed
 from dask.delayed import delayed
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 import dask
 
 is_sorted = lambda a: np.all(a[:-1] <= a[1:])
@@ -534,7 +534,6 @@ def lanc_impute_single_chrom(
     sample_pos : np.ndarray
         position in sample data sets to be imputed
     """
-
     src_n_snp, n_indiv = check_lanc_format(src_breaks, src_values)
     dst_n_snp = len(dst_pos)
     assert len(src_pos) == src_n_snp
@@ -548,45 +547,67 @@ def lanc_impute_single_chrom(
 
     # find physical position of break points in src data
     # `b - 1` because breaks corresponds to right-open interval
-    src_break_pos = [
-        [src_pos[max(b - 1, 0)] for b in indiv_break] for indiv_break in src_breaks
-    ]
 
-    # to be computational efficient, we start with src data
-    # for each src break point, find the closest dst break point
     dst_breaks = []
     dst_values = []
-    for indiv_src_break_pos, indiv_src_values in zip(src_break_pos, src_values):
+    for indiv_src_breaks, indiv_src_values in zip(src_breaks, src_values):
         # find a set of candidate index for dst break points
+        # for each break points in src_pos, define `mid`` = (src_pos[b] + src_pos[b+1])/2
+        # then find the closest point in dst that's smaller or equal to `mid`
+        # then assign the local ancestry at b in src to that point
+        # max(b - 1, 0) is to avoid accidental break = 0 (which should not appear)
+        # we threshold by 0 anyway to avoid negative index
         indiv_dst_breaks = [
-            find_closest_index(dst_pos, p, tie="right") + 1
-            for p in indiv_src_break_pos[:-1]
+            bisect_right(
+                dst_pos, (src_pos[max(b - 1, 0)] + src_pos[b]) / 2  # type: ignore
+            )
+            for b in indiv_src_breaks[:-1]
         ] + [dst_n_snp]
-        # assign src values to dst break points
-        indiv_dst_values = [
-            indiv_src_values[
-                find_closest_index(indiv_src_break_pos, dst_pos[i - 1], tie="left")
-            ]
-            for i in indiv_dst_breaks
-        ]
-
         dst_breaks.append(indiv_dst_breaks)
-        dst_values.append(indiv_dst_values)
+        dst_values.append(indiv_src_values)
 
-        # dict_tmp: Dict[int, Tuple] = {}
-        # for p, v in zip(indiv_src_break_pos[:-1], indiv_src_values[:-1]):
-        #     # tie is right such that for the dst, tie is always the one with the smallest index
-        #     idx = find_closest_index(dst_pos, p, tie="right")
-        #     dist = np.abs(dst_pos[idx] - p)
-        #     print(f"src_break_pos: {p}, src_value: {v}, dst_idx: {idx}, dist: {dist}")
-        #     # replace the dist, value if the new distance is smaller
-        #     if (idx not in dict_tmp) or (dist < dict_tmp[idx][0]):
-        #         dict_tmp[idx] = (dist, v)
-        # # the last src break point, always correspond to the last dst break point
-        # dst_breaks.append([k + 1 for k in dict_tmp.keys()] + [dst_n_snp])
-        # dst_values.append([v[1] for v in dict_tmp.values()] + [indiv_src_values[-1]])
     return clean_lanc(dst_breaks, dst_values)
-    # return dst_breaks, dst_values
+
+
+###############################################################################
+# LEGACY code for impute_lanc
+###############################################################################
+
+# version 2
+# to be computational efficient, we start with src data
+# for each src break point, find the closest dst break point
+# dst_breaks = []
+# dst_values = []
+# for indiv_src_break_pos, indiv_src_values in zip(src_break_pos, src_values):
+#     # find a set of candidate index for dst break points
+#     indiv_dst_breaks = [
+#         find_closest_index(dst_pos, p, tie="right") + 1
+#         for p in indiv_src_break_pos[:-1]
+#     ] + [dst_n_snp]
+#     # assign src values to dst break points
+#     indiv_dst_values = [
+#         indiv_src_values[
+#             find_closest_index(indiv_src_break_pos, dst_pos[i - 1], tie="left")
+#         ]
+#         for i in indiv_dst_breaks
+#     ]
+
+#     dst_breaks.append(indiv_dst_breaks)
+#     dst_values.append(indiv_dst_values)
+
+# version 1
+# dict_tmp: Dict[int, Tuple] = {}
+# for p, v in zip(indiv_src_break_pos[:-1], indiv_src_values[:-1]):
+#     # tie is right such that for the dst, tie is always the one with the smallest index
+#     idx = find_closest_index(dst_pos, p, tie="right")
+#     dist = np.abs(dst_pos[idx] - p)
+#     print(f"src_break_pos: {p}, src_value: {v}, dst_idx: {idx}, dist: {dist}")
+#     # replace the dist, value if the new distance is smaller
+#     if (idx not in dict_tmp) or (dist < dict_tmp[idx][0]):
+#         dict_tmp[idx] = (dist, v)
+# # the last src break point, always correspond to the last dst break point
+# dst_breaks.append([k + 1 for k in dict_tmp.keys()] + [dst_n_snp])
+# dst_values.append([v[1] for v in dict_tmp.values()] + [indiv_src_values[-1]])
 
 
 # def impute_lanc(dset: admix.Dataset, dset_ref: admix.Dataset):
