@@ -4,12 +4,17 @@
 
 `admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed population. Jump to [Quick start (CLI)](#quick-start-command-line-interface) or [Quick start (Python)](#quick-start-python-api).
 
+> `admix-kit` is still in beta version, we welcome any [feedbacks](https://github.com/KangchengHou/admix-kit/pulls) and [bug reports](https://github.com/KangchengHou/admix-kit/issues).   
+
 ## Install
 ```
+# Install admix-kit with Python 3.6 and above.
 git clone https://github.com/KangchengHou/admix-kit
 cd admix-kit
 pip install -r requirements.txt; pip install -e .
 ```
+
+> Installation requires cmake version > 3.12. Use `cmake --version` to check your cmake version. Use `pip install cmake` to install the latest version.
 
 ## File formats
 - `.pgen|.psam|.pvar`: PLINK2 format phased genotype to easily manipulate data (using PLINK2) and fast random access within python.
