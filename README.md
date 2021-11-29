@@ -2,7 +2,7 @@
 ![python package](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-kit)
 
-`admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed population. Jump to [Quick start (CLI)](#quick-start-command-line-interface) or [Quick start (Python)](#quick-start-python-api).
+`admix-kit` is a Python library to faciliate analyses and methods development of genetics data from admixed populations. Jump to [Quick start (CLI)](#quick-start-command-line-interface) or [Quick start (Python)](#quick-start-python-api).
 
 > `admix-kit` is still in beta version, we welcome any [feedbacks](https://github.com/KangchengHou/admix-kit/pulls) and [bug reports](https://github.com/KangchengHou/admix-kit/issues).   
 
@@ -98,7 +98,7 @@ admix assoc-quant \
 ```
 
 ## Quick start (Python API)
-**Note that `admix-kit` is in development and python API is subject to change. If this is a concern, please only use command line interface (which is currently more stable). Meanwhile, any suggestion / bug report and pull request is welcome.**
+**Note that `admix-kit` is in development and python API is subject to change. You may prefer command line interface which is currently more stable. Meanwhile, any suggestion / bug report and pull request is welcome.**
 
 Central in python API is the `admix.Dataset` class, which support various convenient operations for manipulating large on-disk data sets.
 Have a try on the following example in Jupyter notebook.
