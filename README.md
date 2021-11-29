@@ -7,7 +7,7 @@
 > `admix-kit` is still in beta version, we welcome any [feedbacks](https://github.com/KangchengHou/admix-kit/pulls) and [bug reports](https://github.com/KangchengHou/admix-kit/issues).   
 
 ## Install
-```
+```bash
 # Install admix-kit with Python 3.6 and above.
 git clone https://github.com/KangchengHou/admix-kit
 cd admix-kit
@@ -29,34 +29,37 @@ The first line contains two numbers: `<n_snp>` for number of SNPs and `<n_indiv>
 For each line, the local ancestry change points are recorded as
 `<pos>:<anc1><anc2>` which records the position of the change point and the *ordered* ancestries (according to the phase) local ancestry information.
 
-Here is an example of `.lanc` file
+An example of `.lanc` file will make the format clear:
 ```
 300 3
 100:01 300:00
 120:10 300:01
 300:00
 ```
-
-The local ancestry dense matrix can be reconstructed using the following procedure:
+This corresponds to a 300 SNPs x 3 individuals x 2 ploidy matrix. The corresponding dense matrix for the first individual can be reconstructed using the following code:
 ```python
 # example for the first individual in the above example file
 break_list = [100, 300]
 anc0_list = [0, 0]
 anc1_list = [1, 0]    
 start = 0
+lanc = np.zeros(300, 2, dtype=np.int8)
 for stop, anc0, anc1 in zip(break_list, anc0_list, anc1_list):
     lanc[start : stop, 0] = anc0
     lanc[start : stop, 1] = anc1
     start = stop
 ```
 
-Note these ranges are right-open intervals `[start, stop)` and the last position of each line always ends with `<n_snp>`. We provide helper function to convert between this sparse file format and dense matrix format.
+Note these ranges are right-open intervals `[start, stop)` and the last position of each line always ends with `<n_snp>`. We provide helper function to convert between sparse `.lanc` format and dense matrix format.
 
 
 ## Quick start (command line interface)
-We perform local ancestry inference, simple phenotype simulation and association testing using
+We can perform local ancestry inference, simple phenotype simulation and association testing using the `admix`
 command line interface.
 ```bash
+# install the admix-kit package, make a new directory and cd into it
+# try running the following code
+
 # copy test data
 # the test data is built from ASW, CEU and YRI individuals 1,000 Genome projects 
 # see tests/test-data/make-toy.sh for scripts to build the toy data
