@@ -19,6 +19,11 @@ def lanc(
 ):
     sample_dset = admix.io.read_dataset(pfile=pfile)
     ref_dset = admix.io.read_dataset(pfile=ref_pfile)
+    assert np.all(sample_dset.snp.index == ref_dset.snp.index), (
+        "`pfile` and `ref_pfile` must have the same snp index"
+        "(snp match feature coming soon)."
+    )
+
     ref_dsets = [
         ref_dset[:, (ref_dset.indiv[ref_pop_col] == pop).values] for pop in ref_pops
     ]
