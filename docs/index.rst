@@ -1,29 +1,23 @@
-admix-tools documentation
+admix-kit documentation
 ===========================
+
+.. note::
+   The document is still under construction, go to https://github.com/KangchengHou/admix-kit for more details.
 
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Tutorials:
+   :caption: Usage:
 
-   auto_examples/plot_overview
-   notebooks/data_structure.ipynb
-   auto_examples/plot_admix_corr
-   prepare_data
-   assoc_test
-   
-
-.. toctree::
-   :glob:
-   :maxdepth: 2
-   :caption: Modules:
-
-   auto_examples/plot_data_structure
-   auto_examples/plot_local_ancestry_inference
-   
+   .. prepare
+   .. examples/plot_overview
+   .. notebooks/data_structure.ipynb
+   .. auto_examples/plot_admix_corr
+   .. assoc_test
+   .. auto_examples/plot_local_ancestry_inference   
 
 .. toctree::
    :maxdepth: 2
-   :caption: Reference
+   :caption: Python API
 
-   reference
+   api

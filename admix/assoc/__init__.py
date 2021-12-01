@@ -232,7 +232,7 @@ def marginal(
         [description]
     """
 
-    # TODO: deal with missing genotype (current it is fine because of imputation)
+    # TODO: deal with missing genotype
 
     if family == "linear":
         glm_family = sm.families.Gaussian()
@@ -285,30 +285,45 @@ def marginal(
         pvalues = np.array(pvalues)
 
     elif method == "TRACTOR":
-
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
         # alleles per ancestry
-        allele_per_anc = np.swapaxes(dset.allele_per_anc(), 0, 1)
-
+        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        allele_per_anc = np.swapaxes(dset.allele_per_anc(), 0, 1).compute()
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             # number of african alleles, covariates
             design_null = np.hstack(
                 [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
             )
-            model_null = sm.GLM(
-                pheno,
-                design_null,
-                family=glm_family,
-            ).fit()
+            if family == "linear":
+                model_null = sm.OLS(pheno, design_null).fit(disp=0)
+            elif family == "logistic":
+                model_null = sm.Logit(pheno, design_null).fit(disp=0)
+            else:
+                raise NotImplementedError
             # number of african alleles, covariates + allele-per-anc
-            design_alt = np.hstack([design_null, allele_per_anc[i_snp, :, :]])
-            model_alt = sm.GLM(
-                pheno,
-                design_alt,
-                family=glm_family,
-            ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
-            pvalues.append(stats.chi2.sf(-2 * (model_null.llf - model_alt.llf), 2))
+            design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
+            if family == "linear":
+                model_alt = sm.OLS(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            elif family == "logistic":
+                model_alt = sm.Logit(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            else:
+                raise NotImplementedError
+            # model_alt = sm.GLM(
+            #     pheno,
+            #     design_alt,
+            #     family=glm_family,
+            # ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
+            # determine p-values using difference in log-likelihood and difference in degrees of freedom
+            pvalues.append(
+                stats.chi2.sf(
+                    -2 * (model_null.llf - model_alt.llf),
+                    (model_alt.df_model - model_null.df_model),
+                )
+            )
         pvalues = np.array(pvalues)
 
     elif method == "ADM":

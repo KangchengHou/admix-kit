@@ -3,14 +3,66 @@
 import admix
 import fire
 import pandas as pd
-from typing import List
 import subprocess
 import dapgen
+import numpy as np
+import os
+from typing import Union, List
 
 
 def lanc(
-    sample_vcf: str,
-    ref_vcf: str,
+    pfile: str,
+    ref_pfile: str,
+    ref_pop_col: str,
+    ref_pops: str,
+    out: str,
+):
+    sample_dset = admix.io.read_dataset(pfile=pfile)
+    ref_dset = admix.io.read_dataset(pfile=ref_pfile)
+    assert np.all(sample_dset.snp.index == ref_dset.snp.index), (
+        "`pfile` and `ref_pfile` must have the same snp index"
+        "(snp match feature coming soon)."
+    )
+
+    ref_dsets = [
+        ref_dset[:, (ref_dset.indiv[ref_pop_col] == pop).values] for pop in ref_pops
+    ]
+    est = admix.ancestry.lanc(sample_dset=sample_dset, ref_dsets=ref_dsets)
+    admix.data.Lanc(array=est).write(out)
+
+
+def lanc_impute(pfile: str, ref_pfile: str, out: str = None):
+    """Impute the local ancestry for `pfile` using `ref_pfile`
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pfile
+    ref_pfile : str
+        Path to the reference pfile
+    out : str
+        Path to the output pfile (default to pfile + ".lanc")
+    """
+    # check <pfile>.lanc does not exist
+    assert not os.path.exists(pfile + ".lanc"), "`pfile` already has a .lanc file"
+
+    sample_dset = admix.io.read_dataset(pfile=pfile)
+    ref_dset = admix.io.read_dataset(pfile=ref_pfile)
+    ref_lanc = admix.data.Lanc(ref_pfile + ".lanc")
+
+    sample_lanc = ref_lanc.impute(
+        ref_dset.snp[["CHROM", "POS"]].values, sample_dset.snp[["CHROM", "POS"]].values
+    )
+    if out is None:
+        out = pfile + ".lanc"
+    assert not os.path.exists(out), f"out={out} already exists"
+    sample_lanc.write(out)
+
+
+# TODO: remove this function
+def lanc_deprecated(
+    pfile: str,
+    ref_pfile: str,
     sample_map: str,
     genetic_map: str,
     out_prefix: str,
@@ -24,10 +76,10 @@ def lanc(
         should be subsumed into this function
     Parameters
     ----------
-    sample_vcf : str
-        VCF file containing the PHASED genotype
-    ref_vcf : str
-        VCF file containing the reference genotype
+    pfile : str
+        PLINK2 pfile for admixed individuals
+    ref_pfile : str
+        PLINK2 pfile for reference individuals
     sample_map : str
         Text file with two column containing the population of individuals in ref_vcf
         the unique population will be used as reference ancestral population in
@@ -110,105 +162,230 @@ def lanc(
     print(rfmix_code)
     subprocess.check_call(rfmix_code, shell=True)
 
-    # Step 3: clean up
-    clean_code = (
-        f"""
-        out_prefix={out_prefix}
-        """
-        + """
-        rm -f ${out_prefix}.sample.vcf.gz
-        rm -f ${out_prefix}.ref.vcf.gz
-        """
+
+# def merge_dataset(path_list: str, out: str):
+#     """Merge multiple dataset [in zarr format] into one dataset, assuming the individiduals
+#     are shared typically used for merging multiple datasets from different chromosomes.
+
+#     Parameters
+#     ----------
+#     path_list : List[str]
+#         path of a text file pointing to the list of paths
+#     out : str
+#         Path to the output zarr file
+#     """
+#     import xarray as xr
+
+#     dset_list = [xr.open_zarr(p) for p in path_list]
+
+#     dset = xr.concat(dset_list, dim="snp")
+
+#     dset = dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).compute()
+#     dset.to_zarr(out, mode="w", safe_chunks=False)
+
+
+def prune(pfile: str, out: str, indep_pairwise_params: List = None):
+    """Prune a pfile based on indep_pairwise_params
+
+    Parameters
+    ----------
+    pfile : str
+        pfile
+    out : str
+        out_prefix
+    indep_pairwise_params : [type], optional
+        if None, use the default [100 5 0.1]
+
+    Returns
+    -------
+    out.[pgen|pvar|psam] will be created
+    """
+    if indep_pairwise_params is None:
+        indep_pairwise_params = [100, 5, 0.1]
+
+    admix.tools.plink2.prune(
+        pfile=pfile,
+        out_prefix=out,
+        indep_pairwise_params=indep_pairwise_params,
     )
 
-    print(clean_code)
-    subprocess.check_call(clean_code, shell=True)
 
-
-def pgen_attach_lanc(pgen: str, lanc: str, out: str = None):
+def pca(pfile: str, out: str, approx=False):
     """
-    Attach local ancestry to pgen file
+    Perform PCA on a pgen file
 
     Parameters
     ----------
-    pgen : str
+    pfile : str
         Path to the pgen file
-    lanc : str
-        Path to the local ancestry file
+    prune : bool
+        Whether to prune the pfile using the default recipe
+        --indep 200 5 1.15, --indep-pairwise 100 5 0.1
     out : str
-        Path to the output zarr file, default to replacing .pgen to .lanc
+        Path to the output file
     """
-
-    if out is None:
-        out = pgen.replace(".pgen", ".lanc")
-
-    dset = dapgen.read_pfile(pgen, phase=True)
-    dset = admix.data.assign_lanc(dset, lanc)
-    dset.lanc.data.to_zarr(out)
+    admix.tools.plink2.pca(pfile=pfile, out_prefix=out, approx=approx)
 
 
-# TODO: including logging functions
-def vcf_to_dataset(
-    vcf: str, lanc: str, out: str, region: str = None, samples: str = None
+def plot_pca(
+    pfile: str,
+    pca: str,
+    out: str,
+    label_col: str = None,
+    x: str = "PC1",
+    y: str = "PC2",
+):
+    """Plot PCA results to a file
+
+    Parameters
+    ----------
+    pfile : str
+        pfile
+    label_col : str
+        column in .psam file
+    pca : str
+        path to the pca file
+    out : str
+        path to the output file
+    x : str
+        x-axis (default PC1)
+    y : str
+        y-axis (default PC2)
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+
+    mpl.style.use("classic")
+
+    df_psam = dapgen.read_psam(pfile + ".psam")
+    df_pca = pd.read_csv(pca, delim_whitespace=True, index_col=0)
+    assert np.all(df_psam.index == df_pca.index)
+
+    df_plot = pd.merge(df_psam, df_pca, left_index=True, right_index=True)
+
+    fig, ax = plt.subplots(figsize=(2.5, 2.5))
+    admix.plot.pca(df_plot, x=x, y=y, label_col=label_col)
+
+    # make xticklabels and yticklabels smaller
+    ax.tick_params(axis="x", labelsize=6)
+    ax.tick_params(axis="y", labelsize=6)
+    # make legend font smaller
+    ax.legend(fontsize=8)
+    plt.savefig(out, bbox_inches="tight", dpi=300)
+
+
+def simulate_quant_pheno(
+    pfile: str,
+    hsq: float,
+    out_prefix: str,
+    n_causal: int = None,
+    p_causal: float = None,
+    seed: int = None,
+    snp_effect: str = None,
+    n_sim: int = 10,
 ):
     """
-    Convert a VCF file to a zarr file
+    Simulate phenotypes from a pgen file.
 
     Parameters
     ----------
-    vcf : str
-        Path to the VCF file
-    lanc : str
-        Path to the local ancestry file
+    pfile : str
+        Path to the pgen file
+    hsq : float
+        Heritability
     out : str
-        Path to the output zarr file
-    region : str
-        Region to extract from the VCF file
-    samples : str
-        Path to the samples file to extract from vcf files, one sample per line
+        Prefix to the output file, <out>.pheno, <out>.snpeffect will be created
+    n_causal : int
+        Number of causal variants to simulate
+    p_causal : float
+        Proportion of a causal variant
+    seed : int
+        Random seed
+    beta : str
+        Path to the beta file
+    n_sim : int
+        Number of simulations to perform
     """
-    if samples is not None:
-        with open(samples) as f:
-            sample_list = [l.strip() for l in f.readlines()]
-    print(f"Loading {len(sample_list)} samples")
 
-    print(f"Reading VCF file {vcf}...")
-    dset = admix.io.read_vcf(vcf, region=region, samples=sample_list)
-    print(f"Loaded VCF file shape: {dset.dims}")
+    assert snp_effect is None, "snp_effect is not supported yet"
+    np.random.seed(seed)
 
-    print(f"Reading and assigning local ancestry file {lanc}...")
-    dset = admix.data.assign_lanc(dset, lanc)
+    # n_causal and p_causal can not be both specified
+    assert not (
+        n_causal is not None and p_causal is not None
+    ), "`n_causal` and `p_causal` can not be both specified"
 
-    print(f"Saving file to {out}...")
-    dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).to_zarr(out, mode="w")
+    dset = admix.io.read_dataset(pfile)
+
+    if p_causal is not None:
+        n_causal = int(dset.n_indiv * p_causal)
+
+    dict_sim = admix.simulate.quant_pheno(
+        dset=dset,
+        hsq=hsq,
+        n_causal=n_causal,
+        n_sim=n_sim,
+        beta=snp_effect,
+    )
+    df_snp = dset.snp.copy()
+    df_indiv = dset.indiv.copy()
+    columns = []
+    for sim_i in range(n_sim):
+        columns.extend([f"SIM{sim_i}.ANC{anc_i}" for anc_i in range(dset.n_anc)])
+
+    df_beta = pd.DataFrame(index=df_snp.index, columns=columns)
+    # fill in beta
+    for anc_i in range(dset.n_anc):
+        df_beta.iloc[:, anc_i :: dset.n_anc] = dict_sim["beta"][:, anc_i, :]
+
+    df_pheno = pd.DataFrame(
+        dict_sim["pheno"],
+        columns=[f"SIM{i}" for i in range(n_sim)],
+        index=df_indiv.index,
+    )
+
+    for suffix, df in zip(["beta", "pheno"], [df_beta, df_pheno]):
+        df.to_csv(f"{out_prefix}.{suffix}", sep="\t", float_format="%.6g")
 
 
-def merge_dataset(path_list: str, out: str):
-    """Merge multiple dataset [in zarr format] into one dataset, assuming the individiduals
-    are shared typically used for merging multiple datasets from different chromosomes.
+def assoc_quant(
+    pfile: str,
+    pheno: str,
+    pheno_col: str,
+    out: str,
+    method: Union[str, List[str]] = "ATT",
+):
+    """
+    Perform association analysis on a pgen file
 
     Parameters
     ----------
-    path_list : List[str]
-        path of a text file pointing to the list of paths
+    pfile : str
+        Path to the pgen file
+    pheno : str
+        Path to the phenotype file
+    pheno_col : str
+        Column name in the phenotype file
     out : str
-        Path to the output zarr file
+        Path the output file
+    method : Union[str, List[str]]
+        Method to use for association analysis (default ATT)
     """
-    import xarray as xr
+    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0)
+    dset = admix.io.read_dataset(pfile)
+    df_pheno = df_pheno.reindex(dset.indiv.index)
+    if isinstance(method, str):
+        method = [method]
 
-    dset_list = [xr.open_zarr(p) for p in path_list]
+    dict_rls = {}
+    for m in method:
+        dict_rls[m] = admix.assoc.marginal(
+            dset=dset, pheno=df_pheno[pheno_col].values, method=m, family="linear"
+        )
 
-    dset = xr.concat(dset_list, dim="snp")
-
-    dset = dset.chunk(chunks={"indiv": -1, "ploidy": -1, "snp": "auto"}).compute()
-    dset.to_zarr(out, mode="w", safe_chunks=False)
-
-
-def test():
-    """
-    Test the admix module
-    """
-    print("testing the admix module")
+    pd.DataFrame(dict_rls, index=dset.snp.index).to_csv(
+        out, sep="\t", float_format="%.6g", na_rep="NA"
+    )
 
 
 if __name__ == "__main__":

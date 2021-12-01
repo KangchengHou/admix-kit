@@ -1,3 +1,6 @@
+"""
+Check whether basic functions runs without error
+"""
 import dask.array as da
 import numpy as np
 from numpy.lib.npyio import load
@@ -29,7 +32,7 @@ def test_utils():
         n_anc=2,
     )
     apa = dset.allele_per_anc()
-
+    af = dset.af_per_anc()
     assert np.all(np.swapaxes(apa, 0, 1) == [[[1, 0], [2, 0], [0, 0]]])
 
 
@@ -70,22 +73,16 @@ def test_utils():
 
 
 def test_assoc():
-    """
-    TODO: add basic testing to association testing modules.
-    """
-
     np.random.seed(1234)
-
-    admix_dset, eur_dset, afr_dset = admix.dataset.load_toy()
-    sim = admix.simulate.quant_pheno(admix_dset, hsq=0.5, cor=1.0)
+    dset_admix = admix.dataset.load_toy_admix()
+    sim = admix.simulate.quant_pheno(dset_admix, hsq=0.5, cor=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
 
-    admix_dset.indiv["pheno"] = sim_pheno
-    assoc = admix.assoc.marginal(
-        dset=admix_dset,
-        pheno_col="pheno",
+    assoc = admix.assoc.marginal_fast(
+        dset=dset_admix,
+        pheno=sim_pheno,
         method="ATT",
         family="linear",
     )
@@ -153,7 +150,7 @@ def test_consistent():
     dset_admix.indiv["pheno"] = sim_pheno
     assoc = admix.assoc.marginal(
         dset=dset_admix,
-        pheno_col="pheno",
+        pheno=sim_pheno,
         method="ATT",
         family="linear",
     )
@@ -165,8 +162,10 @@ def test_consistent():
     assert np.allclose(data_dict["af"], af)
     assert np.allclose(data_dict["beta"], sim_beta)
     assert np.allclose(data_dict["pheno"], sim_pheno)
-    assert np.allclose(data_dict["assoc"], assoc.P.values)
+    assert np.allclose(data_dict["assoc"], assoc)
 
 
 def test_ext_tools():
     admix.tools.get_dependency("plink2")
+    admix.tools.get_dependency("plink")
+    admix.tools.get_dependency("liftOver")

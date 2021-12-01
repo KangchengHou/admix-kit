@@ -1,6 +1,6 @@
 # Generate toy data
-# This data is generated using admix-tools version
-# https://github.com/KangchengHou/admix-tools/tree/573cdaef5d481ba7995ea40a66f783c419f176d1
+# This data is generated using admix-kit version
+# https://github.com/KangchengHou/admix-kit/tree/573cdaef5d481ba7995ea40a66f783c419f176d1
 # 1. Make PLINK2 dataset.
 # 2. Infer local ancestry with LAMPLD.
 # 3. Simulate phenotypes.

@@ -1,29 +1,46 @@
 Prepare dataset
--------------------
+---------------
+To start genetic analysis for admixed populations with admix-kit, we recommned first compile the data set that admix-kit likes.
 
+- Phased genotype in PLINK2 format.
+- Local ancestry inference results .lanc.
+- Additional individuals' information .indiv_info
+- Additional SNPs' information .snp_info
+
+In the end, the dataset file will look like:
+dset.pgen, dset.pvar, dset.psam, dset.lanc, dset.indiv_info, dset.snp_info
+
+Or you can divide the dataset by chromosome.
+
+TODO: have an full example based on 1,000 Genomes project. CEU, YRI, ASW.
+
+Obtain PLINK2 genotype file
+---------------------------
+
+```bash
+plink2 --vcf <vcf_path> --make-pgen --out <plink2_path>
+```
+
+TODO: thin the data set 
+
+Obtain local ancestry
+---------------------
+```bash
+admix lanc --pfile <pfile> --method 
+```
+
+Association testing
+--------------------
+```
+admix assoc --dset <dset> --method <method> --pheno-col <pheno_col> --out <out>
+```
+
+
+TODO: add scripts to convert vcf to plink2 format.
+TODO: 
 We require a phased vcf file to start the analysis. If the data is genotype array data, 
 we recommend using the TOPMed imputation server to obtain both imputation and phasing information.
 
-From the imputed results from TOPMed imputation server, we recommend performing some basic QC:
-
-.. code-block:: bash
-
-    # prefix=/path/to/topmed/chr22, for example
-    bcftools filter -i 'INFO/R2>0.8 & INFO/MAF > 0.005' ${prefix}.dose.vcf.gz -Oz -o ${prefix}.impute_qced.vcf.gz
-    tabix -p vcf ${prefix}.impute_qced.vcf.gz
-
-
-One can use LAMP-LD or RFmix to perform local ancestry inference. To prepare the dataset,
-for computational efficiency, we recommend to first extract the typed SNPs:
-
-.. code-block:: bash
-
-    bcftools view -i 'TYPED=1|TYPED_ONLY=1' ${prefix}.impute_qced.vcf.gz -Oz -o ${prefix}.typed.vcf.gz
-    tabix -p vcf ${prefix}.typed.vcf.gz
-
-.. note::
-    You don't have to strictly follow these commands, the goal of these steps is just to
-    obtain a phased VCF file with SNPs in typed density to efficiently infer local ancestry.
 
 In the following, we will
 

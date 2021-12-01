@@ -16,7 +16,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "admix-tools"
+project = "admix-kit"
 copyright = "2021, Kangcheng Hou"
 author = "Kangcheng Hou"
 
@@ -67,8 +67,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",  # path to your example scripts
-    "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
-    "backreferences_dir": "gen_modules/backreferences",
+    "gallery_dirs": "_examples",  # path to where to save gallery generated output
+    "backreferences_dir": "_api",
     "doc_module": ("admix", "numpy"),
 }
 
