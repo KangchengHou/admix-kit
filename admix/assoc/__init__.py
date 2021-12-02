@@ -12,6 +12,8 @@ import admix
 
 __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
+# TODO: merge marginal_fast and marginal
+
 
 def marginal_fast(
     dset: admix.Dataset = None,
@@ -120,8 +122,8 @@ def marginal_fast(
 
     elif method == "SNP1":
         # [geno] + lanc
-        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1).compute()
-        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
+        geno = np.swapaxes(np.sum(geno, axis=2).compute(), 0, 1)
+        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
         var = np.empty((geno.shape[0], n_snp * 2))
         var[:, 0::2] = geno
         var[:, 1::2] = lanc
@@ -147,7 +149,7 @@ def marginal_fast(
         allele_per_anc = admix.data.allele_per_anc(geno, lanc).compute()
         # alleles per ancestry
         allele_per_anc = np.swapaxes(allele_per_anc, 0, 1)
-        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
 
         var = np.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
@@ -232,15 +234,6 @@ def marginal(
         [description]
     """
 
-    # TODO: deal with missing genotype
-
-    if family == "linear":
-        glm_family = sm.families.Gaussian()
-    elif family == "logistic":
-        glm_family = sm.families.Binomial()
-    else:
-        raise NotImplementedError
-
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:
         assert (geno is None) and (
@@ -263,25 +256,29 @@ def marginal(
     else:
         cov = np.ones((n_indiv, 1))
 
+    if family == "linear":
+        reg_method = lambda pheno, design, start_params=None: sm.OLS(
+            pheno, design, missing="drop"
+        ).fit(disp=0, start_params=start_params)
+    elif family == "logistic":
+        reg_method = lambda pheno, design, start_params=None: sm.Logit(
+            pheno, design, missing="drop"
+        ).fit(disp=0, start_params=start_params)
+    else:
+        raise NotImplementedError
+
     if method == "ATT":
         geno = np.swapaxes(np.sum(geno, axis=2), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
-            if family == "linear":
-                model = sm.OLS(pheno, design).fit(disp=0)
-            elif family == "logistic":
-                model = sm.Logit(pheno, design).fit(disp=0)
-            else:
-                raise NotImplementedError
+            model = reg_method(pheno, design)
             pvalues.append(model.pvalues[1])
-
         pvalues = np.array(pvalues)
 
     elif method == "SNP1":
-        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1).compute()
-        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
-
+        geno = np.swapaxes(np.sum(geno, axis=2).compute(), 0, 1)
+        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
 
@@ -292,7 +289,7 @@ def marginal(
                     cov,
                 ]
             )
-            model = sm.GLM(pheno, design, family=glm_family).fit()
+            model = reg_method(pheno, design)
             pvalues.append(model.pvalues[1])
         pvalues = np.array(pvalues)
 
@@ -302,7 +299,7 @@ def marginal(
             admix.data.allele_per_anc(geno, lanc).compute(), 0, 1
         )
         # alleles per ancestry
-        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
@@ -310,29 +307,14 @@ def marginal(
             design_null = np.hstack(
                 [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
             )
-            if family == "linear":
-                model_null = sm.OLS(pheno, design_null).fit(disp=0)
-            elif family == "logistic":
-                model_null = sm.Logit(pheno, design_null).fit(disp=0)
-            else:
-                raise NotImplementedError
+            model_null = reg_method(pheno, design_null)
             # number of african alleles, covariates + allele-per-anc
             design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
-            if family == "linear":
-                model_alt = sm.OLS(pheno, design_alt).fit(
-                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
-                )
-            elif family == "logistic":
-                model_alt = sm.Logit(pheno, design_alt).fit(
-                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
-                )
-            else:
-                raise NotImplementedError
-            # model_alt = sm.GLM(
-            #     pheno,
-            #     design_alt,
-            #     family=glm_family,
-            # ).fit(start_params=np.concatenate([model_null.params, [0.0, 0.0]]))
+            model_alt = reg_method(
+                pheno,
+                design_alt,
+                start_params=np.concatenate([model_null.params, [0.0, 0.0]]),
+            )
             # determine p-values using difference in log-likelihood and difference in degrees of freedom
             pvalues.append(
                 stats.chi2.sf(
@@ -352,24 +334,16 @@ def marginal(
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             # number of african alleles, covariates
             design_null = sm.add_constant(cov)
-            if family == "linear":
-                model_null = sm.OLS(pheno, design_null).fit(disp=0)
-            elif family == "logistic":
-                model_null = sm.Logit(pheno, design_null).fit(disp=0)
-            else:
-                raise NotImplementedError
+            model_null = reg_method(pheno, design_null)
+
             # covariates + allele-per-anc
             design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
-            if family == "linear":
-                model_alt = sm.OLS(pheno, design_alt).fit(
-                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
-                )
-            elif family == "logistic":
-                model_alt = sm.Logit(pheno, design_alt).fit(
-                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
-                )
-            else:
-                raise NotImplementedError
+            model_alt = reg_method(
+                pheno,
+                design_alt,
+                start_params=np.concatenate([model_null.params, [0.0, 0.0]]),
+            )
+
             pvalues.append(
                 stats.chi2.sf(
                     -2 * (model_null.llf - model_alt.llf),
@@ -383,7 +357,7 @@ def marginal(
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
-            model = sm.GLM(pheno, design, family=glm_family).fit()
+            model = reg_method(pheno, design)
             pvalues.append(model.pvalues[1])
         pvalues = np.array(pvalues)
 

@@ -138,3 +138,13 @@ dset.allele_per_anc()
 # calculate allele frequencies per ancestry backgrounds
 dset.af_per_anc()
 ```
+
+## admix.Dataset
+admix.Dataset have dset.snp attributes, and is assumed to contain 
+- index `snp` (`ID` in the file)
+- chromosomes `CHROM` (without `chr` prefix)
+- positions `POS`
+- reference allele `REF`
+- alternative allele `ALT` (we assume bi-allelic variants, use plink2 --biallelic to filter the data beforehand.)
+
+PLINK2 format [.pvar](https://www.cog-genomics.org/plink/2.0/formats#pvar) will have these attributes.
