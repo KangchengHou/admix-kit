@@ -4,8 +4,29 @@ from numpy import (
     tril_indices_from,
 )
 import pandas as pd
-import dask
 import dask.array as da
+import admix
+from typing import Union
+
+
+def write_lanc(path: str, lanc: Union[np.ndarray, da.Array, admix.data.Lanc]) -> None:
+    """
+    Write local ancestry matrix to file.
+
+    Parameters
+    ----------
+    path : str
+        The path to the file to write.
+    lanc : array_like, shape (n_snps, n_snps)
+        The local ancestry matrix.
+    """
+    if isinstance(lanc, np.ndarray) or isinstance(lanc, da.Array):
+        lanc = admix.data.Lanc(array=lanc)
+
+    assert isinstance(
+        lanc, admix.data.Lanc
+    ), "lanc must be a numpy array or a dask array, or admix.data.Lanc"
+    lanc.write(path)
 
 
 def write_digit_mat(path, mat):

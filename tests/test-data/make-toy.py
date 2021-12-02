@@ -42,8 +42,8 @@ def process():
         sample_dset=dset_admix,
         ref_dsets=[dict_dset["CEU"], dict_dset["YRI"]],
         method="lampld",
-        n_proto=8,
-        window_size=50,
+        n_proto=6,
+        window_size=300,
     )
     admix.io.write_lanc("toy-admix.lanc", lanc=est_lanc)
 
@@ -53,17 +53,17 @@ def process():
     beta = np.zeros((dset_admix.n_snp, 2))
     beta[0, 0] = 1.0
     beta[0, 1] = 0.8
-    sim = admix.simulate.quant_pheno(dset_admix, beta=beta)
+    sim = admix.simulate.quant_pheno(dset_admix, beta=beta, hsq=0.5)
 
     df_snp_info = {
         "BETA1": sim["beta"][:, 0, sim_i],
         "BETA2": sim["beta"][:, 1, sim_i],
         "FREQ1": af_per_anc[:, 0],
         "FREQ2": af_per_anc[:, 1],
-        "ATT": admix.assoc.marginal_fast(
+        "ATT": admix.assoc.marginal(
             dset_admix, pheno=sim["pheno"][:, sim_i], method="ATT"
         ),
-        "TRACTOR": admix.assoc.marginal_fast(
+        "TRACTOR": admix.assoc.marginal(
             dset_admix, pheno=sim["pheno"][:, sim_i], method="TRACTOR"
         ),
     }

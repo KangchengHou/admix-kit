@@ -15,7 +15,7 @@ from typing import (
     Mapping,
     MutableMapping,
 )
-from ._utils import normalize_indices
+from ._index import normalize_indices
 
 
 class Dataset(object):
@@ -299,7 +299,6 @@ def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None
     """
     Read a dataset from a directory.
     """
-    import dapgen
 
     if snp is not None:
         snp_mask = dset.snp.index.isin(snp)

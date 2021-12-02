@@ -2,8 +2,6 @@ import statsmodels.api as sm
 import numpy as np
 import pandas as pd
 from scipy import stats
-import xarray as xr
-from typing import List
 from tqdm import tqdm
 import admix
 from typing import Any, Dict
@@ -30,7 +28,7 @@ def marginal_fast(
 
     Parameters
     ----------
-    dset : xr.Dataset
+    dset : admix.Dataset
         [description]
     pheno : str
         [description]
@@ -366,14 +364,14 @@ def marginal(
     return pvalues
 
 
-def marginal_simple(dset: xr.Dataset, pheno: np.ndarray) -> np.ndarray:
+def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
     """Simple marginal association testing for one SNP at a time
 
     Useful in simulation study because this will be very fast
 
     Parameters
     ----------
-    dset : xr.Dataset
+    dset : admix.Dataset
         Dataset containing the (n_indiv, n_snp) genotype matrix, dset.geno
     pheno : np.ndarray
         (n_snp, n_sim) phenotype matrix
