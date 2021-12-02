@@ -195,7 +195,7 @@ def marginal_fast(
 
 
 def marginal(
-    dset: admix.Dataset,
+    dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
     pheno: np.ndarray = None,
@@ -241,9 +241,21 @@ def marginal(
     else:
         raise NotImplementedError
 
-    assert method in ["ATT", "TRACTOR", "ADM", "SNP1"]
-    n_indiv = dset.n_indiv
-    n_snp = dset.n_snp
+    assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
+    if dset is not None:
+        assert (geno is None) and (
+            lanc is None
+        ), "Cannot specify both `dset` and `geno`, `lanc`"
+        geno = dset.geno
+        lanc = dset.lanc
+    else:
+        assert (geno is not None) and (
+            lanc is not None
+        ), "Must specify `dset` or `geno`, `lanc`"
+
+    assert np.all(geno.shape == lanc.shape), "geno and lanc must have same shape"
+    n_snp, n_indiv = geno.shape[0:2]
+
     if cov is not None:
         assert cov.shape[0] == n_indiv, "cov must have same number of rows as pheno"
         # prepend a column of ones to the covariates
@@ -252,7 +264,7 @@ def marginal(
         cov = np.ones((n_indiv, 1))
 
     if method == "ATT":
-        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1)
+        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1)
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
@@ -267,8 +279,8 @@ def marginal(
         pvalues = np.array(pvalues)
 
     elif method == "SNP1":
-        geno = np.swapaxes(np.sum(dset.geno, axis=2), 0, 1).compute()
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
 
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
@@ -286,8 +298,12 @@ def marginal(
 
     elif method == "TRACTOR":
         # alleles per ancestry
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
-        allele_per_anc = np.swapaxes(dset.allele_per_anc(), 0, 1).compute()
+        allele_per_anc = np.swapaxes(
+            admix.data.allele_per_anc(geno, lanc).compute(), 0, 1
+        )
+        # alleles per ancestry
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
+
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             # number of african alleles, covariates
@@ -326,8 +342,44 @@ def marginal(
             )
         pvalues = np.array(pvalues)
 
+    elif method == "ASE":
+        # alleles per ancestry
+        allele_per_anc = np.swapaxes(
+            admix.data.allele_per_anc(geno, lanc).compute(), 0, 1
+        )
+
+        pvalues = []
+        for i_snp in tqdm(range(n_snp), disable=not verbose):
+            # number of african alleles, covariates
+            design_null = sm.add_constant(cov)
+            if family == "linear":
+                model_null = sm.OLS(pheno, design_null).fit(disp=0)
+            elif family == "logistic":
+                model_null = sm.Logit(pheno, design_null).fit(disp=0)
+            else:
+                raise NotImplementedError
+            # covariates + allele-per-anc
+            design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
+            if family == "linear":
+                model_alt = sm.OLS(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            elif family == "logistic":
+                model_alt = sm.Logit(pheno, design_alt).fit(
+                    disp=0, start_params=np.concatenate([model_null.params, [0.0, 0.0]])
+                )
+            else:
+                raise NotImplementedError
+            pvalues.append(
+                stats.chi2.sf(
+                    -2 * (model_null.llf - model_alt.llf),
+                    (model_alt.df_model - model_null.df_model),
+                )
+            )
+        pvalues = np.array(pvalues)
+
     elif method == "ADM":
-        lanc = np.swapaxes(np.sum(dset.lanc, axis=2), 0, 1).compute()
+        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
         pvalues = []
         for i_snp in tqdm(range(n_snp), disable=not verbose):
             design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
