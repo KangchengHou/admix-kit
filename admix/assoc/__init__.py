@@ -4,13 +4,128 @@ import pandas as pd
 from scipy import stats
 from tqdm import tqdm
 import admix
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 import dask.array as da
 import admix
 
 __all__ = ["marginal", "marginal_fast", "marginal_simple"]
 
 # TODO: merge marginal_fast and marginal
+
+
+def _block_test(
+    var: np.ndarray,
+    cov: np.ndarray,
+    pheno: np.ndarray,
+    var_size: int,
+    test_vars: List[int],
+    family: str = "linear",
+    logistic_kwargs: Dict[str, Any] = dict(),
+    fast: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Perform association testing for a block of variables
+
+    Parameters
+    ----------
+    var : np.ndarray
+        (n_indiv, n_var x var_size) variable matrix
+    cov : np.ndarray
+        (n_indiv, n_cov) covariate matrix
+    pheno : np.ndarray
+        (n_snp) phenotype matrix
+    var_size : int
+        Number of variables for each test
+    test_vars : List[int]
+        Index of variables to test
+    """
+    n_indiv = var.shape[0]
+    assert (
+        cov.shape[0] == n_indiv
+    ), "Number of individuals in genotype and covariate do not match"
+    assert pheno.ndim == 1, "Phenotype must be a vector"
+    assert (
+        pheno.shape[0] == n_indiv
+    ), "Number of individuals in genotype and phenotype do not match"
+    assert var_size > 0, "Variable size must be greater than 0"
+    assert (
+        var.shape[1] % var_size == 0
+    ), "Number of variables in var must be a multiple of var_size"
+    n_var = var.shape[1] // var_size
+
+    test_vars = np.array(test_vars)
+    assert np.all(test_vars < n_var), "test_vars must be less than n_var"
+
+    n_cov = cov.shape[1]
+    design = np.zeros((n_indiv, var_size + n_cov))
+
+    design[:, var_size : var_size + n_cov] = cov
+    if fast:
+        try:
+            import admixgwas
+        except ImportError:
+            raise ImportError("\nplease install admixgwas:\n\n\tpip install admixgwas")
+
+        if family == "linear":
+            f_stats = admixgwas.linear_f_test(var, cov, pheno, var_size, test_vars)
+            pvalues = stats.f.sf(f_stats, len(test_vars), n_indiv - n_cov - var_size)
+
+        elif family == "logistic":
+            lrt_diff = admixgwas.logistic_lrt(
+                var,
+                cov,
+                pheno,
+                var_size,
+                test_vars,
+                logistic_kwargs["max_iter"],
+                logistic_kwargs["tol"],
+            )
+            pvalues = stats.chi2.sf(2 * lrt_diff, 1)
+        else:
+            raise ValueError(f"Unknown family: {family}")
+    else:
+        # statsmodels implementation
+        if family == "linear":
+            reg_method = lambda pheno, design, start_params=None: sm.OLS(
+                pheno, design, missing="drop"
+            ).fit(disp=0, start_params=start_params)
+        elif family == "logistic":
+            reg_method = lambda pheno, design, start_params=None: sm.Logit(
+                pheno, design, missing="drop"
+            ).fit(disp=0, start_params=start_params)
+        else:
+            raise NotImplementedError
+
+        pvalues = []
+        reduced_index = np.concatenate(
+            [
+                sorted(list(set(np.arange(var_size)) - set(test_vars))),
+                np.arange(var_size, var_size + n_cov),
+            ]
+        )
+        for i in range(n_var):
+            design[:, 0:var_size] = var[:, i * var_size : (i + 1) * var_size]
+            model = reg_method(pheno, design)
+
+            if len(test_vars) == 1:
+                # short cut for single test
+                pvalues.append(model.pvalues[test_vars.item()])
+            else:
+                # more than one test variables
+                model_reduced = reg_method(
+                    pheno,
+                    design[:, reduced_index],
+                    start_params=model.params[reduced_index],
+                )
+
+                # determine p-values using difference in log-likelihood and difference in degrees of freedom
+                pvalues.append(
+                    stats.chi2.sf(
+                        -2 * (model_reduced.llf - model.llf),
+                        (model.df_model - model_reduced.df_model),
+                    )
+                )
+    return np.array(pvalues)
 
 
 def marginal_fast(
@@ -203,6 +318,7 @@ def marginal(
     method: str = "ATT",
     family: str = "linear",
     verbose: bool = False,
+    n_block: int = 20,
 ):
     """Marginal association testing for one SNP at a time
 
@@ -221,17 +337,11 @@ def marginal(
 
     Returns
     -------
-    [type]
+    np.ndarray
         Association p-values for each SNP being tested
 
-    Raises
-    ------
-    NotImplementedError
-        [description]
-    NotImplementedError
-        [description]
     """
-
+    # format data
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:
         assert (geno is None) and (
@@ -254,114 +364,65 @@ def marginal(
     else:
         cov = np.ones((n_indiv, 1))
 
-    if family == "linear":
-        reg_method = lambda pheno, design, start_params=None: sm.OLS(
-            pheno, design, missing="drop"
-        ).fit(disp=0, start_params=start_params)
-    elif family == "logistic":
-        reg_method = lambda pheno, design, start_params=None: sm.Logit(
-            pheno, design, missing="drop"
-        ).fit(disp=0, start_params=start_params)
-    else:
-        raise NotImplementedError
-
     if method == "ATT":
-        geno = np.swapaxes(np.sum(geno, axis=2), 0, 1)
-        pvalues = []
-        for i_snp in tqdm(range(n_snp), disable=not verbose):
-            design = np.hstack([sm.add_constant(geno[:, i_snp][:, np.newaxis]), cov])
-            model = reg_method(pheno, design)
-            pvalues.append(model.pvalues[1])
-        pvalues = np.array(pvalues)
+        var = geno.sum(axis=2).swapaxes(0, 1)
+        var_size = 1
+        test_vars = [0]
+    elif method == "TRACTOR":
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        lanc = lanc.sum(axis=2).swapaxes(0, 1)
+        var = da.empty((n_indiv, n_snp * 3))
+        var[:, 0::3] = allele_per_anc[:, :, 0]
+        var[:, 1::3] = allele_per_anc[:, :, 1]
+        var[:, 2::3] = lanc
+        var_size = 3
+        test_vars = [0, 1]
 
     elif method == "SNP1":
-        geno = np.swapaxes(np.sum(geno, axis=2).compute(), 0, 1)
-        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
-        pvalues = []
-        for i_snp in tqdm(range(n_snp), disable=not verbose):
-
-            design = np.hstack(
-                [
-                    sm.add_constant(geno[:, i_snp][:, np.newaxis]),
-                    lanc[:, i_snp][:, np.newaxis],
-                    cov,
-                ]
-            )
-            model = reg_method(pheno, design)
-            pvalues.append(model.pvalues[1])
-        pvalues = np.array(pvalues)
-
-    elif method == "TRACTOR":
-        # alleles per ancestry
-        allele_per_anc = np.swapaxes(
-            admix.data.allele_per_anc(geno, lanc).compute(), 0, 1
-        )
-        # alleles per ancestry
-        lanc = np.swapaxes(np.sum(lanc, axis=2).compute(), 0, 1)
-
-        pvalues = []
-        for i_snp in tqdm(range(n_snp), disable=not verbose):
-            # number of african alleles, covariates
-            design_null = np.hstack(
-                [sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov]
-            )
-            model_null = reg_method(pheno, design_null)
-            # number of african alleles, covariates + allele-per-anc
-            design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
-            model_alt = reg_method(
-                pheno,
-                design_alt,
-                start_params=np.concatenate([model_null.params, [0.0, 0.0]]),
-            )
-            # determine p-values using difference in log-likelihood and difference in degrees of freedom
-            pvalues.append(
-                stats.chi2.sf(
-                    -2 * (model_null.llf - model_alt.llf),
-                    (model_alt.df_model - model_null.df_model),
-                )
-            )
-        pvalues = np.array(pvalues)
-
+        geno = geno.sum(axis=2).swapaxes(0, 1)
+        lanc = lanc.sum(axis=2).swapaxes(0, 1)
+        var = da.empty((n_indiv, n_snp * 2))
+        var[:, 0::2] = geno
+        var[:, 1::2] = lanc
+        var_size = 2
+        test_vars = [0]
     elif method == "ASE":
         # alleles per ancestry
-        allele_per_anc = np.swapaxes(
-            admix.data.allele_per_anc(geno, lanc).compute(), 0, 1
-        )
-
-        pvalues = []
-        for i_snp in tqdm(range(n_snp), disable=not verbose):
-            # number of african alleles, covariates
-            design_null = sm.add_constant(cov)
-            model_null = reg_method(pheno, design_null)
-
-            # covariates + allele-per-anc
-            design_alt = np.hstack([design_null, allele_per_anc[:, i_snp, :]])
-            model_alt = reg_method(
-                pheno,
-                design_alt,
-                start_params=np.concatenate([model_null.params, [0.0, 0.0]]),
-            )
-
-            pvalues.append(
-                stats.chi2.sf(
-                    -2 * (model_null.llf - model_alt.llf),
-                    (model_alt.df_model - model_null.df_model),
-                )
-            )
-        pvalues = np.array(pvalues)
-
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        var = da.empty((n_indiv, n_snp * 2))
+        var[:, 0::2] = allele_per_anc[:, :, 0]
+        var[:, 1::2] = allele_per_anc[:, :, 1]
+        var_size = 2
+        test_vars = [0, 1]
     elif method == "ADM":
-        lanc = np.swapaxes(np.sum(lanc, axis=2), 0, 1).compute()
-        pvalues = []
-        for i_snp in tqdm(range(n_snp), disable=not verbose):
-            design = np.hstack([sm.add_constant(lanc[:, i_snp][:, np.newaxis]), cov])
-            model = reg_method(pheno, design)
-            pvalues.append(model.pvalues[1])
-        pvalues = np.array(pvalues)
-
+        var = lanc.sum(axis=2).swapaxes(0, 1)
+        var_size = 1
+        test_vars = [0]
     else:
         raise NotImplementedError
-    return pvalues
+
+    # iterate over block of SNPs
+    assert var.shape[1] % var_size == 0, "var must have multiple of `var_size` columns"
+    assert var.shape[1] / var_size == n_snp
+
+    pvalues = []
+    snp_start = 0
+    block_size = n_snp // n_block
+    while snp_start < n_snp:
+        snp_stop = min(snp_start + block_size, n_snp)
+        # test each SNP in block
+        pvalues.append(
+            _block_test(
+                var=var[:, snp_start * var_size : snp_stop * var_size],
+                cov=cov,
+                pheno=pheno,
+                var_size=var_size,
+                test_vars=test_vars,
+                family=family,
+            )
+        )
+        snp_start += block_size
+    return np.concatenate(pvalues)
 
 
 def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
