@@ -28,7 +28,7 @@ Association testing: `assoc`
 .. autosummary:: 
    :toctree: _api
 
-   assoc.marginal_fast
+   assoc.marginal
    assoc.marginal_simple
 
 Simulation: `simulate`

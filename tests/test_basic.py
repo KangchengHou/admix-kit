@@ -80,7 +80,7 @@ def test_assoc():
     sim_beta = sim["beta"][:, :, i_sim]
     sim_pheno = sim["pheno"][:, i_sim]
 
-    assoc = admix.assoc.marginal_fast(
+    assoc = admix.assoc.marginal(
         dset=dset_admix,
         pheno=sim_pheno,
         method="ATT",
