@@ -79,8 +79,16 @@ def _block_test(
             )
 
         if family == "linear":
-            f_stats = tinygwas.linear_f_test(var, cov, pheno, var_size, test_vars)
-            pvalues = stats.f.sf(f_stats, len(test_vars), n_indiv - n_cov - var_size)
+            # number of non-nan individuals per test
+            f_stats = np.empty(n_var)
+            n_indiv_test = np.empty(n_var)
+            # tinygwas return fstats and nindiv through reference
+            tinygwas.linear_f_test(
+                var, cov, pheno, var_size, test_vars, f_stats, n_indiv_test
+            )
+            pvalues = stats.f.sf(
+                f_stats, len(test_vars), n_indiv_test - n_cov - var_size
+            )
 
         elif family == "logistic":
             if "max_iter" not in logistic_kwargs:
@@ -161,7 +169,7 @@ def marginal(
     method: str = "ATT",
     family: str = "linear",
     verbose: bool = False,
-    fast: bool = False,
+    fast: bool = True,
     n_block: int = 1,
 ):
     """Marginal association testing for one SNP at a time
@@ -185,6 +193,7 @@ def marginal(
         Association p-values for each SNP being tested
 
     """
+    assert family == "linear", "Only linear models are supported for now"
     # format data
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:
@@ -197,6 +206,11 @@ def marginal(
         assert (geno is not None) and (
             lanc is not None
         ), "Must specify `dset` or `geno`, `lanc`"
+        # convert geno and lanc to da.Array when necessary
+        if not isinstance(geno, da.Array):
+            geno = da.from_array(geno, chunks=-1)
+        if not isinstance(lanc, da.Array):
+            lanc = da.from_array(lanc, chunks=-1)
 
     assert np.all(geno.shape == lanc.shape), "geno and lanc must have same shape"
     n_snp, n_indiv = geno.shape[0:2]
@@ -208,6 +222,8 @@ def marginal(
     else:
         cov = np.ones((n_indiv, 1))
 
+    # check covariates must be full rank
+    assert np.linalg.matrix_rank(cov) == cov.shape[1], "Covariates must be full rank"
     if method == "ATT":
         var = geno.sum(axis=2).swapaxes(0, 1)
         var_size = 1

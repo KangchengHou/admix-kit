@@ -61,10 +61,10 @@ def process():
         "FREQ1": af_per_anc[:, 0],
         "FREQ2": af_per_anc[:, 1],
         "ATT": admix.assoc.marginal(
-            dset_admix, pheno=sim["pheno"][:, sim_i], method="ATT"
+            dset_admix, pheno=sim["pheno"][:, sim_i], method="ATT", fast=False
         ),
         "TRACTOR": admix.assoc.marginal(
-            dset_admix, pheno=sim["pheno"][:, sim_i], method="TRACTOR"
+            dset_admix, pheno=sim["pheno"][:, sim_i], method="TRACTOR", fast=False
         ),
     }
     df_snp_info = pd.DataFrame(df_snp_info, index=dset_admix.snp.index)
