@@ -11,7 +11,6 @@ from numpy import (
 from pandas import read_csv
 import numpy as np
 import re
-from smart_open import open
 import dask.array as da
 from typing import List, Optional
 import xarray as xr
