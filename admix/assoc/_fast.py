@@ -87,6 +87,28 @@ def linear_lrt(var, cov, pheno, var_size, test_vars):
         design[:, 0:var_size] = var[:, i_test * var_size : (i_test + 1) * var_size]
         llf1 = sm.OLS(pheno, design[:, reduced_index]).fit().llf
         llf2 = sm.OLS(pheno, design).fit().llf
-
         pvalues[i_test] = stats.chi2.sf(-2 * (llf1 - llf2), len(test_vars))
+    return pvalues
+
+
+def linear_f_test3(var, cov, pheno, var_size, test_vars):
+    n_indiv = var.shape[0]
+    n_var = var.shape[1]
+    n_cov = cov.shape[1]
+
+    design = np.zeros((n_indiv, var_size + n_cov))
+    design[:, var_size : var_size + n_cov] = cov
+
+    n_test = int(n_var / var_size)
+    pvalues = np.zeros(n_test)
+
+    f_test_r_matrix = np.zeros((len(test_vars), design.shape[1]))
+    for i, v in enumerate(test_vars):
+        f_test_r_matrix[i, v] = 1
+
+    for i_test in range(n_test):
+        design[:, 0:var_size] = var[:, i_test * var_size : (i_test + 1) * var_size]
+        model = sm.OLS(pheno, design, missing="drop").fit()
+        print(model.f_test(f_test_r_matrix))
+        pvalues[i_test] = model.f_test(f_test_r_matrix).pvalue.item()
     return pvalues

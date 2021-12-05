@@ -7,7 +7,6 @@ import admix
 from typing import Any, Dict, List, Tuple
 import dask.array as da
 import admix
-from ._fast import linear_f_test1, linear_f_test2, linear_lrt
 from statsmodels.tools import sm_exceptions
 import warnings
 
@@ -72,12 +71,15 @@ def _block_test(
     design[:, var_size : var_size + n_cov] = cov
     if fast:
         try:
-            import admixgwas
+            import tinygwas
         except ImportError:
-            raise ImportError("\nplease install admixgwas:\n\n\tpip install admixgwas")
+            raise ImportError(
+                "\nplease install tinygwas:\n\n"
+                "\tpip install git+https://github.com/bogdanlab/tinygwas.git#egg=tinygwas"
+            )
 
         if family == "linear":
-            f_stats = admixgwas.linear_f_test(var, cov, pheno, var_size, test_vars)
+            f_stats = tinygwas.linear_f_test(var, cov, pheno, var_size, test_vars)
             pvalues = stats.f.sf(f_stats, len(test_vars), n_indiv - n_cov - var_size)
 
         elif family == "logistic":
@@ -86,7 +88,7 @@ def _block_test(
             if "tol" not in logistic_kwargs:
                 logistic_kwargs["tol"] = 1e-6
 
-            lrt_diff = admixgwas.logistic_lrt(
+            lrt_diff = tinygwas.logistic_lrt(
                 var,
                 cov,
                 pheno,
@@ -299,7 +301,7 @@ def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
     >>> geno = _impute_with_mean(dset_admix.geno.values)
     >>> geno = (geno - geno.mean(axis=0)) / geno.std(axis=0)
 
-    >>> f_stats = admixgwas.linear_f_test(geno, np.ones((n_indiv, 1)), sim["pheno"][:, 0], 1, [0])
+    >>> f_stats = tinygwas.linear_f_test(geno, np.ones((n_indiv, 1)), sim["pheno"][:, 0], 1, [0])
     >>> p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
     >>> zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
 
