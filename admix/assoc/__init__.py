@@ -7,6 +7,11 @@ import admix
 from typing import Any, Dict, List, Tuple
 import dask.array as da
 import admix
+from ._fast import linear_f_test1, linear_f_test2, linear_lrt
+from statsmodels.tools import sm_exceptions
+import warnings
+
+warnings.filterwarnings(action="error", category=sm_exceptions.ValueWarning)
 
 __all__ = ["marginal", "marginal_simple"]
 
@@ -108,29 +113,34 @@ def _block_test(
 
         pvalues = []
 
-        reduced_index = [i for i in range(var_size) if i not in test_vars]
         reduced_index = np.concatenate(
             [
-                reduced_index,
+                [i for i in range(var_size) if i not in test_vars],
                 np.arange(var_size, var_size + n_cov),
             ]
         ).astype(int)
+
+        f_test_r_matrix = np.zeros((len(test_vars), design.shape[1]))
+        for i, v in enumerate(test_vars):
+            f_test_r_matrix[i, v] = 1
         for i in range(n_var):
             design[:, 0:var_size] = var[:, i * var_size : (i + 1) * var_size]
             model = reg_method(pheno, design)
-
-            if len(test_vars) == 1:
-                # short cut for single test
-                pvalues.append(model.pvalues[test_vars.item()])
-            else:
+            if family == "linear":
+                # f-test using statsmodels
+                try:
+                    pvalues.append(model.f_test(f_test_r_matrix).pvalue.item())
+                except sm_exceptions.ValueWarning:
+                    pvalues.append(np.nan)
+            elif family == "logistic":
                 # more than one test variables
                 model_reduced = reg_method(
                     pheno,
                     design[:, reduced_index],
                     start_params=model.params[reduced_index],
                 )
-
-                # determine p-values using difference in log-likelihood and difference in degrees of freedom
+                # determine p-values using difference in log-likelihood
+                # and difference in degrees of freedom
                 pvalues.append(
                     stats.chi2.sf(
                         -2 * (model_reduced.llf - model.llf),
