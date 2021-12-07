@@ -3,8 +3,7 @@ pandas
 scipy
 matplotlib
 seaborn
-zarr
-dask
+dask[array]>=2021.11.2
 tqdm
 xarray
 statsmodels
