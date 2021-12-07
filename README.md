@@ -88,11 +88,16 @@ admix simulate-quant-pheno \
     --seed 1234 \
     --out-prefix toy-admix
 
+# extract PC1, PC2 of the toy-admix.indiv_info as toy-admix.covar
+awk '{print $1, $3, $4}' toy-admix.indiv_info > toy-admix.covar
+
 # association testing of individual SNPs of simulated phenotype
+# several NA values are expected due to some SNP has zero frequency in this toy dataset
 admix assoc-quant \
     --pfile toy-admix \
     --pheno toy-admix.pheno \
     --pheno-col SIM0 \
+    --covar toy-admix.covar \
     --method ATT,TRACTOR \
     --out toy-admix.assoc
 ```
