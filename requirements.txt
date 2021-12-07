@@ -3,6 +3,7 @@ pandas
 scipy
 matplotlib
 seaborn
+zarr
 dask[array]>=2021.11.2
 tqdm
 xarray
