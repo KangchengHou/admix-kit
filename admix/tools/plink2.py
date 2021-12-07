@@ -368,11 +368,7 @@ def prune(
         os.remove(f)
 
 
-def pca(
-    pfile: str,
-    out_prefix: str,
-    approx: bool = False,
-):
+def pca(pfile: str, out_prefix: str, approx: bool = False, args: List[str] = None):
     """Run plink2 pca
 
     TODO: include more options
@@ -390,6 +386,9 @@ def pca(
         f"--pfile {pfile}",
         f"--out {out_prefix}",
     ]
+    if args is not None:
+        assert isinstance(args, list)
+        cmd += args
     if approx:
         cmd.append("--pca approx")
     else:

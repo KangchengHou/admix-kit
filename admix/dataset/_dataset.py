@@ -16,6 +16,7 @@ from typing import (
     MutableMapping,
 )
 from ._index import normalize_indices
+import warnings
 
 
 class Dataset(object):
@@ -125,7 +126,7 @@ class Dataset(object):
             if ("lanc" in self._xr) and (n_anc is None):
                 # infer number of ancestors
                 n_anc = int(lanc[0:1000, :, :].max().compute() + 1)
-                print(
+                admix.logger.info(
                     "admix.Dataset: `n_anc` is not provided"
                     + f", infered n_anc from the first 1,000 SNPs is {n_anc}. "
                     + "If this is not correct, provide `n_anc` when constructing admix.Dataset"
@@ -278,6 +279,60 @@ class Dataset(object):
                     self._xr[name].dims,
                     da.from_array(self._xr[name].data.compute(), chunks=-1),
                 )
+
+    def append_indiv_info(self, df_info: pd.DataFrame) -> None:
+        """
+        append indiv info to the dataset, individual is matched using the self.indiv.index
+        and df_info.index.
+
+        Parameters
+        ----------
+        df_info : pd.DataFrame
+            DataFrame with the indiv info
+        """
+        if len(set(df_info.index) - set(self.indiv.index)) > 0:
+            # raise warning
+            admix.logger.warn(
+                "Some individuals in the `df_info` are not in the dataset."
+            )
+
+        df_info = df_info.reindex(self.indiv.index)
+
+        # for every column in df_info, if it is not in the dataset, add it to the dataset
+        # else, check the consistency of between df_info and dataset, if not consistent, raise error
+        for col in df_info.columns:
+            if col in self.indiv.columns:
+                assert np.allclose(
+                    self.indiv[col], df_info[col]
+                ), f"The column {col} in the `df_info` is not consistent with the dataset."
+            else:
+                self._indiv[col] = df_info[col]
+
+    def append_snp_info(self, df_info: pd.DataFrame) -> None:
+        """
+        append snp info to the dataset, snp is matched using the self.snp.index
+        and df_info.index.
+
+        Parameters
+        ----------
+        df_info : pd.DataFrame
+            DataFrame with the snp info
+        """
+        if len(set(df_info.index) - set(self.snp.index)) > 0:
+            # raise warning
+            warnings.warn("Some SNPs in the `df_info` are not in the dataset.")
+
+        df_info = df_info.reindex(self.snp.index)
+
+        # for every column in df_info, if it is not in the dataset, add it to the dataset
+        # else, check the consistency of between df_info and dataset, if not consistent, raise error
+        for col in df_info.columns:
+            if col in self.snp.columns:
+                assert np.allclose(
+                    self.snp[col], df_info[col]
+                ), f"The column {col} in the `df_info` is not consistent with the dataset."
+            else:
+                self._snp[col] = df_info[col]
 
     def __getitem__(self, index) -> "Dataset":
         """Returns a sliced view of the object."""

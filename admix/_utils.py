@@ -1,13 +1,8 @@
 """Common utility functions for `admix`. Used by more than 2 modules"""
 import admix
 import os
-import subprocess
 from contextlib import contextmanager
 import os
-import dask.array as da
-import numpy as np
-from tqdm import tqdm
-from scipy import stats
 
 
 @contextmanager

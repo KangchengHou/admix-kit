@@ -12,6 +12,29 @@ from tqdm import tqdm
 import admix
 
 
+def index_over_chunks(chunks: List[int]):
+    """
+    iterate over chunks of a dask array
+
+    Parameters
+    ----------
+    chunks: List[int]
+        Number of rows or columns in each chunk
+    axis: int
+        axis to iterate over 0 for row (SNP by convention), 1 for column (individual by convention)
+
+    Returns
+    -------
+    generator
+        generator of chunk indices so one can access the chunk with
+        mat[start : stop, :] (axis=0) or mat[:, start : stop] (axis=1)
+    """
+    indices = np.insert(np.cumsum(chunks), 0, 0)
+    for i in range(len(indices) - 1):
+        start, stop = indices[i], indices[i + 1]
+        yield start, stop
+
+
 def match_prs_weights(
     dset: xr.Dataset, df_weight: pd.DataFrame, weight_cols: List[str]
 ) -> Tuple[xr.Dataset, pd.DataFrame]:
@@ -231,44 +254,6 @@ def cov(geno, mean_std, chunk_size=500):
                 np.ix_(np.arange(row_start, row_stop), np.arange(col_start, col_stop))
             ] = np.dot(std_row_geno.T, std_col_geno) / (std_row_geno.shape[0])
     return cov
-
-
-def check_align(dsets: List[xr.Dataset], dim: str) -> bool:
-    """takes 2 or more datasets, and check whether attributes align
-
-    Parameters
-    ----------
-    dsets : List[xr.Dataset]
-        List of datasets
-    dim : str
-        which dimension to check
-
-    Returns
-    -------
-    bool: whether the two datasets align in the given dimension
-    """
-    assert dim in ["snp", "indiv"]
-    return False
-
-
-def align(dsets: List[admix.Dataset], dim: str) -> List[admix.Dataset]:
-    """takes 2 or more datasets, return the aligned dataset
-
-    Parameters
-    ----------
-    dsets : List[xr.Dataset]
-        List of datasets
-    dim : str
-        which dimension to check
-
-    Returns
-    -------
-    List[xr.Dataset]: list of aligned datasets
-    """
-    assert dim in ["snp", "indiv"]
-    pass
-
-    return
 
 
 def make_dataset(

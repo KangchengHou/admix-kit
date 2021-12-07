@@ -1,7 +1,6 @@
 import numpy as np
 from typing import List
 from pylampld import LampLD
-import xarray as xr
 import admix
 
 """

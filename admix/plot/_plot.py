@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import collections as mc
 import pandas as pd
-import matplotlib
 import xarray as xr
 import warnings
 from scipy import stats

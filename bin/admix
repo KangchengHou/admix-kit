@@ -8,6 +8,7 @@ import dapgen
 import numpy as np
 import os
 from typing import Union, List
+from admix import logger
 
 
 def lanc(
@@ -354,6 +355,7 @@ def assoc_quant(
     pheno: str,
     pheno_col: str,
     out: str,
+    covar: str = None,
     method: Union[str, List[str]] = "ATT",
 ):
     """
@@ -372,21 +374,66 @@ def assoc_quant(
     method : Union[str, List[str]]
         Method to use for association analysis (default ATT)
     """
-    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0)
+
+    # TODO: infer block size using memory use in dask-pgen read
     dset = admix.io.read_dataset(pfile)
-    df_pheno = df_pheno.reindex(dset.indiv.index)
+    admix.logger.info(f"{dset.n_snp} SNPs and {dset.n_indiv} individuals are loaded")
+
+    # if covar_cols is not None:
+    #     if isinstance(covar_cols, str):
+    #         covar_cols = [covar_cols]
+    #     elif isinstance(covar_cols, tuple):
+    #         covar_cols = list(covar_cols)
+    #     covar_cols = [str(col) for col in covar_cols]
+    # else:
+    #     covar_cols = list(df_covar.columns)
+
+    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0)[[pheno_col]]
+    dset.append_indiv_info(df_pheno)
+
+    # adding covariates
+    if covar is not None:
+        df_covar = pd.read_csv(covar, delim_whitespace=True, index_col=0)
+        dset.append_indiv_info(df_covar)
+        covar_cols = df_covar.columns
+        admix.logger.info(
+            f"{len(covar_cols)} covariates are loaded: {','.join(covar_cols)}"
+        )
+    else:
+        covar_cols = None
+        admix.logger.info("No covariates are loaded")
+    # filter for individuals with non-missing phenotype
+    dset = dset[:, ~dset.indiv[pheno_col].isna().values]
+    admix.logger.info(
+        f"{dset.n_snp} SNPs and {dset.n_indiv} individuals left after filtering"
+    )
+    # TODO: impute NaN values in covariates columns
+    if covar_cols is not None:
+        covar_values = dset.indiv[covar_cols].values
+        assert not np.isnan(
+            covar_values
+        ).any(), "NaN values in covariates columns are not allowed"
+    else:
+        covar_values = None
+
     if isinstance(method, str):
         method = [method]
 
     dict_rls = {}
     for m in method:
+        admix.logger.info(f"Performing association analysis with method {m}")
         dict_rls[m] = admix.assoc.marginal(
-            dset=dset, pheno=df_pheno[pheno_col].values, method=m, family="linear"
+            dset=dset,
+            pheno=dset.indiv[pheno_col].values,
+            cov=covar_values,
+            method=m,
+            family="linear",
         )
 
     pd.DataFrame(dict_rls, index=dset.snp.index).to_csv(
         out, sep="\t", float_format="%.6g", na_rep="NA"
     )
+    logger.info(f"Output written to {out}")
 
 
 if __name__ == "__main__":

@@ -170,7 +170,6 @@ def marginal(
     family: str = "linear",
     verbose: bool = False,
     fast: bool = True,
-    n_block: int = 1,
 ):
     """Marginal association testing for one SNP at a time
 
@@ -223,7 +222,7 @@ def marginal(
         cov = np.ones((n_indiv, 1))
 
     # check covariates must be full rank
-    assert np.linalg.matrix_rank(cov) == cov.shape[1], "Covariates must be full rank"
+    assert np.linalg.matrix_rank(cov) == cov.shape[1], "Covariates must be of full rank"
     if method == "ATT":
         var = geno.sum(axis=2).swapaxes(0, 1)
         var_size = 1
@@ -265,10 +264,18 @@ def marginal(
     assert var.shape[1] / var_size == n_snp
 
     pvalues = []
-    snp_start = 0
-    block_size = n_snp // n_block
-    while snp_start < n_snp:
-        snp_stop = min(snp_start + block_size, n_snp)
+    # block-by-block computation based on the chunk size of the `geno` array
+    if geno is not None:
+        snp_chunks = geno.chunks[0]
+    else:
+        assert lanc is not None
+        snp_chunks = lanc.chunks[0]
+
+    for snp_start, snp_stop in tqdm(
+        admix.data.index_over_chunks(snp_chunks),
+        desc="admix.assoc.marginal",
+        total=len(snp_chunks),
+    ):
         # test each SNP in block
         pvalues.append(
             _block_test(
@@ -281,7 +288,6 @@ def marginal(
                 fast=fast,
             )
         )
-        snp_start += block_size
     return np.concatenate(pvalues)
 
 

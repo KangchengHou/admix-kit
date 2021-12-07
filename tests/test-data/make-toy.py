@@ -71,6 +71,15 @@ def process():
 
     df_indiv_info = {"PHENO": sim["pheno"][:, sim_i]}
     df_indiv_info = pd.DataFrame(df_indiv_info, index=dset_admix.indiv.index)
+    # perform PCA on the toy-admix
+    admix.tools.plink2.pca(
+        "toy-admix", "toy-admix.pca", approx=False, args=["--maf 0.01"]
+    )
+    df_pca = pd.read_csv("toy-admix.pca.eigenvec", delim_whitespace=True, index_col=0)
+
+    # only record 3 PCs because it is a small toy data set
+    for col in ["PC1", "PC2", "PC3"]:
+        df_indiv_info[col] = df_pca[col].reindex(df_indiv_info.index)
 
     df_snp_info.to_csv("toy-admix.snp_info", sep="\t", float_format="%.6g", na_rep="NA")
     df_indiv_info.to_csv("toy-admix.indiv_info", sep="\t", float_format="%.6f")

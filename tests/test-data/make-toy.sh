@@ -35,4 +35,5 @@ rm toy-all.log
 python make-toy.py process
 
 # clean up
+rm toy-admix.pca.*
 rm toy-admix.log

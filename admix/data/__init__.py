@@ -13,5 +13,7 @@ from ._utils import (
 
 from ._geno import allele_per_anc, af_per_anc, geno_mult_mat
 from ._geno import calc_snp_prior_var
+from ._utils import index_over_chunks
+
 from ._stats import quantile_normalize, pval2chisq, lambda_gc, zsc2pval
 from ._lanc import Lanc, concat_lancs, lanc_impute_single_chrom
