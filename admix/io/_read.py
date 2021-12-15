@@ -30,6 +30,7 @@ def read_lanc(path: str) -> admix.data.Lanc:
     return lanc
 
 
+# TODO: support only reading a subset of the individuals
 def read_dataset(
     pfile: str,
     lanc_file: str = None,
@@ -74,6 +75,7 @@ def read_dataset(
             lanc_file = pfile + ".lanc"
     if lanc_file is not None:
         lanc = admix.io.read_lanc(lanc_file).dask()
+        admix.logger.info(f"admix.Dataset: read local ancestry from {lanc_file}")
     else:
         lanc = None
 

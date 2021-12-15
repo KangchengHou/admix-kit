@@ -9,7 +9,6 @@ from typing import (
     Hashable,
     List,
     Optional,
-    Mapping,
     Any,
     Dict,
     Mapping,
@@ -21,11 +20,12 @@ import warnings
 
 class Dataset(object):
     """
-    Class to handle the dataset.
+    Class to handle the dataset composed on genotype and local ancestry.
 
     An admix.Dataset `dset` Support the following operations:
 
-    - dset.indiv =
+    - dset.indiv[new_col] = new_values
+
 
     Design principles
     -----------------
@@ -94,7 +94,6 @@ class Dataset(object):
 
         else:
             # initialize from actual data set
-
             # assign `geno` and `lanc`
             assert geno is not None, "`geno` must not be None"
             data_vars: Dict[Hashable, Any] = {}
@@ -168,43 +167,6 @@ class Dataset(object):
             )
 
         return descr
-
-    def update(self, other, dim="data") -> "Dataset":
-        """
-        Update the dataset with the information from another dataset.
-        This is an inplace operation.
-
-        Parameters
-        ----------
-        var : one of the following:
-            - mapping {var name: (dimension name, array-like)} for "data"
-            - array-like for "indiv"
-            - array-like for "snp"
-
-        dim: str
-            The dimension to use for the update.
-            Default: "data" (i.e. the data variable)
-            one of the following:
-            - "data": data variables
-            - "indiv": individual variables
-            - "snp": SNP variables
-
-        Returns
-        -------
-        self : admix.Dataset
-            Updated Dataset.
-        """
-        if dim == "data":
-            # TODO: check that the dimensions are the same
-            self._xr.update(other)
-        elif dim == "indiv":
-            self._xr.update({f"{key}@indiv": val for key, val in other.items()})
-        elif dim == "snp":
-            self._xr.update({f"{key}@snp": val for key, val in other.items()})
-        else:
-            raise ValueError(f"Invalid dimension: {dim}")
-
-        return self
 
     @property
     def n_indiv(self) -> int:
@@ -339,39 +301,30 @@ class Dataset(object):
         snp_idx, indiv_idx = normalize_indices(index, self.snp.index, self.indiv.index)
         return Dataset(dset_ref=self, snp_idx=snp_idx, indiv_idx=indiv_idx)
 
-    def write(self, path):
-        """Write admix.Dataset to disk
 
-        Parameters
-        ----------
-        path : str
-            path to the destiny place
-        """
-        # TODO: when writing to the
+# TODO: remove the following functions
+# def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):
+#     """
+#     Read a dataset from a directory.
+#     """
 
+#     if snp is not None:
+#         snp_mask = dset.snp.index.isin(snp)
+#     else:
+#         snp_mask = np.ones(len(dset.snp), dtype=bool)
 
-def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):
-    """
-    Read a dataset from a directory.
-    """
+#     if indiv is not None:
+#         indiv_mask = dset.indiv.index.isin(indiv)
+#     else:
+#         indiv_mask = np.ones(len(dset.indiv), dtype=bool)
 
-    if snp is not None:
-        snp_mask = dset.snp.index.isin(snp)
-    else:
-        snp_mask = np.ones(len(dset.snp), dtype=bool)
-
-    if indiv is not None:
-        indiv_mask = dset.indiv.index.isin(indiv)
-    else:
-        indiv_mask = np.ones(len(dset.indiv), dtype=bool)
-
-    return Dataset(
-        geno=dset.geno[snp_mask, :, :][:, indiv_mask, :],
-        lanc=dset.lanc[snp_mask, :, :][:, indiv_mask, :],
-        snp=dset.snp.loc[snp_mask],
-        indiv=dset.indiv.loc[indiv_mask],
-        n_anc=dset.n_anc,
-    )
+#     return Dataset(
+#         geno=dset.geno[snp_mask, :, :][:, indiv_mask, :],
+#         lanc=dset.lanc[snp_mask, :, :][:, indiv_mask, :],
+#         snp=dset.snp.loc[snp_mask],
+#         indiv=dset.indiv.loc[indiv_mask],
+#         n_anc=dset.n_anc,
+#     )
 
 
 def is_aligned(dset_list: List[Dataset], dim="snp"):

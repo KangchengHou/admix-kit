@@ -3,7 +3,7 @@ End-to-end tests for the admix command line interfaces.
 """
 import admix
 import tempfile
-from admix._utils import cd
+from admix.utils import cd
 import subprocess
 import pandas as pd
 import numpy as np

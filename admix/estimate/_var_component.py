@@ -5,7 +5,7 @@ import xarray as xr
 from typing import List, Union
 import admix
 import tempfile
-from .._utils import cd
+from ..utils import cd
 import dask
 
 

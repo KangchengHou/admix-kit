@@ -38,6 +38,7 @@ def index_over_chunks(chunks: List[int]):
 def match_prs_weights(
     dset: xr.Dataset, df_weight: pd.DataFrame, weight_cols: List[str]
 ) -> Tuple[xr.Dataset, pd.DataFrame]:
+    # TODO: implement this with dapgen.align_snp
     """
     align the dataset and PRS weights with the following 3 steps:
     1. match SNPs in `dset` and `df_weight` by `CHROM` and `POS`

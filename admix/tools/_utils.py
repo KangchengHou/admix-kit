@@ -1,7 +1,7 @@
 import subprocess
 import tempfile
 from os.path import join
-from .._utils import get_cache_dir, cd
+from ..utils import get_cache_dir, cd
 import urllib
 import shutil
 import os

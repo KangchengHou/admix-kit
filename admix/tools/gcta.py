@@ -49,23 +49,29 @@ def write_grm(file_prefix, K, df_id, n_snps):
 
 
 def reml(
-    mgrm_path: str,
     df_pheno: pd.DataFrame,
     out_prefix: str,
+    mgrm_path: str = None,
+    grm_path: str = None,
     df_covar: pd.DataFrame = None,
     n_thread: int = 4,
 ):
-    """reml
+    """Wrapper for GCTA --reml
 
     Parameters
     ----------
     mgrm_path : str
-        mgrm path
+        mgrm path to file with a list of grms (without .grm.bin, .grm.id, .grm.N.bin)
+    grm_path : str
+        grm path prefix (without .grm.bin, .grm.id, .grm.N.bin)
     df_pheno : pd.DataFrame
         phenotype data frame
     out_prefix : str
         output prefix
     """
+    assert (mgrm_path is None) != (
+        grm_path is None
+    ), "Either mgrm_path or grm_path must be provided"
     assert df_pheno.shape[1] == 3
     assert df_pheno.columns[0] == "FID"
     assert df_pheno.columns[1] == "IID"
@@ -75,11 +81,14 @@ def reml(
 
     cmds = [
         "--reml --reml-no-lrt --reml-no-constrain",
-        f"--mgrm {mgrm_path}",
         f"--pheno {pheno_path}",
         f"--out {out_prefix}",
         f"--thread-num {n_thread}",
     ]
+    if mgrm_path is not None:
+        cmds.append(f"--mgrm {mgrm_path}")
+    if grm_path is not None:
+        cmds.append(f"--grm {grm_path}")
 
     if df_covar is not None:
         covar_path = out_prefix + ".covar"
