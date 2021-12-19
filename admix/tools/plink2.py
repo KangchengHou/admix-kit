@@ -14,7 +14,7 @@ import subprocess
 from ._utils import get_dependency
 
 
-def run(cmd: str):
+def run(cmd: str, **kwargs):
     """Shortcut for running plink commands
 
     Parameters
@@ -23,6 +23,8 @@ def run(cmd: str):
         plink command
     """
     bin_path = get_dependency("plink2")
+    add_cmds = [f" --{k} {kwargs[k]}" for k in kwargs]
+    cmd += " ".join(add_cmds)
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
@@ -37,6 +39,7 @@ def gwas(
     pheno_quantile_normalize=False,
     covar_quantile_normalize=False,
     clean_tmp_file=False,
+    **kwargs,
 ):
     # only one of pfile or bfile must be provided
     assert (pfile is None) != (bfile is None), "pfile or bfile must be provided"
@@ -101,7 +104,7 @@ def gwas(
 
     print("\n".join(cmds))
 
-    run(" ".join(cmds))
+    run(" ".join(cmds), **kwargs)
 
     os.rename(out_prefix + ".trait.glm.linear", out_prefix + ".assoc")
     if clean_tmp_file:
@@ -117,6 +120,7 @@ def clump(
     p2: float = 1e-4,
     r2: float = 0.1,
     kb=3000,
+    **kwargs,
 ):
     """
     Wrapper for plink2 clump
@@ -135,6 +139,7 @@ def clump(
         p2=p2,
         r2=r2,
         kb=kb,
+        **kwargs,
     )
     # # convert plink2 association to plink1 format ID -> SNP
     # import shutil
@@ -226,6 +231,7 @@ def merge(sample_pfile: str, ref_pfile: str, out_prefix: str):
         f"--pfile {ref_pfile} --set-all-var-ids @:#:\$r:\$a --make-pgen --out {out_prefix}"
     )
 
+    # TODO
     # Step 2: find common SNPs
     # load in the SNPs and find the intersection
 
@@ -368,7 +374,7 @@ def prune(
         os.remove(f)
 
 
-def pca(pfile: str, out_prefix: str, approx: bool = False, args: List[str] = None):
+def pca(pfile: str, out_prefix: str, approx: bool = False, **kwargs):
     """Run plink2 pca
 
     TODO: include more options
@@ -386,11 +392,8 @@ def pca(pfile: str, out_prefix: str, approx: bool = False, args: List[str] = Non
         f"--pfile {pfile}",
         f"--out {out_prefix}",
     ]
-    if args is not None:
-        assert isinstance(args, list)
-        cmd += args
     if approx:
         cmd.append("--pca approx")
     else:
         cmd.append("--pca")
-    run(" ".join(cmd))
+    run(" ".join(cmd), **kwargs)

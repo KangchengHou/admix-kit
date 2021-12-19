@@ -110,10 +110,21 @@ def read_reml(path_prefix):
         lines = f.readlines()
 
     ## 1. find "Summary result of REML analysis:"
-    line_i = np.where(
-        [l.startswith("Summary result of REML analysis:") for l in lines]
-    )[0].item()
-    est = [lines[l].strip().split("\t") for l in range(line_i + 1, line_i + 5)]
+    line_i = (
+        np.where([l.startswith("Summary result of REML analysis:") for l in lines])[
+            0
+        ].item()
+        + 1
+    )
+
+    # read all lines before Vp
+    est = []
+    while 1:
+        tmp = lines[line_i].strip().split("\t")
+        if tmp[0] == "Vp":
+            break
+        est.append(tmp)
+        line_i += 1
     df_est = pd.DataFrame(est[1:], columns=est[0])
     df_est = df_est.astype({"Variance": float, "SE": float})
     ## 2. find "Sampling variance/covariance of the estimates of variance components:"
@@ -125,7 +136,10 @@ def read_reml(path_prefix):
             for l in lines
         ]
     )[0].item()
-    varcov = [lines[l].strip().split("\t") for l in range(line_i + 1, line_i + 4)]
+    varcov = [
+        lines[l].strip().split("\t")
+        for l in range(line_i + 1, line_i + 1 + df_est.shape[0])
+    ]
     df_varcov = pd.DataFrame(
         varcov, columns=df_est["Source"].values, index=df_est["Source"].values
     )

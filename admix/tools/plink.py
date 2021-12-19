@@ -9,7 +9,7 @@ import os
 import glob
 
 
-def run(cmd: str):
+def run(cmd: str, **kwargs):
     """Shortcut for running plink commands
 
     Parameters
@@ -18,10 +18,13 @@ def run(cmd: str):
         plink command
     """
     bin_path = get_dependency("plink")
+    add_cmds = [f" --{k} {kwargs[k]}" for k in kwargs]
+    cmd += " ".join(add_cmds)
+
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
-def merge(bfiles: List[str], out: str):
+def merge(bfiles: List[str], out: str, **kwargs):
     """Shortcut for merging a list of bfiles
 
     Parameters
@@ -81,6 +84,7 @@ def clump(
     p2: float = 1e-4,
     r2: float = 0.1,
     kb=3000,
+    **kwargs,
 ):
     """
     Wrapper for plink2 clump
@@ -119,7 +123,7 @@ def clump(
         f"--out {tmp_prefix}",
     ]
 
-    admix.tools.plink.run(" ".join(cmds))
+    admix.tools.plink.run(" ".join(cmds), **kwargs)
     if os.path.exists(tmp_prefix + ".clumped"):
         os.rename(tmp_prefix + ".clumped", out_prefix + ".clumped")
     else:

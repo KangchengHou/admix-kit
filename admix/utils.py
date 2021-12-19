@@ -5,6 +5,23 @@ from contextlib import contextmanager
 import os
 from typing import List
 import glob
+import hashlib
+
+
+def str2int(s: str) -> int:
+    """Convert string to int
+
+    Parameters
+    ----------
+    s : str
+        string to convert
+
+    Returns
+    -------
+    int
+        string and hashed
+    """
+    return int(hashlib.sha256(s.encode("utf-8")).hexdigest(), 16) % (2 ** 32)
 
 
 @contextmanager

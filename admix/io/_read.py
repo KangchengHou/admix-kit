@@ -74,7 +74,7 @@ def read_dataset(
         if os.path.exists(pfile + ".lanc"):
             lanc_file = pfile + ".lanc"
     if lanc_file is not None:
-        lanc = admix.io.read_lanc(lanc_file).dask()
+        lanc = admix.io.read_lanc(lanc_file).dask(snp_chunk=snp_chunk)
         admix.logger.info(f"admix.Dataset: read local ancestry from {lanc_file}")
     else:
         lanc = None
