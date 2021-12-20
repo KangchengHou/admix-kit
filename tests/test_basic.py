@@ -3,8 +3,6 @@ Check whether basic functions runs without error
 """
 import dask.array as da
 import numpy as np
-from numpy.lib.npyio import load
-import pandas as pd
 import admix
 
 
