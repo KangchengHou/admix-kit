@@ -252,14 +252,21 @@ def admix_grm(dset, center: bool = False, inplace=True):
 def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     """
     Calculate allele frequency per ancestry
+
+    If at one particular SNP locus, no SNP from one particular ancestry can be found
+    the corresponding entries will be filled with np.NaN.
+
     Parameters
     ----------
-    dset: xr.Dataset
-        Containing geno, lanc, n_anc
+    geno: np.ndarray
+        genotype matrix
+    lanc: np.ndarray
+        local ancestry matrix
+
     Returns
     -------
-    List[np.ndarray]
-        `n_anc` length list of allele frequencies.
+    np.ndarray
+        (n_snp, n_anc) length list of allele frequencies.
     """
     assert np.all(geno.shape == lanc.shape)
     n_snp = geno.shape[0]
@@ -268,7 +275,6 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    # TODO: replace with the admix_genet_cor implementation
     for i in range(len(indices) - 1):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :, :].compute()
@@ -278,9 +284,10 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
             # mask SNPs with local ancestry not `i_anc`
             af[start:stop, anc_i] = (
                 np.ma.masked_where(lanc_chunk != anc_i, geno_chunk)
-                .mean(axis=(1, 2))
+                .sum(axis=(1, 2))
                 .data
-            )
+            ) / np.sum(lanc_chunk == anc_i, axis=(1, 2))
+
     return af
 
 

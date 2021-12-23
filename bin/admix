@@ -61,15 +61,13 @@ def lanc_impute(pfile: str, ref_pfile: str, out: str = None):
     sample_lanc.write(out)
 
 
-# TODO: remove this function
-def lanc_deprecated(
-    pfile: str,
-    ref_pfile: str,
+def lanc_rfmix(
+    sample_vcf: str,
+    ref_vcf: str,
     sample_map: str,
     genetic_map: str,
     out_prefix: str,
     chrom: int = None,
-    method: str = "rfmix",
     rfmix_path: str = "rfmix",
 ):
     """Estimate local ancestry from a sample vcf and reference vcf
@@ -94,7 +92,6 @@ def lanc_deprecated(
         method for estimating local ancestry, by default "rfmix"
 
     """
-    assert method in ["rfmix"], "Only rfmix is currently supported"
 
     # Step 1: use bcftools to align the sample and reference vcf
     align_ref_code = (
@@ -156,7 +153,6 @@ def lanc_deprecated(
             -m ${sample_map} \
             -g ${genetic_map} \
             --chromosome=${chrom} \
-            -e 1 -n 5 \
             -o ${out_prefix}
         """
     )
