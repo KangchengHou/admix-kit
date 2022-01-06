@@ -252,18 +252,26 @@ def binary_pheno(
     Simulate under liability threshold. First simulate quantative traits in the liability
     scale. With the given `case_prevalence`, convert liability to binary traits.
 
+
     Parameters
     ----------
-    hsq: if method is "probit", this corresponds to the proportion of variance explained by the genotype
-        in the liability scale.
+    hsq: if method is "probit", this corresponds to the proportion of variance explained
+    by the genotype in the liability scale.
 
-        if method is "logit", this corresponds to the variance explained of (X\beta),
-        and hsq can be larger than 1, in the case.
+    if method is "logit", this corresponds to the variance explained of (X\beta),
+    and hsq can be larger than 1, in the case.
     """
 
     from scipy import stats
 
     assert method in ["probit", "logit"]
+
+    # warn if "logit" is used
+    if method == "logit":
+        admix.logger.warn(
+            "`logit` method for simulating binary phenotype is not well tested."
+            "Consider using `probit` method instead or this function with caution."
+        )
 
     # build a skeleton of phenotype using the code from quant_pheno
 

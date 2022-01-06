@@ -192,7 +192,8 @@ def marginal(
         Association p-values for each SNP being tested
 
     """
-    assert family == "linear", "Only linear models are supported for now"
+    if family == "logistic":
+        admix.logger.warn("logistic family is not well tested, use with caution")
     # format data
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:

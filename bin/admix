@@ -350,13 +350,15 @@ def simulate_quant_pheno(
         df.to_csv(f"{out_prefix}.{suffix}", sep="\t", float_format="%.6g")
 
 
-def assoc_quant(
+def assoc(
     pfile: str,
     pheno: str,
     pheno_col: str,
     out: str,
     covar: str = None,
     method: Union[str, List[str]] = "ATT",
+    family: str = "quant",
+    fast: bool = True,
 ):
     """
     Perform association analysis on a pgen file
@@ -369,11 +371,19 @@ def assoc_quant(
         Path to the phenotype file
     pheno_col : str
         Column name in the phenotype file
+    covar: str
+        Path to the covariate file
     out : str
         Path the output file
     method : Union[str, List[str]]
         Method to use for association analysis (default ATT)
+    family : str
+        Family to use for association analysis (either quant or binary, default quant)
+    fast : bool
+        Whether to use fast mode (default True)
     """
+
+    assert family in ["quant", "binary"], "family must be either quant or binary"
 
     # TODO: infer block size using memory use in dask-pgen read
     dset = admix.io.read_dataset(pfile)
@@ -427,7 +437,8 @@ def assoc_quant(
             pheno=dset.indiv[pheno_col].values,
             cov=covar_values,
             method=m,
-            family="linear",
+            family="logistic" if family == "binary" else "linear",
+            fast=fast,
         )
 
     pd.DataFrame(dict_rls, index=dset.snp.index).to_csv(
