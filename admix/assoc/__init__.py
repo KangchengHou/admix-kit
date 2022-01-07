@@ -165,6 +165,7 @@ def marginal(
     dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
+    n_anc: int = None,
     cov: np.ndarray = None,
     method: str = "ATT",
     family: str = "linear",
@@ -202,10 +203,11 @@ def marginal(
         ), "Cannot specify both `dset` and `geno`, `lanc`"
         geno = dset.geno
         lanc = dset.lanc
+        n_anc = dset.n_anc
     else:
-        assert (geno is not None) and (
-            lanc is not None
-        ), "Must specify `dset` or `geno`, `lanc`"
+        assert (
+            (geno is not None) and (lanc is not None) and (n_anc is not None)
+        ), "Must specify `dset` or (`geno`, `lanc`, `n_anc`)"
         # convert geno and lanc to da.Array when necessary
         if not isinstance(geno, da.Array):
             geno = da.from_array(geno, chunks=-1)
@@ -229,7 +231,11 @@ def marginal(
         var_size = 1
         test_vars = [0]
     elif method == "TRACTOR":
-        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        allele_per_anc = admix.data.allele_per_anc(
+            geno,
+            lanc,
+            n_anc=n_anc,
+        ).swapaxes(0, 1)
         lanc = lanc.sum(axis=2).swapaxes(0, 1)
         var = da.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
@@ -247,7 +253,9 @@ def marginal(
         test_vars = [0]
     elif method == "ASE":
         # alleles per ancestry
-        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
+            0, 1
+        )
         var = da.empty((n_indiv, n_snp * 2))
         var[:, 0::2] = allele_per_anc[:, :, 0]
         var[:, 1::2] = allele_per_anc[:, :, 1]

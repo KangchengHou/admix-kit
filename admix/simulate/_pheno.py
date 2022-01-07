@@ -53,10 +53,8 @@ def quant_pheno(
         simulated phenotype (n_indiv, n_sim)
     """
     n_anc = dset.n_anc
-    assert n_anc == 2, "Only two-ancestry currently supported"
 
     apa = dset.allele_per_anc()
-
     n_snp, n_indiv = apa.shape[0:2]
 
     # simulate effect sizes
@@ -71,14 +69,18 @@ def quant_pheno(
 
         # if `beta` is not specified, simulate effect sizes
         beta = np.zeros((n_snp, n_anc, n_sim))
+
+        # construct effect correlation matrix
+        beta_cov = np.eye(n_anc)
+        beta_cov[~np.eye(n_anc, dtype=bool)] = cor
         for i_sim in range(n_sim):
             cau = sorted(
                 np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
             )
 
             i_beta = np.random.multivariate_normal(
-                mean=[0.0, 0.0],
-                cov=np.array([[1, cor], [cor, 1]]),
+                mean=np.repeat(0, n_anc),
+                cov=beta_cov,
                 size=n_causal,
             )
 

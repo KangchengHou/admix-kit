@@ -54,10 +54,20 @@ def test_linear_nan():
     geno = dset.geno.compute()
     lanc = dset.lanc.compute()
     ref_pval_att = admix.assoc.marginal(
-        geno=geno, lanc=lanc, pheno=dset.indiv.PHENO, method="ATT", fast=True
+        geno=geno,
+        lanc=lanc,
+        n_anc=dset.n_anc,
+        pheno=dset.indiv.PHENO,
+        method="ATT",
+        fast=True,
     )
     ref_pval_tractor = admix.assoc.marginal(
-        geno=geno, lanc=lanc, pheno=dset.indiv.PHENO, method="TRACTOR", fast=True
+        geno=geno,
+        lanc=lanc,
+        n_anc=dset.n_anc,
+        pheno=dset.indiv.PHENO,
+        method="TRACTOR",
+        fast=True,
     )
     assert np.allclose(ref_pval_att, dset.snp["ATT"])
     assert np.allclose(ref_pval_tractor, dset.snp["TRACTOR"])
@@ -69,11 +79,17 @@ def test_linear_nan():
     geno_with_nan[5, 0, 0] = np.NaN
     geno_with_nan[5, 2, 0] = np.NaN
     pval_att_fast = admix.assoc.marginal(
-        geno=geno_with_nan, lanc=lanc, pheno=dset.indiv.PHENO, method="ATT", fast=True
+        geno=geno_with_nan,
+        lanc=lanc,
+        n_anc=dset.n_anc,
+        pheno=dset.indiv.PHENO,
+        method="ATT",
+        fast=True,
     )
     pval_tractor_fast = admix.assoc.marginal(
         geno=geno_with_nan,
         lanc=lanc,
+        n_anc=dset.n_anc,
         pheno=dset.indiv.PHENO,
         method="TRACTOR",
         fast=True,
@@ -105,6 +121,7 @@ def test_linear_nan():
         pval_tractor_slow = admix.assoc.marginal(
             geno=geno_with_nan,
             lanc=lanc,
+            n_anc=dset.n_anc,
             pheno=dset.indiv.PHENO,
             method="TRACTOR",
             fast=False,
@@ -112,6 +129,7 @@ def test_linear_nan():
         pval_tractor_fast = admix.assoc.marginal(
             geno=geno_with_nan,
             lanc=lanc,
+            n_anc=dset.n_anc,
             pheno=dset.indiv.PHENO,
             method="TRACTOR",
             fast=True,
