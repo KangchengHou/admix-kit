@@ -17,21 +17,21 @@ def test_consistent():
     dset = dset[test_eq_idx]
 
     pval_att = admix.assoc.marginal(
-        dset, pheno=dset.indiv.PHENO, method="ATT", fast=False
+        dset=dset, pheno=dset.indiv.PHENO, method="ATT", fast=False
     )
     pval_tractor = admix.assoc.marginal(
-        dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=False
+        dset=dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=False
     )
     assert np.allclose(pval_att, dset.snp["ATT"])
     assert np.allclose(pval_tractor, dset.snp["TRACTOR"])
 
     pval_att_fast = admix.assoc.marginal(
-        dset, pheno=dset.indiv.PHENO, method="ATT", fast=True
+        dset=dset, pheno=dset.indiv.PHENO, method="ATT", fast=True
     )
     assert np.allclose(pval_att_fast, pval_att)
 
     pval_tractor_fast = admix.assoc.marginal(
-        dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=True
+        dset=dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=True
     )
     assert np.allclose(pval_tractor_fast, pval_tractor)
 
