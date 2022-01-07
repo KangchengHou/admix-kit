@@ -93,7 +93,7 @@ awk '{print $1, $3, $4}' toy-admix.indiv_info > toy-admix.covar
 
 # association testing of individual SNPs of simulated phenotype
 # several NA values are expected due to some SNP has zero frequency in this toy dataset
-admix assoc-quant \
+admix assoc \
     --pfile toy-admix \
     --pheno toy-admix.pheno \
     --pheno-col SIM0 \

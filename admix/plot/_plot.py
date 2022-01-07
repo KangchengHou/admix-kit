@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import collections as mc
 import pandas as pd
-import xarray as xr
 import warnings
 from scipy import stats
 from admix.data import quantile_normalize
 from admix.data import lambda_gc
 import seaborn as sns
+import admix
 
 
 def pca(
@@ -128,7 +128,7 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=Non
 
 
 def lanc(
-    dset: xr.Dataset = None,
+    dset: admix.Dataset = None,
     lanc: np.ndarray = None,
     ax=None,
     max_indiv: int = None,
@@ -287,3 +287,15 @@ def admixture(
     for pos in ["top", "right", "bottom", "left"]:
         ax.spines[pos].set_visible(False)
     return ax
+
+
+def compare_pval(pval1, pval2, label1=None, label2=None, ax=None):
+    if ax is None:
+        ax = plt.gca()
+    ax.scatter(-np.log10(pval1), -np.log10(pval2), s=5)
+    lim = max(max(-np.log10(pval1)), max(-np.log10(pval2))) * 1.1
+    ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1)
+    if label1 is not None:
+        ax.set_xlabel(label1)
+    if label2 is not None:
+        ax.set_ylabel(label2)

@@ -10,7 +10,7 @@ import dask
 
 
 def variance_component(
-    dset: xr.Dataset,
+    dset: admix.Dataset,
     grm: Union[str, List[str], dict],
     pheno: np.ndarray,
     cov_cols: List[str] = None,
@@ -23,7 +23,7 @@ def variance_component(
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset to estimate correlation from.
     grm: str, list of str or dict
         column name(s) of GRM, or a dict of {name: grm}

@@ -10,7 +10,7 @@ from typing import (
 
 def normalize_indices(
     index, snp_names: pd.Index, indiv_names: pd.Index
-) -> Tuple[slice, slice]:
+) -> Tuple[Union[slice, int, np.ndarray], Union[slice, int, np.ndarray]]:
     """Normalize the indices to return the snp slices, and individual slices
 
     Parameters
@@ -73,19 +73,11 @@ def _normalize_index(
     Union[slice, int, np.ndarray]
         [description]
 
-    Raises
-    ------
-    IndexError
-        [description]
-    KeyError
-        [description]
-    IndexError
-        [description]
     """
     if not isinstance(index, pd.RangeIndex):
         assert (
             index.dtype != float and index.dtype != int
-        ), "Don’t call _normalize_index with non-categorical/string names"
+        ), "Don't call _normalize_index with non-categorical/string names"
 
     # the following is insanely slow for sequences,
     # we replaced it using pandas below
@@ -119,7 +111,7 @@ def _normalize_index(
         elif issubclass(indexer.dtype.type, np.bool_):
             if indexer.shape != index.shape:
                 raise IndexError(
-                    f"Boolean index does not match Dataset’s shape along this "
+                    f"Boolean index does not match Dataset's shape along this "
                     f"dimension. Boolean index has shape {indexer.shape} while "
                     f"Dataset index has shape {index.shape}."
                 )

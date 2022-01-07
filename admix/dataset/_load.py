@@ -50,7 +50,7 @@ def load_toy() -> List[Dataset]:
 
     Returns
     -------
-    List[xr.Dataset]
+    List[admix.Dataset]
         [dset_admix, dset_eur, dset_afr]
     """
 

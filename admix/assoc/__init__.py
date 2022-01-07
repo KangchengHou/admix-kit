@@ -105,7 +105,7 @@ def _block_test(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            pvalues = stats.chi2.sf(2 * lrt_diff, var_size)
+            pvalues = stats.chi2.sf(2 * lrt_diff, len(test_vars))
         else:
             raise ValueError(f"Unknown family: {family}")
     else:
@@ -161,10 +161,11 @@ def _block_test(
 
 
 def marginal(
+    pheno: np.ndarray,
     dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
-    pheno: np.ndarray = None,
+    n_anc: int = None,
     cov: np.ndarray = None,
     method: str = "ATT",
     family: str = "linear",
@@ -175,7 +176,7 @@ def marginal(
 
     Parameters
     ----------
-    dset : xr.Dataset
+    dset : admix.Dataset
         [description]
     pheno : str
         [description]
@@ -192,7 +193,8 @@ def marginal(
         Association p-values for each SNP being tested
 
     """
-    assert family == "linear", "Only linear models are supported for now"
+    if family == "logistic":
+        admix.logger.warn("logistic family is not well tested, use with caution")
     # format data
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:
@@ -201,10 +203,11 @@ def marginal(
         ), "Cannot specify both `dset` and `geno`, `lanc`"
         geno = dset.geno
         lanc = dset.lanc
+        n_anc = dset.n_anc
     else:
-        assert (geno is not None) and (
-            lanc is not None
-        ), "Must specify `dset` or `geno`, `lanc`"
+        assert (
+            (geno is not None) and (lanc is not None) and (n_anc is not None)
+        ), "Must specify `dset` or (`geno`, `lanc`, `n_anc`)"
         # convert geno and lanc to da.Array when necessary
         if not isinstance(geno, da.Array):
             geno = da.from_array(geno, chunks=-1)
@@ -228,7 +231,11 @@ def marginal(
         var_size = 1
         test_vars = [0]
     elif method == "TRACTOR":
-        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        allele_per_anc = admix.data.allele_per_anc(
+            geno,
+            lanc,
+            n_anc=n_anc,
+        ).swapaxes(0, 1)
         lanc = lanc.sum(axis=2).swapaxes(0, 1)
         var = da.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
@@ -246,7 +253,9 @@ def marginal(
         test_vars = [0]
     elif method == "ASE":
         # alleles per ancestry
-        allele_per_anc = admix.data.allele_per_anc(geno, lanc).swapaxes(0, 1)
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
+            0, 1
+        )
         var = da.empty((n_indiv, n_snp * 2))
         var[:, 0::2] = allele_per_anc[:, :, 0]
         var[:, 1::2] = allele_per_anc[:, :, 1]
@@ -327,7 +336,7 @@ def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
     >>> p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
     >>> zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
 
-    >>> dset = xr.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
+    >>> dset = admix.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
     >>> zscores = marginal_simple(dset, pheno)
 
     """

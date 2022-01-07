@@ -168,14 +168,14 @@ class Lanc(object):
             f.writelines("\n".join(lines))
 
 
-def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
+def assign_lanc(dset: admix.Dataset, lanc_file: str, format: str = "rfmix"):
     """
     Assign local ancestry to a dataset. Currently we assume that the rfmix file contains
     2-way admixture information.
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset to assign local ancestry to.
     lanc_file: str
         Path to local ancestry data.
@@ -185,7 +185,7 @@ def assign_lanc(dset: xr.Dataset, lanc_file: str, format: str = "rfmix"):
 
     Returns
     -------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset with local ancestry assigned.
     TODO:
     - Add support for other formats.

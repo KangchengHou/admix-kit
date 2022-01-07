@@ -1,6 +1,5 @@
 .idea/
 .DS_Store
-notebooks/
 ext-dataset/
 dask-worker-space/
 .admix_cache/

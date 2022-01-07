@@ -12,7 +12,7 @@ import numpy as np
 def test_assoc_quant():
     """
     Test that the CLI is consistent with the python API.
-    admix assoc-quant \
+    admix assoc \
         --pfile toy-admix \
         --pheno toy-admix.indiv_info \
         --pheno-col PHENO \
@@ -34,12 +34,13 @@ def test_assoc_quant():
     with tempfile.TemporaryDirectory() as tmp_dir:
         with cd(tmp_dir):
             cmds = [
-                "admix assoc-quant",
+                "admix assoc",
                 f"--pfile {data_dir}/toy-admix",
                 f"--pheno {data_dir}/toy-admix.indiv_info",
                 "--pheno-col PHENO",
                 "--method ATT,TRACTOR",
                 "--out toy-admix.assoc",
+                "--family quant",
             ]
             subprocess.check_call(" ".join(cmds), shell=True)
             df_assoc = pd.read_csv("toy-admix.assoc", sep="\t", index_col=0)
@@ -56,13 +57,14 @@ def test_assoc_quant():
             dset.indiv[["PC1", "PC2"]].to_csv("toy-admix.covar", sep="\t")
             print(dset.indiv[["PC1", "PC2"]])
             cmds = [
-                "admix assoc-quant",
+                "admix assoc",
                 f"--pfile {data_dir}/toy-admix",
                 f"--pheno {data_dir}/toy-admix.indiv_info",
                 "--pheno-col PHENO",
                 f"--covar toy-admix.covar",
                 "--method ATT,TRACTOR",
                 "--out toy-admix.assoc",
+                "--family quant",
             ]
             subprocess.check_call(" ".join(cmds), shell=True)
             df_assoc = pd.read_csv("toy-admix.assoc", sep="\t", index_col=0)
@@ -75,10 +77,3 @@ def test_assoc_quant():
         df_assoc.loc[dset.snp.index, "TRACTOR"],
         dset.snp["TRACTOR"],
     )
-
-
-def test_consistent():
-    """
-    Test that the CLI is consistent with the API.
-    """
-    pass

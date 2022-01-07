@@ -3,22 +3,7 @@ Check whether basic functions runs without error
 """
 import dask.array as da
 import numpy as np
-from numpy.lib.npyio import load
-import pandas as pd
 import admix
-
-
-def test_dataset():
-    dset = admix.dataset.load_toy_admix()
-    lanc = dset.lanc
-    geno = dset.geno
-    pos = dset.snp.POS
-
-    # basic shape
-    assert lanc.ndim == 3
-    assert geno.ndim == 3
-    assert np.all(lanc.shape == geno.shape)
-    assert len(pos) == lanc.shape[0]
 
 
 def test_utils():

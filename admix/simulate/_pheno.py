@@ -22,7 +22,7 @@ def quant_pheno(
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset containing the following variables:
             - geno: (n_indiv, n_snp, 2) phased genotype of each individual
             - lanc: (n_indiv, n_snp, 2) local ancestry of each SNP
@@ -53,10 +53,8 @@ def quant_pheno(
         simulated phenotype (n_indiv, n_sim)
     """
     n_anc = dset.n_anc
-    assert n_anc == 2, "Only two-ancestry currently supported"
 
     apa = dset.allele_per_anc()
-
     n_snp, n_indiv = apa.shape[0:2]
 
     # simulate effect sizes
@@ -71,14 +69,18 @@ def quant_pheno(
 
         # if `beta` is not specified, simulate effect sizes
         beta = np.zeros((n_snp, n_anc, n_sim))
+
+        # construct effect correlation matrix
+        beta_cov = np.eye(n_anc)
+        beta_cov[~np.eye(n_anc, dtype=bool)] = cor
         for i_sim in range(n_sim):
             cau = sorted(
                 np.random.choice(np.arange(n_snp), size=n_causal, replace=False)
             )
 
             i_beta = np.random.multivariate_normal(
-                mean=[0.0, 0.0],
-                cov=np.array([[1, cor], [cor, 1]]),
+                mean=np.repeat(0, n_anc),
+                cov=beta_cov,
                 size=n_causal,
             )
 
@@ -142,7 +144,7 @@ def quant_pheno(
 
 
 def quant_pheno_grm(
-    dset: xr.Dataset,
+    dset: admix.Dataset,
     grm: Union[str, List[str], dict],
     var: Dict[str, float],
     cov_cols: List[str] = None,
@@ -252,18 +254,26 @@ def binary_pheno(
     Simulate under liability threshold. First simulate quantative traits in the liability
     scale. With the given `case_prevalence`, convert liability to binary traits.
 
+
     Parameters
     ----------
-    hsq: if method is "probit", this corresponds to the proportion of variance explained by the genotype
-        in the liability scale.
+    hsq: if method is "probit", this corresponds to the proportion of variance explained
+    by the genotype in the liability scale.
 
-        if method is "logit", this corresponds to the variance explained of (X\beta),
-        and hsq can be larger than 1, in the case.
+    if method is "logit", this corresponds to the variance explained of (X\beta),
+    and hsq can be larger than 1, in the case.
     """
 
     from scipy import stats
 
     assert method in ["probit", "logit"]
+
+    # warn if "logit" is used
+    if method == "logit":
+        admix.logger.warn(
+            "`logit` method for simulating binary phenotype is not well tested."
+            "Consider using `probit` method instead or this function with caution."
+        )
 
     # build a skeleton of phenotype using the code from quant_pheno
 

@@ -11,7 +11,7 @@ from typing import (
     Optional,
     Any,
     Dict,
-    Mapping,
+    Union,
     MutableMapping,
 )
 from ._index import normalize_indices
@@ -29,7 +29,7 @@ class Dataset(object):
 
     Design principles
     -----------------
-    Use xr.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
+    Use admix.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
     such as `af_per_anc`, `allele_per_anc`
 
     Use pd.Dataframe to represent `snp` and `indiv`
@@ -48,8 +48,8 @@ class Dataset(object):
         indiv: Optional[pd.DataFrame] = None,
         n_anc: int = None,
         dset_ref=None,
-        snp_idx=None,
-        indiv_idx=None,
+        snp_idx: Union[slice, int, np.ndarray] = None,
+        indiv_idx: Union[slice, int, np.ndarray] = None,
     ):
         if dset_ref is not None:
             # initialize from reference data set
@@ -65,32 +65,42 @@ class Dataset(object):
                 ), "SNP index `{indiv_idx}` is out of range."
                 indiv_idx = slice(indiv_idx, indiv_idx + 1, 1)
 
-            # make sure `snp_idx` and `indiv_idx` are in sorted order according to the
-            # original index
+            for name, idx in zip(["snp", "indiv"], [snp_idx, indiv_idx]):
 
-            # TODO: the following may be a performance bottleneck, optimize this if needed
-            # TODO: rather than raise an error, we could just adjust the ordering.
-            subset_indiv = dset_ref.indiv.iloc[indiv_idx, :].copy()
-
-            assert np.all(
-                dset_ref.indiv.index[
-                    dset_ref.indiv.index.isin(subset_indiv.index.values)
-                ]
-                == subset_indiv.index.values
-            ), "the index provided must be in the same order as in the original order"
-
-            subset_snp = dset_ref.snp.iloc[snp_idx, :].copy()
-
-            assert np.all(
-                dset_ref.snp.index[dset_ref.snp.index.isin(subset_snp.index.values)]
-                == subset_snp.index.values
-            ), "the index provided must be in the same order as in the original order"
-
-            self._indiv = subset_indiv
-            self._snp = subset_snp
+                if isinstance(idx, slice):
+                    assert (
+                        (idx.start is None)
+                        or (idx.stop is None)
+                        or (idx.start < idx.stop)
+                    ), f"Slice `{idx}` is not ordered."
+                    if idx.step is not None:
+                        assert idx.step > 0, f"Slice `{idx}` is not ordered."
+                elif isinstance(idx, np.ndarray):
+                    assert np.all(idx == np.sort(idx))
+                else:
+                    raise ValueError(
+                        f"`{name}_idx` must be a slice or a numpy array of sorted integers."
+                    )
+                if name == "snp":
+                    df_subset = dset_ref.snp.iloc[idx, :].copy()
+                    self._snp = df_subset
+                elif name == "indiv":
+                    df_subset = dset_ref.indiv.iloc[idx, :].copy()
+                    self._indiv = df_subset
+                else:
+                    raise ValueError(f"Unknown name {name}")
 
             with dask.config.set(**{"array.slicing.split_large_chunks": False}):
                 self._xr = dset_ref.xr.isel(snp=snp_idx, indiv=indiv_idx)
+
+            # make sure `snp_idx` and `indiv_idx` are in sorted order according to the
+            # original index
+            # assert np.all(
+            #     dset_ref.indiv.index[
+            #         dset_ref.indiv.index.isin(subset_indiv.index.values)
+            #     ]
+            #     == subset_indiv.index.values
+            # ), "the index provided must be in the same order as in the original order"
 
         else:
             # initialize from actual data set
@@ -300,31 +310,6 @@ class Dataset(object):
         """Returns a sliced view of the object."""
         snp_idx, indiv_idx = normalize_indices(index, self.snp.index, self.indiv.index)
         return Dataset(dset_ref=self, snp_idx=snp_idx, indiv_idx=indiv_idx)
-
-
-# TODO: remove the following functions
-# def subset_dataset(dset: Dataset, snp: List[str] = None, indiv: List[str] = None):
-#     """
-#     Read a dataset from a directory.
-#     """
-
-#     if snp is not None:
-#         snp_mask = dset.snp.index.isin(snp)
-#     else:
-#         snp_mask = np.ones(len(dset.snp), dtype=bool)
-
-#     if indiv is not None:
-#         indiv_mask = dset.indiv.index.isin(indiv)
-#     else:
-#         indiv_mask = np.ones(len(dset.indiv), dtype=bool)
-
-#     return Dataset(
-#         geno=dset.geno[snp_mask, :, :][:, indiv_mask, :],
-#         lanc=dset.lanc[snp_mask, :, :][:, indiv_mask, :],
-#         snp=dset.snp.loc[snp_mask],
-#         indiv=dset.indiv.loc[indiv_mask],
-#         n_anc=dset.n_anc,
-#     )
 
 
 def is_aligned(dset_list: List[Dataset], dim="snp"):

@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 import dask.array as da
 import xarray as xr
+import admix
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -147,14 +148,14 @@ def geno_mult_mat(
         return ret
 
 
-def grm(dset: xr.Dataset, method="gcta", inplace=True):
+def grm(dset: admix.Dataset, method="gcta", inplace=True):
     """Calculate the GRM matrix
     The GRM matrix is calculated treating the genotypes as from one ancestry population,
     the same as GCTA.
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         dataset containing geno
     method: str
         method to calculate the GRM matrix, `gcta` or `raw`
@@ -291,17 +292,23 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     return af
 
 
-def allele_per_anc(geno, lanc, center=False, n_anc=2):
+def allele_per_anc(
+    geno: da.Array,
+    lanc: da.Array,
+    n_anc: int,
+    center=False,
+):
     """Get allele count per ancestry
 
     Parameters
     ----------
-    ds: xr.Dataset
-        Containing geno, lanc, n_anc
-    center: bool
-        whether to center the data around empirical frequencies of each ancestry
-    inplace: bool
-        whether to return a new dataset or modify the input dataset
+    geno: da.Array
+        genotype data
+    lanc: da.Array
+        local ancestry data
+    n_anc: int
+        number of ancestries
+
     Returns
     -------
     Return allele counts per ancestries
@@ -320,59 +327,43 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
     geno = geno.rechunk({2: 2})
     lanc = lanc.rechunk({2: 2})
 
-    # rechunk so that all chunk of `n_anc` is passed into the helper function
-    assert (
-        n_anc == 2
-    ), "`n_anc` should be 2, NOTE: not so clear what happens when `n_anc = 3`"
-
     assert (
         geno.chunks == lanc.chunks
     ), "`geno` and `lanc` should have the same chunk size"
 
-    assert (
-        len(geno.chunks[1]) == 1
-    ), "geno / lanc should not be chunked across individual dimension"
+    assert len(geno.chunks[1]) == 1, (
+        "geno / lanc should not be chunked across the second dimension"
+        "(individual dimension)"
+    )
 
-    def helper(geno_chunk, lanc_chunk, n_anc, center):
-
+    def helper(geno_chunk, lanc_chunk, n_anc):
         n_snp, n_indiv, n_haplo = geno_chunk.shape
-        if center:
-            af_chunk = af_per_anc(
-                da.from_array(geno_chunk), da.from_array(lanc_chunk), n_anc=n_anc
-            )
-        else:
-            af_chunk = None
         apa = np.zeros((n_snp, n_indiv, n_anc), dtype=np.float64)
         for i_haplo in range(n_haplo):
             haplo_hap = geno_chunk[:, :, i_haplo]
             haplo_lanc = lanc_chunk[:, :, i_haplo]
             for i_anc in range(n_anc):
-                if af_chunk is None:
-                    apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[
-                        haplo_lanc == i_anc
-                    ]
-                else:
-                    # for each SNP, find the corresponding allele frequency
-                    apa[:, :, i_anc][haplo_lanc == i_anc] += (
-                        haplo_hap[haplo_lanc == i_anc]
-                        - af_chunk[np.where(haplo_lanc == i_anc)[0], i_anc]
-                    )
+                apa[:, :, i_anc][haplo_lanc == i_anc] += haplo_hap[haplo_lanc == i_anc]
         return apa
 
-    rls_allele_per_anc = da.map_blocks(
+    # the resulting chunk sizes will be the same as the input for snp, indiv
+    # while the third dimension will be (n_anc, )
+    output_chunks = (geno.chunks[0], geno.chunks[1], (n_anc,))
+    res = da.map_blocks(
         lambda geno_chunk, lanc_chunk: helper(
-            geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc, center=center
+            geno_chunk=geno_chunk, lanc_chunk=lanc_chunk, n_anc=n_anc
         ),
         geno,
         lanc,
         dtype=np.float64,
+        chunks=output_chunks,
     )
 
-    return rls_allele_per_anc
+    return res
 
 
 # def pca(
-#     dset: xr.Dataset,
+#     dset: admix.Dataset,
 #     method: str = "grm",
 #     n_components: int = 10,
 #     n_power_iter: int = 4,
@@ -383,7 +374,7 @@ def allele_per_anc(geno, lanc, center=False, n_anc=2):
 
 #     Parameters
 #     ----------
-#     dset: xr.Dataset
+#     dset: admix.Dataset
 #         Dataset to get PCA
 #     method: str
 #         Method to calculate PCA, "grm" or "randomized"
