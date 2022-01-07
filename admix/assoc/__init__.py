@@ -161,10 +161,10 @@ def _block_test(
 
 
 def marginal(
+    pheno: np.ndarray,
     dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
-    pheno: np.ndarray = None,
     cov: np.ndarray = None,
     method: str = "ATT",
     family: str = "linear",

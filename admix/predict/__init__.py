@@ -1,16 +1,15 @@
 import numpy as np
-from matplotlib import collections as mc
 import pandas as pd
-import xarray as xr
 from sklearn.linear_model import RidgeCV
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-import warnings
+import admix
+from _utils import stratify_calculate_r2
 
 __all__ = ["train", "predict"]
 
 
-def train(train_dset: xr.Dataset, method: str = "ridge"):
+def train(train_dset: admix.Dataset, method: str = "ridge"):
     """Train a phenotype prediction model
 
     Parameters
@@ -25,7 +24,7 @@ def train(train_dset: xr.Dataset, method: str = "ridge"):
     return model
 
 
-def predict(sample_dset: xr.Dataset, model):
+def predict(sample_dset: admix.Dataset, model):
     """Predict the phenotype with a trained model
 
     Parameters
@@ -112,7 +111,7 @@ def calibrate_pred(
         assert q < 0.5, "q should be less than 0.5"
     elif method is None:
         if len(quantile_cov_cols) > 0:
-            warnings.warn(
+            admix.logger.warn(
                 "`quantile_cov_cols` will not be used because `method` is None"
             )
     else:
