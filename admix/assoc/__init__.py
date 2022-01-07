@@ -105,7 +105,7 @@ def _block_test(
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            pvalues = stats.chi2.sf(2 * lrt_diff, var_size)
+            pvalues = stats.chi2.sf(2 * lrt_diff, len(test_vars))
         else:
             raise ValueError(f"Unknown family: {family}")
     else:
@@ -175,7 +175,7 @@ def marginal(
 
     Parameters
     ----------
-    dset : xr.Dataset
+    dset : admix.Dataset
         [description]
     pheno : str
         [description]

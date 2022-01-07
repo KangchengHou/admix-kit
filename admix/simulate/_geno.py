@@ -13,7 +13,6 @@ def _lanc(
 ) -> np.ndarray:
     """Simulate local ancestries based on Poisson process.
 
-
     Parameters
     ----------
     n_hap : int
