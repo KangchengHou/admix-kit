@@ -2,7 +2,6 @@
 .. automodule:: admix
    :noindex:
 
-
 Import admix-tools as::
 
    import admix
@@ -29,7 +28,6 @@ Association testing: `assoc`
    :toctree: _api
 
    assoc.marginal
-   assoc.marginal_simple
 
 Simulation: `simulate`
 ----------------------
@@ -42,6 +40,7 @@ Simulation: `simulate`
 
     simulate.admix_geno
     simulate.quant_pheno
+    simulate.binary_pheno
     simulate.quant_pheno_1pop
     simulate.quant_pheno_grm
 
@@ -51,7 +50,11 @@ Data management: `data`
 .. module:: admix.data
 .. currentmodule:: admix
 
-For basic data management.
+.. autosummary::
+   :toctree: _api
+
+   data.allele_per_anc
+   data.af_per_anc
 
 
 Tools: `tools`
@@ -62,6 +65,19 @@ Tools: `tools`
 .. autosummary::
    :toctree: _api
 
-    tools.grm
-    tools.admix_grm
-    
+    tools.plink.run
+    tools.plink2.run
+   
+
+Plot: `plot`
+--------------
+.. module:: admix.plot
+.. currentmodule:: admix
+
+.. autosummary::
+   :toctree: _api
+
+    plot.lanc
+    plot.admixture
+    plot.manhattan
+    plot.qq

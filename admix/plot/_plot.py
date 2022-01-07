@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import collections as mc
 import pandas as pd
-import xarray as xr
 import warnings
 from scipy import stats
 from admix.data import quantile_normalize
 from admix.data import lambda_gc
 import seaborn as sns
+import admix
 
 
 def pca(
