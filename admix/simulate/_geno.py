@@ -100,7 +100,7 @@ def admix_geno(
 
     Returns
     -------
-    xr.Dataset
+    admix.Dataset
         Simulated admixed dataset
 
 
@@ -156,7 +156,7 @@ def admix_geno2(
     anc_props: np.ndarray = None,
     ancestral_af_range: List[float] = [0.1, 0.9],
     F_st: float = 0.3,
-) -> xr.Dataset:
+) -> admix.Dataset:
     """Simulate admixed genotype
     The generative model is:
         1. for each ancestry, the allele frequencies are drawn
@@ -187,7 +187,7 @@ def admix_geno2(
 
     Returns
     -------
-        xr.Dataset
+        admix.Dataset
         Simulated admixed dataset
 
     References

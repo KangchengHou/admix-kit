@@ -29,7 +29,7 @@ class Dataset(object):
 
     Design principles
     -----------------
-    Use xr.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
+    Use admix.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
     such as `af_per_anc`, `allele_per_anc`
 
     Use pd.Dataframe to represent `snp` and `indiv`

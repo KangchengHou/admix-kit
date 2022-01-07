@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 import dask.array as da
 import xarray as xr
+import admix
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -147,14 +148,14 @@ def geno_mult_mat(
         return ret
 
 
-def grm(dset: xr.Dataset, method="gcta", inplace=True):
+def grm(dset: admix.Dataset, method="gcta", inplace=True):
     """Calculate the GRM matrix
     The GRM matrix is calculated treating the genotypes as from one ancestry population,
     the same as GCTA.
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         dataset containing geno
     method: str
         method to calculate the GRM matrix, `gcta` or `raw`
@@ -254,7 +255,7 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     Calculate allele frequency per ancestry
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Containing geno, lanc, n_anc
     Returns
     -------
@@ -355,7 +356,7 @@ def allele_per_anc(
 
 
 # def pca(
-#     dset: xr.Dataset,
+#     dset: admix.Dataset,
 #     method: str = "grm",
 #     n_components: int = 10,
 #     n_power_iter: int = 4,
@@ -366,7 +367,7 @@ def allele_per_anc(
 
 #     Parameters
 #     ----------
-#     dset: xr.Dataset
+#     dset: admix.Dataset
 #         Dataset to get PCA
 #     method: str
 #         Method to calculate PCA, "grm" or "randomized"

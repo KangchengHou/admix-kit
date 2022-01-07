@@ -14,7 +14,7 @@ def train(train_dset: admix.Dataset, method: str = "ridge"):
 
     Parameters
     ----------
-    train_dset : xr.Dataset
+    train_dset : admix.Dataset
         [description]
     method : str, optional
         [description], by default "ridge"
@@ -29,7 +29,7 @@ def predict(sample_dset: admix.Dataset, model):
 
     Parameters
     ----------
-    sample_dset : xr.Dataset
+    sample_dset : admix.Dataset
         [description]
     clf : [type]
         [description]

@@ -17,7 +17,7 @@ def trace_mul(a, b):
 
 
 def gen_cor(
-    dset: xr.Dataset,
+    dset: admix.Dataset,
     grm: Union[str, List[str], dict],
     pheno: np.ndarray,
     cov_cols: List[str] = None,
@@ -28,7 +28,7 @@ def gen_cor(
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset to estimate correlation from.
     grm: str, list of str or dict
         column name(s) of GRM, or a dict of {name: grm}

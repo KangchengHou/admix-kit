@@ -336,7 +336,7 @@ def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
     >>> p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)
     >>> zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])
 
-    >>> dset = xr.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
+    >>> dset = admix.Dataset({"geno": (["indiv", "snp"], geno), "pheno": (["snp", "sim"], pheno)})
     >>> zscores = marginal_simple(dset, pheno)
 
     """

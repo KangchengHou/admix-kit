@@ -22,7 +22,7 @@ def quant_pheno(
 
     Parameters
     ----------
-    dset: xr.Dataset
+    dset: admix.Dataset
         Dataset containing the following variables:
             - geno: (n_indiv, n_snp, 2) phased genotype of each individual
             - lanc: (n_indiv, n_snp, 2) local ancestry of each SNP
@@ -144,7 +144,7 @@ def quant_pheno(
 
 
 def quant_pheno_grm(
-    dset: xr.Dataset,
+    dset: admix.Dataset,
     grm: Union[str, List[str], dict],
     var: Dict[str, float],
     cov_cols: List[str] = None,

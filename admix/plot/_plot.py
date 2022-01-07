@@ -128,7 +128,7 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=Non
 
 
 def lanc(
-    dset: xr.Dataset = None,
+    dset: admix.Dataset = None,
     lanc: np.ndarray = None,
     ax=None,
     max_indiv: int = None,
