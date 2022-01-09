@@ -42,6 +42,7 @@ extensions = [
     "sphinx.ext.viewcode",  # view code links
     "sphinx.ext.napoleon",  # for NumPy style docstrings
     "nbsphinx",
+    "myst_parser",
 ]
 
 # Napoleon options

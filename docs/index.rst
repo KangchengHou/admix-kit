@@ -10,12 +10,12 @@ admix-kit documentation
    :maxdepth: 1
    :caption: Example usage
 
-   notebooks/assoc
-   .. prepare
-   .. examples/plot_overview
-   .. notebooks/data_structure.ipynb
-   .. auto_examples/plot_admix_corr
-   .. auto_examples/plot_local_ancestry_inference   
+   notebooks/quickstart
+   prepare-dataset
+   .. notebooks/assoc
+   .. notebooks/dataset
+   .. notebooks/admix-corr
+   .. notebooks/admix-prs
 
 
 .. toctree::

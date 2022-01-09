@@ -25,7 +25,7 @@ plink2 --pfile raw \
     --max-alleles 2 \
     --maf 0.01 \
     --exclude-snp . \
-    --keep indiv.txt \
+    --keep tmp_indiv.txt \
     --snps-only \
     --chr 1-22 \
     --make-pgen --out ALL
@@ -83,9 +83,7 @@ done
 
 mkdir -p compiled
 for chrom in $(seq 21 22); do
-    # subset chromosome `chrom`
-
-    # subset pgen
+    # subset pgen for chromosome `chrom`
     plink2 --pfile ALL \
         --chr "${chrom}" \
         --keep ADMIX.indiv \
@@ -104,12 +102,20 @@ done
 # Simulating phenotypes
 
 admix simulate-pheno \
-    --pfile compiled/ADMIX.* \
-    --hsq 0.05 \
+    --pfile "compiled/ADMIX.21" \
+    --hsq 0.01 \
     --n-causal 2 \
     --seed 1234 \
-    --out compiled/ADMIX.pheno
+    --out-prefix compiled/ADMIX \
+    --family binary
 
 # Association testing using ATT or Tractor
+admix assoc \
+    --pfile "compiled/ADMIX.21" \
+    --pheno "compiled/ADMIX.pheno" \
+    --pheno-col "SIM0" \
+    --out compiled/SIM_0.assoc \
+    --family binary \
+    --method TRACTOR,ATT
 
 cd "${OLD_DIR}" || exit
