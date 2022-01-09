@@ -289,13 +289,13 @@ def admixture(
     return ax
 
 
-def compare_pval(pval1, pval2, label1=None, label2=None, ax=None):
+def compare_pval(x_pval, y_pval, xlabel=None, ylabel=None, ax=None, s=5):
     if ax is None:
         ax = plt.gca()
-    ax.scatter(-np.log10(pval1), -np.log10(pval2), s=5)
-    lim = max(max(-np.log10(pval1)), max(-np.log10(pval2))) * 1.1
+    ax.scatter(-np.log10(x_pval), -np.log10(y_pval), s=s)
+    lim = max(max(-np.log10(x_pval)), max(-np.log10(y_pval))) * 1.1
     ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1)
-    if label1 is not None:
-        ax.set_xlabel(label1)
-    if label2 is not None:
-        ax.set_ylabel(label2)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)

@@ -255,7 +255,7 @@ class Dataset(object):
     def append_indiv_info(self, df_info: pd.DataFrame) -> None:
         """
         append indiv info to the dataset, individual is matched using the self.indiv.index
-        and df_info.index.
+        and df_info.index. Missing individuals in df_info will be filled with NaN.
 
         Parameters
         ----------
@@ -263,9 +263,16 @@ class Dataset(object):
             DataFrame with the indiv info
         """
         if len(set(df_info.index) - set(self.indiv.index)) > 0:
-            # raise warning
             admix.logger.warn(
-                "Some individuals in the `df_info` are not in the dataset."
+                f"{len(set(df_info.index) - set(self.indiv.index))}/{len(set(df_info.index))}"
+                " individuals in the `df_info` are presented in the dataset."
+                " These individuals will be ignored."
+            )
+        if len(set(self.indiv.index) - set(df_info.index)) > 0:
+            admix.logger.warn(
+                f"{len(set(self.indiv.index) - set(df_info.index))}/{len(set(self.indiv.index))}"
+                " individuals in the dataset are missing in the `df_info`."
+                " These individuals will be filled with NaN."
             )
 
         df_info = df_info.reindex(self.indiv.index)

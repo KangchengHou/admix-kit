@@ -229,7 +229,9 @@ def marginal(
 
     # impute missing values when needed
     if np.isnan(cov).any():
-        admix.logger.info("NaN found in covariates, impute with column mean")
+        admix.logger.info(
+            "NaN found in covariates, impute with column mean for each covariate."
+        )
         # fill nan with column mean
         debug_old_mean = np.nanmean(cov, axis=0)
         cov = admix.data.impute_with_mean(cov, axis=0)

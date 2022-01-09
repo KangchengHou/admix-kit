@@ -429,7 +429,7 @@ def assoc(
     fast: bool = True,
 ):
     """
-    Perform association analysis on a pgen file
+    Perform association analysis on a pgen file.
 
     Parameters
     ----------
@@ -457,12 +457,16 @@ def assoc(
     dset = admix.io.read_dataset(pfile)
     admix.logger.info(f"{dset.n_snp} SNPs and {dset.n_indiv} individuals are loaded")
 
-    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0)[[pheno_col]]
+    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)[
+        [pheno_col]
+    ]
     dset.append_indiv_info(df_pheno)
 
     # adding covariates
     if covar is not None:
-        df_covar = pd.read_csv(covar, delim_whitespace=True, index_col=0)
+        df_covar = pd.read_csv(
+            covar, delim_whitespace=True, index_col=0, low_memory=False
+        )
         dset.append_indiv_info(df_covar)
         covar_cols = df_covar.columns
         admix.logger.info(
@@ -471,17 +475,20 @@ def assoc(
     else:
         covar_cols = None
         admix.logger.info("No covariates are loaded")
-    # filter for individuals with non-missing phenotype
-    dset = dset[:, ~dset.indiv[pheno_col].isna().values]
+    # retain only individuals with non-missing phenotype,
+    # or with non-completely missing covariate
+    indiv_mask = ~dset.indiv[pheno_col].isna().values
+    if covar_cols is not None:
+        covar_mask = ~(dset.indiv[covar_cols].isna().values.all(axis=1))
+        indiv_mask &= covar_mask
+    dset = dset[:, indiv_mask]
     admix.logger.info(
-        f"{dset.n_snp} SNPs and {dset.n_indiv} individuals left after filtering"
+        f"{dset.n_snp} SNPs and {dset.n_indiv} individuals left "
+        "after filtering for missing phenotype, or completely missing covariate"
     )
-    # TODO: impute NaN values in covariates columns
+
     if covar_cols is not None:
         covar_values = dset.indiv[covar_cols].values
-        assert not np.isnan(
-            covar_values
-        ).any(), "NaN values in covariates columns are not allowed"
     else:
         covar_values = None
 
