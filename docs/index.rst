@@ -9,11 +9,13 @@ admix-kit documentation
    :glob:
    :maxdepth: 1
    :caption: Example usage
-
+    
+   
    notebooks/quickstart
+   quickstart-cli
    prepare-dataset
-   .. notebooks/assoc
-   .. notebooks/dataset
+   notebooks/assoc
+   notebooks/dataset
    .. notebooks/admix-corr
    .. notebooks/admix-prs
 

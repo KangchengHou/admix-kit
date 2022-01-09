@@ -35,7 +35,6 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosummary",
-    "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
     "sphinx.ext.todo",  # Todo headers and todo:: directives
     "sphinx.ext.mathjax",  # LaTeX style math
@@ -64,13 +63,6 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
-# sphinx_gallery_conf = {
-#     "examples_dirs": "../examples",  # path to your example scripts
-#     "gallery_dirs": "_examples",  # path to where to save gallery generated output
-#     "backreferences_dir": "_api",
-#     "doc_module": ("admix", "numpy"),
-# }
 
 # -- Options for HTML output -------------------------------------------------
 
