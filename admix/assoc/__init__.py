@@ -4,7 +4,7 @@ import pandas as pd
 from scipy import stats
 from tqdm import tqdm
 import admix
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional, Union
 import dask.array as da
 import admix
 from statsmodels.tools import sm_exceptions
@@ -165,8 +165,8 @@ def marginal(
     dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
-    n_anc: int = None,
-    cov: np.ndarray = None,
+    n_anc: Optional[int] = None,
+    cov: Optional[np.ndarray] = None,
     method: str = "ATT",
     family: str = "linear",
     verbose: bool = False,
@@ -217,15 +217,29 @@ def marginal(
     assert np.all(geno.shape == lanc.shape), "geno and lanc must have same shape"
     n_snp, n_indiv = geno.shape[0:2]
 
-    if cov is not None:
+    # process covariates
+    if cov is None:
+        cov = np.ones((n_indiv, 1))
+    else:
         assert cov.shape[0] == n_indiv, "cov must have same number of rows as pheno"
         # prepend a column of ones to the covariates
         cov = np.hstack((np.ones((n_indiv, 1)), cov))
-    else:
-        cov = np.ones((n_indiv, 1))
+
+    assert cov is not None
+
+    # impute missing values when needed
+    if np.isnan(cov).any():
+        admix.logger.info("NaN found in covariates, impute with column mean")
+        # fill nan with column mean
+        debug_old_mean = np.nanmean(cov, axis=0)
+        cov = admix.data.impute_with_mean(cov, axis=0)
+        assert np.all(
+            np.nanmean(cov, axis=1) == debug_old_mean
+        ), "NaN imputation failed"
 
     # check covariates must be full rank
     assert np.linalg.matrix_rank(cov) == cov.shape[1], "Covariates must be of full rank"
+
     if method == "ATT":
         var = geno.sum(axis=2).swapaxes(0, 1)
         var_size = 1
@@ -340,7 +354,7 @@ def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:
     >>> zscores = marginal_simple(dset, pheno)
 
     """
-    geno = dset["geno"].data
+    geno = dset.geno
     n_indiv, n_snp = geno.shape
     assert (
         n_indiv == pheno.shape[0]

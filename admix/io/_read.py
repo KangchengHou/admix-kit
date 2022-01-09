@@ -30,7 +30,6 @@ def read_lanc(path: str) -> admix.data.Lanc:
     return lanc
 
 
-# TODO: support only reading a subset of the individuals
 def read_dataset(
     pfile: str,
     lanc_file: str = None,
@@ -41,6 +40,8 @@ def read_dataset(
 ) -> admix.Dataset:
     """
     TODO: support multiple pfile, such as data/chr*
+    TODO: support only reading a subset of the individuals
+
     Read a dataset from a directory.
 
     pfile.snp_info will also be read and combined with .pvar

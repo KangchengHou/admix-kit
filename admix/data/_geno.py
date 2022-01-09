@@ -28,33 +28,43 @@ def calc_snp_prior_var(df_snp_info, her_model):
         raise NotImplementedError
 
 
-def impute_with_mean(geno, inplace=False):
-    """impute the each entry using the mean of each row
+def impute_with_mean(mat, inplace=False, axis=1):
+    """impute the each entry using the mean of the input matrix np.mean(mat, axis=axis)
+    axis = 1 corresponds to row-wise imputation
+    axis = 0 corresponds to column-wise imputation
 
     Parameters
     ----------
-    geno : np.ndarray
-        (n_snp, n_indiv) genotype matrix
+    mat : np.ndarray
+        input matrix. For reminder, the genotype matrix is with shape (n_snp, n_indiv)
+    inplace : bool
+        whether to return a new dataset or modify the input dataset
+    axis : int
+        axis to impute along
 
     Returns
     -------
     if inplace:
-        geno : np.ndarray
-            (n_snp, n_indiv) genotype matrix
+        mat : np.ndarray
+            (n_snp, n_indiv) matrix
     else:
         None
     """
+    assert axis in [0, 1], "axis should be 0 or 1"
     if not inplace:
-        geno = geno.copy()
+        mat = mat.copy()
 
     # impute the missing genotypes with the mean of each row
-    mean = np.nanmean(geno, axis=1)
-    nanidx = np.where(np.isnan(geno))
-    # index the mean using the nanidx[0] (row-wise)
-    geno[nanidx] = mean[nanidx[0]]
+    mean = np.nanmean(mat, axis=axis)
+    nanidx = np.where(np.isnan(mat))
+
+    # index the mean using the nanidx[1 - axis]
+    # axis = 1, row-wise imputation, index the mean using the nanidx[0]
+    # axis = 0, columnw-ise imputation, index the mean using the nanidx[1]
+    mat[nanidx] = mean[nanidx[1 - axis]]
 
     if not inplace:
-        return geno
+        return mat
     else:
         return None
 
