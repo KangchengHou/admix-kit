@@ -1,6 +1,7 @@
 import pandas as pd
 from typing import List
 import admix
+import numpy as np
 
 
 def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
@@ -25,10 +26,11 @@ def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
 
     added_cols = []
     df = df.copy()
-    for col in df:
+    for col in cols:
         # create study dummies variables
         dummies = pd.get_dummies(df[col], drop_first=True)
         dummies.columns = [f"{col}_{s}" for s in dummies.columns]
+        dummies.loc[df[col].isnull(), dummies.columns] = np.nan
         added_cols.extend(dummies.columns)
         df = pd.concat([df, dummies], axis=1)
         df = df.drop(columns=[col])

@@ -488,7 +488,7 @@ def assoc(
     )
 
     if covar_cols is not None:
-        covar_values = dset.indiv[covar_cols].values
+        covar_values = admix.data.convert_dummy(dset.indiv[covar_cols]).values
     else:
         covar_values = None
 
