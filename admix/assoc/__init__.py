@@ -45,7 +45,6 @@ def _block_test(
 
     Todo
     ----
-    TODO: what happens when the covariates perfectly correlate?
     TODO: also return effect sizes in additional to p-values
     """
     n_indiv = var.shape[0]
@@ -65,10 +64,11 @@ def _block_test(
     test_vars = np.array(test_vars)
     assert np.all(test_vars < var_size), "test_vars must be less than var_size"
 
+    # fill covariates
     n_cov = cov.shape[1]
     design = np.zeros((n_indiv, var_size + n_cov))
-
     design[:, var_size : var_size + n_cov] = cov
+
     if fast:
         try:
             import tinygwas
@@ -161,15 +161,14 @@ def _block_test(
 
 
 def marginal(
-    pheno: np.ndarray,
     dset: admix.Dataset = None,
     geno: da.Array = None,
     lanc: da.Array = None,
+    pheno: np.ndarray = None,
     n_anc: Optional[int] = None,
     cov: Optional[np.ndarray] = None,
     method: str = "ATT",
     family: str = "linear",
-    verbose: bool = False,
     fast: bool = True,
 ):
     """Marginal association testing for one SNP at a time
@@ -177,15 +176,23 @@ def marginal(
     Parameters
     ----------
     dset : admix.Dataset
-        [description]
-    pheno : str
-        [description]
+        data set
+    geno : da.Array
+        genotype (n_snp, n_indiv, 2) matrix
+    lanc : da.Array
+        local ancestry (n_snp, n_indiv, 2) matrix
+    pheno : np.ndarray
+        phenotype (n_snp, )
+    n_anc : int
+        number of ancestral populations, if not specified, inferred from lanc
     cov : List[str], optional
-        [description], by default None
+        Covariate matrix, by default None
     method : str, optional
-        [description], by default "ATT"
+        methods used for association testing, by default "ATT"
     family : str, optional
-        [description], by default "linear"
+        family of phenotype, by default "linear"
+    fast : bool, optional
+        use fast implementation, by default True
 
     Returns
     -------
@@ -193,8 +200,25 @@ def marginal(
         Association p-values for each SNP being tested
 
     """
+
+    assert family in ["linear", "logistic"], "Unknown family"
+
+    # check phenotype
+    # nan values are not allowed
+    assert pheno is not None, "Must specify `pheno`"
+    assert np.all(np.isfinite(pheno)), "pheno must not contain NaN values"
     if family == "logistic":
-        admix.logger.warn("logistic family is not well tested, use with caution")
+        assert np.all(
+            (pheno == 0) | (pheno == 1)
+        ), "When family='logistic', pheno must be 0 or 1"
+
+    if family == "logistic":
+        if len(pheno) < 1000:
+            admix.logger.warn(
+                "logistic family is known to be unstable with small sample size (N < 1,000)"
+                + "NaN values in the returned p-values may be caused by this."
+            )
+
     # format data
     assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
     if dset is not None:
