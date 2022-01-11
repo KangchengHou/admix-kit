@@ -15,7 +15,5 @@ setup(
     author_email="kangchenghou@gmail.com",
     packages=["admix"],
     setup_requires=["numpy>=1.10"],
-    scripts=[
-        "bin/admix",
-    ],
+    entry_points={"console_scripts": ["admix=admix.cli:cli"]},
 )

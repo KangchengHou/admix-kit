@@ -449,6 +449,16 @@ def assoc(
         Family to use for association analysis (either quant or binary, default quant)
     fast : bool
         Whether to use fast mode (default True)
+
+
+    Examples
+    --------
+    .. code-block:: bash
+
+        admix assoc --pfile data/sim.pgen \\
+            --pheno data/sim.pheno \\
+            --pheno-col SIM0 \\
+            --out data/sim.assoc
     """
     log_params("assoc", locals())
     assert family in ["quant", "binary"], "family must be either quant or binary"
@@ -510,6 +520,10 @@ def assoc(
         out, sep="\t", float_format="%.6g", na_rep="NA"
     )
     logger.info(f"Output written to {out}")
+
+
+def cli():
+    fire.Fire()
 
 
 if __name__ == "__main__":
