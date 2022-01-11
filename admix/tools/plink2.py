@@ -34,6 +34,7 @@ def gwas(
     out_prefix: str,
     pfile: str = None,
     bfile: str = None,
+    family: str = "linear",
     covar_cols: List[str] = None,
     cat_cols: List[str] = None,
     pheno_quantile_normalize=False,
@@ -41,6 +42,7 @@ def gwas(
     clean_tmp_file=False,
     **kwargs,
 ):
+    assert family in ["linear", "logistic"], "family must be linear or logistic"
     # only one of pfile or bfile must be provided
     assert (pfile is None) != (bfile is None), "pfile or bfile must be provided"
 
@@ -48,7 +50,18 @@ def gwas(
     non_nan_index = ~np.isnan(df_sample_info[pheno_col])
     df_pheno = df_sample_info.loc[non_nan_index, :].rename(columns={pheno_col: "trait"})
     pheno_vals = df_pheno.trait.values
-    df_pheno["trait"] = (pheno_vals - pheno_vals.mean()) / pheno_vals.std()
+    if family == "logistic":
+        assert (
+            pheno_quantile_normalize == False
+        ), "quantile normalization can not be used for logistic regression"
+        assert np.all(
+            (pheno_vals == 0) | (pheno_vals == 1)
+        ), "phenotype values must be 0 or 1 for logistic regression"
+        df_pheno["trait"] = df_pheno.trait.astype(int) + 1
+    elif family == "linear":
+        df_pheno["trait"] = (pheno_vals - pheno_vals.mean()) / pheno_vals.std()
+    else:
+        raise ValueError("family must be linear or logistic")
     pheno_path = out_prefix + f".plink2_tmp_pheno"
 
     if bfile is not None:
@@ -69,7 +82,9 @@ def gwas(
     cmds.extend(
         [
             f"--pheno {pheno_path}",
-            "--linear hide-covar omit-ref",
+            f"--{family} hide-covar omit-ref" + " no-firth"
+            if family == "logistic"
+            else "",
             f"--out {out_prefix}",
         ]
     )
@@ -106,7 +121,11 @@ def gwas(
 
     run(" ".join(cmds), **kwargs)
 
-    os.rename(out_prefix + ".trait.glm.linear", out_prefix + ".assoc")
+    if family == "linear":
+        os.rename(out_prefix + ".trait.glm.linear", out_prefix + ".assoc")
+    else:
+        os.rename(out_prefix + ".trait.glm.logistic", out_prefix + ".assoc")
+
     if clean_tmp_file:
         for f in glob.glob(out_prefix + ".plink2_tmp_*"):
             os.remove(f)

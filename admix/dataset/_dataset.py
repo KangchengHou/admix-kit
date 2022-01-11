@@ -25,7 +25,7 @@ class Dataset(object):
     An admix.Dataset `dset` Support the following operations:
 
     - dset.indiv[new_col] = new_values
-
+    - dset.snp[new_col] = new_values
 
     Design principles
     -----------------
@@ -252,7 +252,9 @@ class Dataset(object):
                     da.from_array(self._xr[name].data.compute(), chunks=-1),
                 )
 
-    def append_indiv_info(self, df_info: pd.DataFrame) -> None:
+    def append_indiv_info(
+        self, df_info: pd.DataFrame, force_update: bool = False
+    ) -> None:
         """
         append indiv info to the dataset, individual is matched using the self.indiv.index
         and df_info.index. Missing individuals in df_info will be filled with NaN.
@@ -261,17 +263,21 @@ class Dataset(object):
         ----------
         df_info : pd.DataFrame
             DataFrame with the indiv info
+        force_update : bool
+            If True, update the indiv information even if it already exists.
         """
         if len(set(df_info.index) - set(self.indiv.index)) > 0:
             admix.logger.warn(
+                "admix.dataset.append_indiv_info: "
                 f"{len(set(df_info.index) - set(self.indiv.index))}/{len(set(df_info.index))}"
-                " individuals in the `df_info` are presented in the dataset."
+                " individuals in the new dataframe not in the dataset;"
                 " These individuals will be ignored."
             )
         if len(set(self.indiv.index) - set(df_info.index)) > 0:
             admix.logger.warn(
+                "admix.dataset.append_indiv_info: "
                 f"{len(set(self.indiv.index) - set(df_info.index))}/{len(set(self.indiv.index))}"
-                " individuals in the dataset are missing in the `df_info`."
+                " individuals in the dataset are missing in the provided data frame."
                 " These individuals will be filled with NaN."
             )
 
@@ -281,9 +287,20 @@ class Dataset(object):
         # else, check the consistency of between df_info and dataset, if not consistent, raise error
         for col in df_info.columns:
             if col in self.indiv.columns:
-                assert np.allclose(
-                    self.indiv[col], df_info[col]
-                ), f"The column {col} in the `df_info` is not consistent with the dataset."
+                is_allclose = np.allclose(self.indiv[col], df_info[col], equal_nan=True)
+                if not is_allclose:
+                    if force_update:
+                        admix.logger.info(
+                            f"admix.dataset.append_indiv_info: "
+                            f"{col} is updated from {self.indiv[col].values[0:5]} ..."
+                            f"to {df_info[col].values[0:5]} ..."
+                        )
+                    else:
+                        raise ValueError(
+                            "admix.dataset.append_indiv_info: "
+                            f"The column '{col}' in the provided data frame is not consistent "
+                            "with the dataset."
+                        )
             else:
                 self._indiv[col] = df_info[col]
 

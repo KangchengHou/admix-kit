@@ -460,14 +460,13 @@ def assoc(
     df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)[
         [pheno_col]
     ]
-    dset.append_indiv_info(df_pheno)
-
+    dset.append_indiv_info(df_pheno, force_update=True)
     # adding covariates
     if covar is not None:
         df_covar = pd.read_csv(
             covar, delim_whitespace=True, index_col=0, low_memory=False
         )
-        dset.append_indiv_info(df_covar)
+        dset.append_indiv_info(df_covar, force_update=True)
         covar_cols = df_covar.columns
         admix.logger.info(
             f"{len(covar_cols)} covariates are loaded: {','.join(covar_cols)}"
