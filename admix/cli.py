@@ -443,7 +443,7 @@ def assoc(
     pheno_col : str
         Column name for the phenotype value. NaN should be encoded as "NA" and these 
         individuals will be removed in the analysis. Binary phenotype should be encoded 
-        as 0 and 1, and :code:`--family logistic` should be used.
+        as 0 and 1, and :code:`--family binary` should be used.
     covar: str
         Path to the covariate file. The text file should be space delimited with header 
         and one individual per row. The first column should be the individual ID, and 
@@ -457,7 +457,8 @@ def assoc(
         Method to use for association analysis (default ATT). Other methods include:
         TRACTOR, ADM, SNP1. 
     family : str
-        Family to use for association analysis (either quant or binary, default quant)
+        Family to use for association analysis (default quant). One of :code:`quant` or 
+        :code:`binary`.
     fast : bool
         Whether to use fast mode (default True).
 
