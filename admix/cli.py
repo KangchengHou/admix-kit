@@ -429,36 +429,51 @@ def assoc(
     fast: bool = True,
 ):
     """
-    Perform association analysis on a pgen file.
+    Perform association testing.
 
     Parameters
     ----------
     pfile : str
-        Path to the pgen file
+        Prefix to the PLINK2 file (.pgen should not be added). If method that requires
+        local ancestry is specified, a matched :code:`<pfile>.lanc` file should exist.
     pheno : str
-        Path to the phenotype file
+        Path to the phenotype file. The text file should be space delimited with header 
+        and one individual per row. The first column should be the individual ID. Use 
+        :code:`--pheno-col` to specify the column for the phenotype value 
     pheno_col : str
-        Column name in the phenotype file
+        Column name for the phenotype value. NaN should be encoded as "NA" and these 
+        individuals will be removed in the analysis. Binary phenotype should be encoded 
+        as 0 and 1, and :code:`--family logistic` should be used.
     covar: str
-        Path to the covariate file
+        Path to the covariate file. The text file should be space delimited with header 
+        and one individual per row. The first column should be the individual ID, and 
+        the remaining columns should be the covariate values. All columns will be used
+        for the analysis. NaN should be encoded as "NA" and NaN will be imputed with 
+        the mean of each covariate. Categorical covariates will be converted to one
+        hot encodings by the program.
     out : str
-        Path the output file
+        Path the output file. p-value will be written.
     method : Union[str, List[str]]
-        Method to use for association analysis (default ATT)
+        Method to use for association analysis (default ATT). Other methods include:
+        TRACTOR, ADM, SNP1. 
     family : str
         Family to use for association analysis (either quant or binary, default quant)
     fast : bool
-        Whether to use fast mode (default True)
-
+        Whether to use fast mode (default True).
 
     Examples
     --------
     .. code-block:: bash
 
-        admix assoc --pfile data/sim.pgen \\
-            --pheno data/sim.pheno \\
+        # See complete example at 
+        # https://kangchenghou.github.io/admix-kit/quickstart-cli.html
+        admix assoc \\
+            --pfile toy-admix \\
+            --pheno toy-admix.pheno \\
             --pheno-col SIM0 \\
-            --out data/sim.assoc
+            --covar toy-admix.covar \\
+            --method ATT,TRACTOR \\
+            --out toy-admix.assoc
     """
     log_params("assoc", locals())
     assert family in ["quant", "binary"], "family must be either quant or binary"
