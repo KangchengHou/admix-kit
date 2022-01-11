@@ -12,9 +12,7 @@ import warnings
 
 warnings.filterwarnings(action="error", category=sm_exceptions.ValueWarning)
 
-__all__ = ["marginal", "marginal_simple"]
-
-# TODO: merge marginal_fast and marginal
+__all__ = ["marginal"]
 
 
 def _block_test(

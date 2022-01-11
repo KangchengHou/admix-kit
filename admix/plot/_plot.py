@@ -293,7 +293,7 @@ def compare_pval(x_pval, y_pval, xlabel=None, ylabel=None, ax=None, s=5):
     if ax is None:
         ax = plt.gca()
     ax.scatter(-np.log10(x_pval), -np.log10(y_pval), s=s)
-    lim = max(max(-np.log10(x_pval)), max(-np.log10(y_pval))) * 1.1
+    lim = max(np.nanmax(-np.log10(x_pval)), np.nanmax(-np.log10(y_pval))) * 1.1
     ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1)
     if xlabel is not None:
         ax.set_xlabel(xlabel)
