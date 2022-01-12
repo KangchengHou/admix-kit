@@ -56,6 +56,19 @@ Data management: `data`
    data.allele_per_anc
    data.af_per_anc
 
+Input and output: `io`
+----------------------
+
+.. module:: admix.io
+.. currentmodule:: admix
+
+.. autosummary::
+   :toctree: _api
+
+   io.read_dataset
+   io.read_lanc
+   io.read_rfmix
+
 
 Tools: `tools`
 --------------

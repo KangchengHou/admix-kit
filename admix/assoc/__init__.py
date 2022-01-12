@@ -67,6 +67,11 @@ def _block_test(
     design = np.zeros((n_indiv, var_size + n_cov))
     design[:, var_size : var_size + n_cov] = cov
 
+    if isinstance(var, da.Array):
+        var = var.compute()
+
+    assert isinstance(var, np.ndarray), "var must be a numpy array"
+
     if fast:
         try:
             import tinygwas
