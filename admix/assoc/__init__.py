@@ -279,19 +279,16 @@ def marginal(
             lanc,
             n_anc=n_anc,
         ).swapaxes(0, 1)
-        lanc = lanc.sum(axis=2).swapaxes(0, 1)
         var = da.empty((n_indiv, n_snp * 3))
         var[:, 0::3] = allele_per_anc[:, :, 0]
         var[:, 1::3] = allele_per_anc[:, :, 1]
-        var[:, 2::3] = lanc
+        var[:, 2::3] = lanc.sum(axis=2).swapaxes(0, 1)
         var_size = 3
         test_vars = [0, 1]
     elif method == "SNP1":
-        geno = geno.sum(axis=2).swapaxes(0, 1)
-        lanc = lanc.sum(axis=2).swapaxes(0, 1)
         var = da.empty((n_indiv, n_snp * 2))
-        var[:, 0::2] = geno
-        var[:, 1::2] = lanc
+        var[:, 0::2] = geno.sum(axis=2).swapaxes(0, 1)
+        var[:, 1::2] = lanc.sum(axis=2).swapaxes(0, 1)
         var_size = 2
         test_vars = [0]
     elif method == "ASE":
