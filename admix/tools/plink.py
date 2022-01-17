@@ -18,7 +18,7 @@ def run(cmd: str, **kwargs):
         plink command
     """
     bin_path = get_dependency("plink")
-    add_cmds = [f" --{k} {kwargs[k]}" for k in kwargs]
+    add_cmds = [f" --{k.replace('_', '-')} {kwargs[k]}" for k in kwargs]
     cmd += " ".join(add_cmds)
 
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)

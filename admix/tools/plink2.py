@@ -23,7 +23,7 @@ def run(cmd: str, **kwargs):
         plink command
     """
     bin_path = get_dependency("plink2")
-    add_cmds = [f" --{k} {kwargs[k]}" for k in kwargs]
+    add_cmds = [f" --{k.replace('_', '-')} {kwargs[k]}" for k in kwargs]
     cmd += " ".join(add_cmds)
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
@@ -82,12 +82,15 @@ def gwas(
     cmds.extend(
         [
             f"--pheno {pheno_path}",
-            f"--{family} hide-covar omit-ref" + " no-firth"
-            if family == "logistic"
-            else "",
             f"--out {out_prefix}",
         ]
     )
+    if family == "linear":
+        cmds.append("--linear hide-covar omit-ref")
+    elif family == "logistic":
+        cmds.append("--logistic hide-covar omit-ref no-firth")
+    else:
+        raise ValueError("family must be linear or logistic")
 
     if covar_cols is not None:
         covar_path = out_prefix + f".plink2_tmp_covar"

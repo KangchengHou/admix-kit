@@ -2,7 +2,7 @@ import subprocess
 import tempfile
 from os.path import join
 from ..utils import get_cache_dir, cd
-import urllib
+import urllib.request
 import shutil
 import os
 
@@ -125,6 +125,26 @@ def get_dependency(name, download=True):
                         subprocess.check_call(
                             f"mv liftOver {cache_bin_path}", shell=True
                         )
+            elif name == "hapgen2":
+                if platform == "linux":
+                    url = (
+                        "http://mathgen.stats.ox.ac.uk/genetics_software/hapgen"
+                        "/download/builds/x86_64/v2.2.0/hapgen2_x86_64.tar.gz"
+                    )
+                else:
+                    raise ValueError(f"Unsupported platform {platform}")
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with cd(tmp_dir):
+                        urllib.request.urlretrieve(
+                            url,
+                            "file.tar.gz",
+                        )
+                        subprocess.check_call(f"tar -xvf file.tar.gz", shell=True)
+
+                        subprocess.check_call(
+                            f"mv hapgen2 {cache_bin_path}",
+                            shell=True,
+                        )
             else:
                 raise ValueError(f"Unsupported software {name}")
 
@@ -134,3 +154,48 @@ def get_dependency(name, download=True):
             )
 
         return cache_bin_path
+
+
+def get_cache_data(name: str, **kwargs) -> str:
+    """
+    Obtain the path to the cached data.
+
+    Find the data in the following locations:
+    - package installation directory admix-tools/.admix_cache/data/<name>
+
+    If not found in any of these locations, download will start
+
+    Parameters
+    ----------
+    name: str
+        name of the data
+        - genetic_map: used for HAPGEN2, download from
+            https://alkesgroup.broadinstitute.org/Eagle/downloads/tables/
+            kwargs["build"] = hg19 or hg38
+        - TODO:
+
+    Returns
+    -------
+    str: path to the cached file
+    """
+
+    # find in cache
+    cache_dir = join(get_cache_dir(), "data", name)
+    os.makedirs(cache_dir, exist_ok=True)
+
+    if name == "genetic_map":
+        assert kwargs["build"] in ["hg19", "hg38"]
+        file_name = f"genetic_map_{kwargs['build']}_withX.txt.gz"
+        cache_path = join(cache_dir, file_name)
+        url = (
+            "https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/"
+            + file_name
+        )
+        if not os.path.exists(cache_path):
+            urllib.request.urlretrieve(
+                url,
+                cache_path,
+            )
+    else:
+        raise ValueError(f"Unsupported data {name}")
+    return cache_path
