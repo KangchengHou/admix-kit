@@ -146,9 +146,15 @@ def admix_geno_simple(
     anc_props = np.array(anc_props)
     assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
 
-    rls_lanc = _lanc(n_indiv * 2, n_snp, mosaic_size=mosaic_size, anc_props=anc_props)
+    breaks, values = simulate_hap_lanc(
+        n_hap=n_indiv * 2, n_snp=n_snp, mosaic_size=mosaic_size, anc_props=anc_props
+    )
+    breaks, values = admix.data.haplo2diplo(breaks=breaks, values=values)
+    rls_lanc = (
+        admix.data.Lanc(breaks=breaks, values=values).dask().swapaxes(0, 1).compute()
+    )
     # n_indiv x n_snp x 2 (2 for each haplotype)
-    rls_lanc = np.dstack([rls_lanc[0:n_indiv, :], rls_lanc[n_indiv:, :]])
+    # rls_lanc = np.dstack([rls_lanc[0:n_indiv, :], rls_lanc[n_indiv:, :]])
     rls_geno = np.zeros_like(rls_lanc)
     if allele_freqs is None:
         # allele frequencies for the two populations
@@ -234,7 +240,13 @@ def admix_geno2(
     assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
 
     # local ancestry
-    rls_lanc = _lanc(n_indiv * 2, n_snp, mosaic_size=mosaic_size, anc_props=anc_props)
+    rls_lanc = (
+        simulate_hap_lanc(
+            n_hap=n_indiv * 2, n_snp=n_snp, mosaic_size=mosaic_size, anc_props=anc_props
+        )
+        .dask()
+        .T
+    )
     # n_indiv x n_snp x 2 (2 for each haplotype)
     rls_lanc = np.dstack([rls_lanc[0:n_indiv, :], rls_lanc[n_indiv:, :]])
     rls_geno = np.zeros_like(rls_lanc)
