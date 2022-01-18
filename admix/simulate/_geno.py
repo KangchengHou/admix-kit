@@ -1,65 +1,93 @@
 import numpy as np
-import xarray as xr
 from typing import List
 import dask.array as da
 import admix
-
-
-def _lanc(
-    n_hap: int,
-    n_snp: int,
-    mosaic_size: float,
-    anc_props: List[float],
-) -> np.ndarray:
-    """Simulate local ancestries based on Poisson process.
-
-    Parameters
-    ----------
-    n_hap : int
-        Number of haplotypes
-    n_snp : int
-        Number of SNPs
-    mosaic_size : float
-        Expected mosaic size in # of SNPs
-    anc_props : list of float
-        Proportion of ancestral populations, if not specified, the proportion
-        is uniform over the ancestral populations.
-
-    Returns
-    -------
-    np.ndarray
-        Simulated local ancestry
-
-    Todo
-    ----
-
-    TODO: we could specify the centimorgan for all the SNPs, then infer some
-    recombination rates from the centimorgans.
-    """
-    assert np.sum(anc_props) == 1, "anc_props must sum to 1"
-    n_total_snp = n_hap * n_snp
-
-    # TODO: infer the parameter in the exponential distribution
-
-    # number of chunks to simulate in each iteration
-    chunk_size = int(n_total_snp / mosaic_size)
-
-    breaks: List[float] = []
-    while np.sum(breaks) < n_total_snp:
-        breaks.extend(np.random.exponential(scale=mosaic_size, size=chunk_size))
-    breaks = np.ceil(breaks).astype(int)
-    breaks = breaks[0 : np.argmax(np.cumsum(breaks) > n_total_snp) + 1]
-
-    ancestries = np.random.choice(
-        np.arange(len(anc_props)), size=len(breaks), p=anc_props
-    )
-
-    rls_lanc = np.repeat(ancestries, breaks)[0:n_total_snp].reshape(n_hap, n_snp)
-
-    return rls_lanc
+import pandas as pd
+from ._lanc import hap_lanc as simulate_hap_lanc
 
 
 def admix_geno(
+    dset_list: List[admix.Dataset],
+    anc_props: List[float],
+    mosaic_size: float,
+    n_indiv: int,
+) -> admix.Dataset:
+    """Simulate admixed genotype
+
+    The generative model is:
+
+    - for each ancestry, the allele frequencies are drawn
+    - for each individual, breakpoints are drawn from a Poisson process. and the ancestry
+        will be filled based a multinomial distribution with `n_anc` components
+    - for each SNP, given the ancestry and the allele frequencies, the haplotype is drawn.
+        Haplotype are simulated under some frequencies
+
+    Parameters
+    ----------
+    dset_list : List[admix.Dataset]
+        List of ancestral data sets
+    n_indiv : int
+        Number of individuals to simulate
+    mosaic_size : float
+        Expected mosaic size in # of SNPs. use admix.lanc.calculate_mosaic_size() to
+        calculate the mosaic size
+
+    Returns
+    -------
+    admix.Dataset
+        Simulated admixed dataset
+    """
+
+    n_anc = len(dset_list)
+    df_snp = dset_list[0].snp
+    assert all(
+        dset.snp.equals(df_snp) for dset in dset_list
+    ), "all datasets must have the same number of SNPs"
+    n_snp = df_snp.shape[0]
+    if anc_props is None:
+        anc_props = np.ones(n_anc) / n_anc
+    else:
+        anc_props = np.array(anc_props)
+        assert np.sum(anc_props) == 1, "anc_props must sum to 1"
+    anc_props = np.array(anc_props)
+    assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
+
+    dset_hap_list = [
+        np.hstack([dset.geno[:, :, 0], dset.geno[:, :, 1]]).compute()
+        for dset in dset_list
+    ]
+
+    hap_lanc_breaks, hap_lanc_values = admix.simulate.hap_lanc(
+        n_snp=n_snp, n_hap=n_indiv * 2, mosaic_size=mosaic_size, anc_props=anc_props
+    )
+    geno = np.zeros((n_snp, n_indiv * 2), dtype=int)
+
+    for hap_i in range(n_indiv * 2):
+        start = 0
+        for stop, val in zip(hap_lanc_breaks[hap_i], hap_lanc_values[hap_i]):
+            geno[start:stop, hap_i] = dset_hap_list[val][
+                start:stop, np.random.randint(dset_hap_list[val].shape[1])
+            ]
+            start = stop
+    lanc_breaks, lanc_values = admix.data.haplo2diplo(
+        breaks=hap_lanc_breaks, values=hap_lanc_values
+    )
+    lanc = admix.data.Lanc(breaks=lanc_breaks, values=lanc_values)
+    geno = np.dstack([geno[:, 0::2], geno[:, 1::2]])
+
+    dset = admix.Dataset(
+        geno=da.from_array(geno, chunks=-1),
+        lanc=lanc.dask(snp_chunk=n_snp),
+        n_anc=n_anc,
+        snp=df_snp,
+        indiv=pd.DataFrame(
+            {"indiv": ["indiv_" + str(i) for i in np.arange(n_indiv)]}
+        ).set_index("indiv"),
+    )
+    return dset
+
+
+def admix_geno_simple(
     n_indiv: int,
     n_snp: int,
     n_anc: int,
@@ -142,8 +170,8 @@ def admix_geno(
         )
 
     return admix.Dataset(
-        geno=da.from_array(np.swapaxes(rls_geno, 0, 1)),
-        lanc=da.from_array(np.swapaxes(rls_lanc, 0, 1)),
+        geno=da.from_array(np.swapaxes(rls_geno, 0, 1), chunks=-1),
+        lanc=da.from_array(np.swapaxes(rls_lanc, 0, 1), chunks=-1),
         n_anc=n_anc,
     )
 

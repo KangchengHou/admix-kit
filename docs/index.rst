@@ -11,6 +11,7 @@ admix-kit documentation
    prepare-dataset
    notebooks/assoc
    notebooks/dataset
+   notebooks/simulate-genotype
    .. notebooks/admix-corr
    .. notebooks/admix-prs
 

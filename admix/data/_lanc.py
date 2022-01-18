@@ -381,6 +381,46 @@ def clean_lanc(breaks: List[List[int]], values: List[List[str]]):
     return new_breaks, new_values
 
 
+def haplo2diplo(breaks: List[List], values: List[List]):
+    """convert haplotype to diplotype, combine every 2 haplotypes into 1 diplotype
+
+    Parameters
+    ----------
+    breaks : List[List[int]]
+        break points
+    values : List[List[str]]
+        values
+
+    Returns
+    -------
+    List[List[int]]
+        break points
+    List[List[str]]
+        values
+    """
+    assert len(breaks) == len(values)
+    n_haplo = len(breaks)
+    assert n_haplo % 2 == 0, "Number of haplotypes must be even"
+    n_diplo = n_haplo // 2
+
+    new_breaks = []
+    new_values = []
+    for i in range(n_diplo):
+        br1, br2 = breaks[i * 2 : (i + 1) * 2]
+        vl1, vl2 = values[i * 2 : (i + 1) * 2]
+        unique_br = np.union1d(br1, br2).tolist()
+        new_vl = [
+            str(v1) + str(v2)
+            for v1, v2 in zip(
+                [vl1[bisect_left(br1, b)] for b in unique_br],
+                [vl2[bisect_left(br2, b)] for b in unique_br],
+            )
+        ]
+        new_breaks.append(unique_br)
+        new_values.append(new_vl)
+    return new_breaks, new_values
+
+
 def lanc_subset_snp_range(
     breaks: List[List[int]], values: List[List[str]], start: int, stop: int
 ):
