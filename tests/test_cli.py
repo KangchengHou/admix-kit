@@ -39,23 +39,21 @@ def test_assoc_quant():
                 f"--pheno {data_dir}/toy-admix.indiv_info",
                 "--pheno-col PHENO",
                 "--method ATT,TRACTOR",
-                "--out toy-admix.assoc",
+                "--out toy-admix",
                 "--family quant",
             ]
             subprocess.check_call(" ".join(cmds), shell=True)
-            df_assoc = pd.read_csv("toy-admix.assoc", sep="\t", index_col=0)
-    print(df_assoc)
-    assert np.allclose(
-        df_assoc.loc[dset.snp.index, "ATT"],
-        dset.snp["ATT"],
-    )
-    assert np.allclose(df_assoc.loc[dset.snp.index, "TRACTOR"], dset.snp["TRACTOR"])
+            for m in ["ATT", "TRACTOR"]:
+                df_assoc = pd.read_csv(f"toy-admix.{m}.assoc", sep="\t", index_col=0)
+                assert np.allclose(
+                    df_assoc.loc[dset.snp.index, "P"],
+                    dset.snp[m],
+                )
 
     # check that after including covariates, the results are not the same
     with tempfile.TemporaryDirectory() as tmp_dir:
         with cd(tmp_dir):
             dset.indiv[["PC1", "PC2"]].to_csv("toy-admix.covar", sep="\t")
-            print(dset.indiv[["PC1", "PC2"]])
             cmds = [
                 "admix assoc",
                 f"--pfile {data_dir}/toy-admix",
@@ -63,17 +61,10 @@ def test_assoc_quant():
                 "--pheno-col PHENO",
                 f"--covar toy-admix.covar",
                 "--method ATT,TRACTOR",
-                "--out toy-admix.assoc",
+                "--out toy-admix",
                 "--family quant",
             ]
             subprocess.check_call(" ".join(cmds), shell=True)
-            df_assoc = pd.read_csv("toy-admix.assoc", sep="\t", index_col=0)
-    print(df_assoc)
-    assert not np.allclose(
-        df_assoc.loc[dset.snp.index, "ATT"],
-        dset.snp["ATT"],
-    )
-    assert not np.allclose(
-        df_assoc.loc[dset.snp.index, "TRACTOR"],
-        dset.snp["TRACTOR"],
-    )
+            for m in ["ATT", "TRACTOR"]:
+                df_assoc = pd.read_csv(f"toy-admix.{m}.assoc", sep="\t", index_col=0)
+                assert not np.allclose(df_assoc.loc[dset.snp.index, "P"], dset.snp[m])

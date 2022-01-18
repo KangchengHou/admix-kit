@@ -452,7 +452,7 @@ def assoc(
         the mean of each covariate. Categorical covariates will be converted to one
         hot encodings by the program.
     out : str
-        Path the output file. p-value will be written.
+        Path the output file. <out>.<method>.assoc will be created. 
     method : Union[str, List[str]]
         Method to use for association analysis (default ATT). Other methods include:
         TRACTOR, ADM, SNP1. 
@@ -474,7 +474,7 @@ def assoc(
             --pheno-col SIM0 \\
             --covar toy-admix.covar \\
             --method ATT,TRACTOR \\
-            --out toy-admix.assoc
+            --out toy-admix
     """
     log_params("assoc", locals())
     assert family in ["quant", "binary"], "family must be either quant or binary"
@@ -531,11 +531,11 @@ def assoc(
             family="logistic" if family == "binary" else "linear",
             fast=fast,
         )
-
-    pd.DataFrame(dict_rls, index=dset.snp.index).to_csv(
-        out, sep="\t", float_format="%.6g", na_rep="NA"
-    )
-    logger.info(f"Output written to {out}")
+    for m in dict_rls:
+        dict_rls[m].to_csv(
+            f"{out}.{m}.assoc", sep="\t", float_format="%.6g", na_rep="NA"
+        )
+        logger.info(f"Output written to {out}.{m}.assoc")
 
 
 def cli():

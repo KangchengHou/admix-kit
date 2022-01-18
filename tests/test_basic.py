@@ -138,7 +138,7 @@ def test_consistent():
         pheno=sim_pheno,
         method="ATT",
         family="linear",
-    )
+    ).P.values
     test_data_path = join(dirname(__file__), "test-data")
 
     with open(join(test_data_path, "test-consistent-data.pkl"), "rb") as f:

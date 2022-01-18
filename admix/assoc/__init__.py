@@ -4,11 +4,12 @@ import pandas as pd
 from scipy import stats
 from tqdm import tqdm
 import admix
-from typing import Any, Dict, List, Tuple, Optional, Union
+from typing import Any, Dict, List, Optional
 import dask.array as da
 import admix
 from statsmodels.tools import sm_exceptions
 import warnings
+import itertools
 
 warnings.filterwarnings(action="error", category=sm_exceptions.ValueWarning)
 
@@ -41,9 +42,13 @@ def _block_test(
     test_vars : List[int]
         Index of variables to test
 
-    Todo
-    ----
-    TODO: also return effect sizes in additional to p-values
+    Returns
+    -------
+    np.ndarray
+        (n_snp, n_test_var * 2 + 2) association testing information.
+        - The first n_test_var * 2 columns are the effect size (odd columns)
+        and standard error (even columns) for each variable.
+        - The last two columns are the number of individuals and p-value.
     """
     n_indiv = var.shape[0]
     assert (
@@ -81,15 +86,13 @@ def _block_test(
                 "\tpip install git+https://github.com/bogdanlab/tinygwas.git#egg=tinygwas"
             )
 
+        res = np.zeros((n_var, var_size * 2 + 2))
         if family == "linear":
-            # number of non-nan individuals per test
-            f_stats = np.empty(n_var)
-            n_indiv_test = np.empty(n_var)
-            # tinygwas return fstats and nindiv through reference
-            tinygwas.linear_f_test(
-                var, cov, pheno, var_size, test_vars, f_stats, n_indiv_test
-            )
-            pvalues = stats.f.sf(
+            tinygwas.linear_f_test(var, cov, pheno, var_size, test_vars, res)
+            f_stats = res[:, -1]
+            n_indiv_test = res[:, -2]
+
+            res[:, -1] = stats.f.sf(
                 f_stats, len(test_vars), n_indiv_test - n_cov - var_size
             )
 
@@ -99,16 +102,18 @@ def _block_test(
             if "tol" not in logistic_kwargs:
                 logistic_kwargs["tol"] = 1e-6
 
-            lrt_diff = tinygwas.logistic_lrt(
+            tinygwas.logistic_lrt(
                 var,
                 cov,
                 pheno,
                 var_size,
                 test_vars,
+                res,
                 logistic_kwargs["max_iter"],
                 logistic_kwargs["tol"],
             )
-            pvalues = stats.chi2.sf(2 * lrt_diff, len(test_vars))
+            # convert lrt diff to pvalue
+            res[:, -1] = stats.chi2.sf(2 * res[:, -1], len(test_vars))
         else:
             raise ValueError(f"Unknown family: {family}")
     else:
@@ -124,8 +129,6 @@ def _block_test(
         else:
             raise NotImplementedError
 
-        pvalues = []
-
         reduced_index = np.concatenate(
             [
                 [i for i in range(var_size) if i not in test_vars],
@@ -136,15 +139,26 @@ def _block_test(
         f_test_r_matrix = np.zeros((len(test_vars), design.shape[1]))
         for i, v in enumerate(test_vars):
             f_test_r_matrix[i, v] = 1
+
+        res = np.zeros((n_var, var_size * 2 + 2))
+
         for i in range(n_var):
             design[:, 0:var_size] = var[:, i * var_size : (i + 1) * var_size]
             model = reg_method(pheno, design)
+            # coefficients
+            res[i, 0 : var_size * 2 : 2] = model.params[0:var_size]
+            # standard errors
+            res[i, 1 : var_size * 2 : 2] = model.bse[0:var_size]
+            res[i, -2] = model.nobs
+            # sample size
             if family == "linear":
                 # f-test using statsmodels
                 try:
-                    pvalues.append(model.f_test(f_test_r_matrix).pvalue.item())
+                    p = model.f_test(f_test_r_matrix).pvalue.item()
                 except sm_exceptions.ValueWarning:
-                    pvalues.append(np.nan)
+                    p = np.nan
+                res[i, -1] = p
+
             elif family == "logistic":
                 # more than one test variables
                 model_reduced = reg_method(
@@ -154,13 +168,12 @@ def _block_test(
                 )
                 # determine p-values using difference in log-likelihood
                 # and difference in degrees of freedom
-                pvalues.append(
-                    stats.chi2.sf(
-                        -2 * (model_reduced.llf - model.llf),
-                        (model.df_model - model_reduced.df_model),
-                    )
+                p = stats.chi2.sf(
+                    -2 * (model_reduced.llf - model.llf),
+                    (model.df_model - model_reduced.df_model),
                 )
-    return np.array(pvalues)
+                res[i, -1] = p
+    return res
 
 
 def marginal(
@@ -270,41 +283,65 @@ def marginal(
     assert np.linalg.matrix_rank(cov) == cov.shape[1], "Covariates must be of full rank"
 
     if method == "ATT":
+        # test genotype dosage
         var = geno.sum(axis=2).swapaxes(0, 1)
         var_size = 1
+        var_names = ["G"]
         test_vars = [0]
+
+    elif method == "SNP1":
+        # test genotype dosage, condition on local ancestry
+        var = da.empty((n_indiv, n_snp * n_anc))
+        var[:, 0::n_anc] = geno.sum(axis=2).swapaxes(0, 1)
+        for i in range(n_anc - 1):
+            var[:, (1 + i) :: n_anc] = (lanc == i).sum(axis=2).swapaxes(0, 1)
+        var_size = n_anc
+        var_names = ["G"] + [f"L{i + 1}" for i in range(n_anc - 1)]
+        test_vars = [0]
+
     elif method == "TRACTOR":
+        # test ancestry-specfic genotype dosage, condition on local ancestry
         allele_per_anc = admix.data.allele_per_anc(
             geno,
             lanc,
             n_anc=n_anc,
         ).swapaxes(0, 1)
-        var = da.empty((n_indiv, n_snp * 3))
-        var[:, 0::3] = allele_per_anc[:, :, 0]
-        var[:, 1::3] = allele_per_anc[:, :, 1]
-        var[:, 2::3] = lanc.sum(axis=2).swapaxes(0, 1)
-        var_size = 3
-        test_vars = [0, 1]
-    elif method == "SNP1":
-        var = da.empty((n_indiv, n_snp * 2))
-        var[:, 0::2] = geno.sum(axis=2).swapaxes(0, 1)
-        var[:, 1::2] = lanc.sum(axis=2).swapaxes(0, 1)
-        var_size = 2
-        test_vars = [0]
+        var = da.empty((n_indiv, n_snp * (2 * n_anc - 1)))
+
+        # allele per ancestor per SNP
+        for i in range(n_anc):
+            var[:, i :: (2 * n_anc - 1)] = allele_per_anc[:, :, i]
+
+        # number of ancestries per SNP
+        for i in range(n_anc - 1):
+            var[:, (i + n_anc) :: (2 * n_anc - 1)] = (
+                (lanc == i).sum(axis=2).swapaxes(0, 1)
+            )
+        var_size = 2 * n_anc - 1
+        var_names = [f"G{i + 1}" for i in range(n_anc)] + [
+            f"L{i + 1}" for i in range(n_anc - 1)
+        ]
+        test_vars = [i for i in range(n_anc)]
+
     elif method == "ASE":
-        # alleles per ancestry
+        # test ancestry-specfic genotype dosage, condition on local ancestry
         allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
             0, 1
         )
-        var = da.empty((n_indiv, n_snp * 2))
-        var[:, 0::2] = allele_per_anc[:, :, 0]
-        var[:, 1::2] = allele_per_anc[:, :, 1]
-        var_size = 2
-        test_vars = [0, 1]
+        var = da.empty((n_indiv, n_snp * n_anc))
+        for i in range(n_anc):
+            var[:, i::n_anc] = allele_per_anc[:, :, i]
+        var_size = n_anc
+        var_names = [f"G{i + 1}" for i in range(n_anc)]
+        test_vars = [i for i in range(n_anc)]
     elif method == "ADM":
-        var = lanc.sum(axis=2).swapaxes(0, 1)
-        var_size = 1
-        test_vars = [0]
+        # test local ancestry
+        var = da.empty((n_indiv, n_snp * (n_anc - 1)))
+        for i in range(n_anc - 1):
+            var[:, i :: (n_anc - 1)] = (lanc == i).sum(axis=2).swapaxes(0, 1)
+        var_size = n_anc - 1
+        var_names = [f"L{i + 1}" for i in range(n_anc - 1)]
+        test_vars = [i for i in range(n_anc - 1)]
     else:
         raise NotImplementedError
 
@@ -312,7 +349,7 @@ def marginal(
     assert var.shape[1] % var_size == 0, "var must have multiple of `var_size` columns"
     assert var.shape[1] / var_size == n_snp
 
-    pvalues = []
+    res = []
     # block-by-block computation based on the chunk size of the `geno` array
     if geno is not None:
         snp_chunks = geno.chunks[0]
@@ -326,7 +363,7 @@ def marginal(
         total=len(snp_chunks),
     ):
         # test each SNP in block
-        pvalues.append(
+        res.append(
             _block_test(
                 var=var[:, snp_start * var_size : snp_stop * var_size],
                 cov=cov,
@@ -337,7 +374,19 @@ def marginal(
                 fast=fast,
             )
         )
-    return np.concatenate(pvalues)
+    # columns will be BETA1, SE1, BETA2, SE2, ... with n_anc
+    columns = list(
+        itertools.chain.from_iterable([[f"{v}_BETA", f"{v}_SE"] for v in var_names])
+    ) + ["N", "P"]
+
+    df_res = pd.DataFrame(
+        np.concatenate(res),
+        columns=columns,
+        index=dset.snp.index if dset is not None else None,
+    ).astype({"N": "int"})
+    df_res.loc[df_res.P.isna(), df_res.columns != "N"] = np.nan
+
+    return df_res
 
 
 def marginal_simple(dset: admix.Dataset, pheno: np.ndarray) -> np.ndarray:

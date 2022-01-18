@@ -18,21 +18,21 @@ def test_consistent():
 
     pval_att = admix.assoc.marginal(
         dset=dset, pheno=dset.indiv.PHENO, method="ATT", fast=False
-    )
+    ).P.values
     pval_tractor = admix.assoc.marginal(
         dset=dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=False
-    )
+    ).P.values
     assert np.allclose(pval_att, dset.snp["ATT"])
     assert np.allclose(pval_tractor, dset.snp["TRACTOR"])
 
     pval_att_fast = admix.assoc.marginal(
         dset=dset, pheno=dset.indiv.PHENO, method="ATT", fast=True
-    )
+    ).P.values
     assert np.allclose(pval_att_fast, pval_att)
 
     pval_tractor_fast = admix.assoc.marginal(
         dset=dset, pheno=dset.indiv.PHENO, method="TRACTOR", fast=True
-    )
+    ).P.values
     assert np.allclose(pval_tractor_fast, pval_tractor)
 
 
@@ -60,7 +60,8 @@ def test_linear_nan():
         pheno=dset.indiv.PHENO,
         method="ATT",
         fast=True,
-    )
+    ).P.values
+
     ref_pval_tractor = admix.assoc.marginal(
         geno=geno,
         lanc=lanc,
@@ -68,7 +69,7 @@ def test_linear_nan():
         pheno=dset.indiv.PHENO,
         method="TRACTOR",
         fast=True,
-    )
+    ).P.values
     assert np.allclose(ref_pval_att, dset.snp["ATT"])
     assert np.allclose(ref_pval_tractor, dset.snp["TRACTOR"])
 
@@ -85,7 +86,7 @@ def test_linear_nan():
         pheno=dset.indiv.PHENO,
         method="ATT",
         fast=True,
-    )
+    ).P.values
     pval_tractor_fast = admix.assoc.marginal(
         geno=geno_with_nan,
         lanc=lanc,
@@ -93,7 +94,7 @@ def test_linear_nan():
         pheno=dset.indiv.PHENO,
         method="TRACTOR",
         fast=True,
-    )
+    ).P.values
     # all SNPs except the  should be the same as the reference
     diff_idx = [3, 5]
     same_idx = np.delete(np.arange(dset.n_snp), diff_idx)
@@ -125,7 +126,7 @@ def test_linear_nan():
             pheno=dset.indiv.PHENO,
             method="TRACTOR",
             fast=False,
-        )
+        ).P.values
         pval_tractor_fast = admix.assoc.marginal(
             geno=geno_with_nan,
             lanc=lanc,
@@ -133,5 +134,5 @@ def test_linear_nan():
             pheno=dset.indiv.PHENO,
             method="TRACTOR",
             fast=True,
-        )
+        ).P.values
         assert np.allclose(pval_tractor_slow, pval_tractor_fast)
