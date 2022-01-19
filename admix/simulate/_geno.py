@@ -3,6 +3,7 @@ from typing import List
 import dask.array as da
 import admix
 import pandas as pd
+from tqdm import tqdm
 from ._lanc import hap_lanc as simulate_hap_lanc
 
 
@@ -12,6 +13,7 @@ def admix_geno(
     anc_props: List[float],
     mosaic_size: float,
     n_indiv: int,
+    return_sparse_lanc=False,
 ) -> admix.Dataset:
     """Simulate admixed genotype
 
@@ -29,11 +31,13 @@ def admix_geno(
         List of ancestral data sets, each with (n_snp, n_indiv)
     df_snp : pd.DataFrame
         Dataframe of SNPs shared across ancestral data sets
-    n_indiv : int
-        Number of individuals to simulate
+    anc_props : list of float
+        Proportion of ancestral populations
     mosaic_size : float
         Expected mosaic size in # of SNPs. use admix.lanc.calculate_mosaic_size() to
         calculate the mosaic size
+    n_indiv : int
+        Number of individuals to simulate
 
     Returns
     -------
@@ -47,13 +51,10 @@ def admix_geno(
         n_snp == geno.shape[0] for geno in geno_list
     ), "all geno must have the same number of SNPs"
     assert n_snp == df_snp.shape[0], "df_snp must have the same number of SNPs"
-    if anc_props is None:
-        anc_props = np.ones(n_anc) / n_anc
-    else:
-        anc_props = np.array(anc_props)
-        assert np.sum(anc_props) == 1, "anc_props must sum to 1"
+
+    assert np.sum(anc_props) == 1, "anc_props must sum to 1"
+    assert len(anc_props) == n_anc, "anc_props must have the same length as n_anc"
     anc_props = np.array(anc_props)
-    assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
 
     dset_hap_list = [
         da.hstack([geno[:, :, 0], geno[:, :, 1]]).compute() for geno in geno_list
@@ -62,9 +63,9 @@ def admix_geno(
     hap_lanc_breaks, hap_lanc_values = admix.simulate.hap_lanc(
         n_snp=n_snp, n_hap=n_indiv * 2, mosaic_size=mosaic_size, anc_props=anc_props
     )
-    geno = np.zeros((n_snp, n_indiv * 2), dtype=int)
+    geno = np.zeros((n_snp, n_indiv * 2), dtype=np.int8)
 
-    for hap_i in range(n_indiv * 2):
+    for hap_i in tqdm(range(n_indiv * 2)):
         start = 0
         for stop, val in zip(hap_lanc_breaks[hap_i], hap_lanc_values[hap_i]):
             geno[start:stop, hap_i] = dset_hap_list[val][
@@ -75,7 +76,16 @@ def admix_geno(
         breaks=hap_lanc_breaks, values=hap_lanc_values
     )
     lanc = admix.data.Lanc(breaks=lanc_breaks, values=lanc_values)
-    geno = np.dstack([geno[:, 0::2], geno[:, 1::2]])
+
+    # a = np.random.randn(4, 5, 2)
+    # b = np.zeros((4, 10))
+    # b[:, 0::2] = a[:, :, 0]
+    # b[:, 1::2] = a[:, :, 1]
+    # assert np.all(b == a.reshape(4, 10))
+    # assert np.all(b.reshape(4, 5, 2) == a)
+
+    # equivalent: geno = np.dstack([geno[:, 0::2], geno[:, 1::2]])
+    geno = geno.reshape(n_snp, n_indiv, 2)
 
     dset = admix.Dataset(
         geno=da.from_array(geno, chunks=-1),
@@ -86,7 +96,10 @@ def admix_geno(
             {"indiv": ["indiv_" + str(i) for i in np.arange(n_indiv)]}
         ).set_index("indiv"),
     )
-    return dset
+    if return_sparse_lanc:
+        return dset, lanc
+    else:
+        return dset
 
 
 def admix_geno_simple(

@@ -286,7 +286,7 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    for i in range(len(indices) - 1):
+    for i in tqdm(range(len(indices) - 1), desc="admix.data.af_per_anc"):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :, :].compute()
         lanc_chunk = lanc[start:stop, :, :].compute()

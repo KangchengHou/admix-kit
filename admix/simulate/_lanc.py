@@ -16,6 +16,17 @@ def calculate_mosaic_size(
         n_cross_over = length_in_cM * n_gen
     3. The expected mosaic size is calculated as
         expected_mosaic_size = n_snp / n_cross_over
+
+    Parameters
+    ----------
+    df_snp: pd.DataFrame
+        DataFrame of SNP information
+    genetic_map: str
+        map to use, either 'hg19' or 'hg38'
+    chrom: int
+        specify the chromosome df_snp is, df_snp can only have one chromosome
+    n_gen: int
+        number of generations to simulate
     """
 
     assert np.all(df_snp.CHROM == chrom)
