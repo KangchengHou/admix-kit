@@ -16,6 +16,7 @@ pip install -r requirements.txt; pip install -e .
 
 > Installation requires cmake version > 3.12. Use `cmake --version` to check your cmake version. Use `pip install cmake` to install the latest version.
 
+## Update to latest
 To update to the latest version, run the following
 ```bash
 # reinstalling these dependencies because these are constantly being updated
