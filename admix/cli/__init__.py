@@ -6,6 +6,7 @@ from ._utils import log_params
 from ._simulate import simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_rfmix
 from ._ext import prune, pca
+from ._plot import plot_pca
 
 
 # def merge_dataset(path_list: str, out: str):
