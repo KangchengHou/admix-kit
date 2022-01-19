@@ -192,6 +192,18 @@ def clump(
 
 
 def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
+    """Lift over a plink file to another genome
+
+    Parameters
+    ----------
+    pfile : str
+        Path to plink file
+    out_prefix : str
+        output prefix, <out_prefix>.pgen, <out_prefix>.psam, <out_prefix>.pvar will
+        be generated
+    chain : str, optional
+        lift over direction, by default "hg19->hg38"
+    """
     assert chain in ["hg19->hg38", "hg38->hg19"]
 
     # read the input pgen
@@ -206,7 +218,9 @@ def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
     n_snp2 = len(df_lifted)
 
     print(
-        f"remove {n_snp1 - n_snp2} SNPs ({(n_snp1 - n_snp2) / n_snp1 * 100:.2g}%) for unmapped or ambiguous SNPs"
+        f"remove {n_snp1 - n_snp2} / {n_snp1} SNPs"
+        f" ({(n_snp1 - n_snp2) / n_snp1 * 100:.2g}%)"
+        " for unmapped or ambiguous SNPs"
     )
 
     # extract the lifted SNPs
@@ -215,7 +229,7 @@ def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
         f"--pfile {pfile} --extract {out_prefix}.snp --sort-vars --make-pgen --out {out_prefix}"
     )
 
-    # substitute the coordinates
+    # substitute the coordinates obtained from liftover
     pgen, pvar, psam = dapgen.read_pfile(out_prefix)
     assert np.all(pvar.index == df_lifted.index)
 

@@ -16,6 +16,15 @@ pip install -r requirements.txt; pip install -e .
 
 > Installation requires cmake version > 3.12. Use `cmake --version` to check your cmake version. Use `pip install cmake` to install the latest version.
 
+To update to the latest version, run the following
+```bash
+# reinstalling these dependencies because these are constantly being updated
+pip uninstall -y pgenlib
+pip install -U git+https://github.com/bogdanlab/tinygwas.git#egg=tinygwas
+pip install -U git+https://github.com/KangchengHou/dask-pgen.git#egg=dask-pgen
+git clone https://github.com/KangchengHou/admix-kit
+cd admix-kit & pip install -e .
+```
 
 ## Quick start and documentation
 - [Prepare the data set for analysis](https://kangchenghou.github.io/admix-kit/prepare-dataset.html)

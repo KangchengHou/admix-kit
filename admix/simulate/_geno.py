@@ -7,7 +7,8 @@ from ._lanc import hap_lanc as simulate_hap_lanc
 
 
 def admix_geno(
-    dset_list: List[admix.Dataset],
+    geno_list: List[da.Array],
+    df_snp: pd.DataFrame,
     anc_props: List[float],
     mosaic_size: float,
     n_indiv: int,
@@ -24,8 +25,10 @@ def admix_geno(
 
     Parameters
     ----------
-    dset_list : List[admix.Dataset]
-        List of ancestral data sets
+    geno_list : List[da.Array]
+        List of ancestral data sets, each with (n_snp, n_indiv)
+    df_snp : pd.DataFrame
+        Dataframe of SNPs shared across ancestral data sets
     n_indiv : int
         Number of individuals to simulate
     mosaic_size : float
@@ -38,12 +41,12 @@ def admix_geno(
         Simulated admixed dataset
     """
 
-    n_anc = len(dset_list)
-    df_snp = dset_list[0].snp
+    n_anc = len(geno_list)
+    n_snp = geno_list[0].shape[0]
     assert all(
-        dset.snp.equals(df_snp) for dset in dset_list
-    ), "all datasets must have the same number of SNPs"
-    n_snp = df_snp.shape[0]
+        n_snp == geno.shape[0] for geno in geno_list
+    ), "all geno must have the same number of SNPs"
+    assert n_snp == df_snp.shape[0], "df_snp must have the same number of SNPs"
     if anc_props is None:
         anc_props = np.ones(n_anc) / n_anc
     else:
@@ -53,8 +56,7 @@ def admix_geno(
     assert anc_props.size == n_anc, "anc_props must have the same length as n_anc"
 
     dset_hap_list = [
-        np.hstack([dset.geno[:, :, 0], dset.geno[:, :, 1]]).compute()
-        for dset in dset_list
+        da.hstack([geno[:, :, 0], geno[:, :, 1]]).compute() for geno in geno_list
     ]
 
     hap_lanc_breaks, hap_lanc_values = admix.simulate.hap_lanc(

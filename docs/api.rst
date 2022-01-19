@@ -78,8 +78,7 @@ Tools: `tools`
 .. autosummary::
    :toctree: _api
 
-    tools.plink.run
-    tools.plink2.run
+    tools.plink2.lift_over
    
 
 Plot: `plot`
