@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 import dask.array as da
-import xarray as xr
 import admix
+import dask
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -184,80 +184,87 @@ def grm(dset: admix.Dataset, method="gcta", inplace=True):
         "center",
         "gcta",
     ], "`method` should be `raw`, `center`, or `gcta`"
-    g = dset["geno"].data
-    n_indiv, n_snp, n_haplo = g.shape
-    g = g.sum(axis=2)
+    g = dset.geno.sum(axis=2)
 
     if method == "raw":
-        grm = np.dot(g, g.T) / n_snp
+        grm = np.dot(g.T, g) / dset.n_snp
     elif method == "center":
         g -= g.mean(axis=0)
-        grm = np.dot(g, g.T) / n_snp
+        grm = np.dot(g.T, g) / dset.n_snp
     elif method == "gcta":
         # normalization
-        g_mean = g.mean(axis=0)
+        g_mean = g.mean(axis=1)
         assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
-        g = (g - g_mean) / np.sqrt(g_mean * (2 - g_mean) / 2)
+        g = (g - g_mean[:, None]) / np.sqrt(g_mean * (2 - g_mean) / 2)[:, None]
         # calculate GRM
-        grm = np.dot(g, g.T) / n_snp
+        grm = np.dot(g.T, g) / dset.n_snp
     else:
         raise ValueError("method should be `gcta` or `raw`")
 
-    if inplace:
-        dset["grm"] = xr.DataArray(grm, dims=("indiv", "indiv"))
-    else:
-        return grm
+    return grm
 
 
-def admix_grm(dset, center: bool = False, inplace=True):
+def admix_grm(dset: admix.Dataset):
     """Calculate ancestry specific GRM matrix
 
     Parameters
     ----------
-    center: bool
-        whether to center the `allele_per_ancestry` matrix
-        in the calculation
-    inplace: bool
-        whether to return a new dataset or modify the input dataset
-
+    dset: admix.Dataset
+        dataset containing geno, lanc
     Returns
     -------
-    If `inplace` is False, return a dictionary of GRM matrices
-        - K1: np.ndarray
-            ancestry specific GRM matrix for the 1st ancestry
-        - K2: np.ndarray
-            ancestry specific GRM matrix for the 2nd ancestry
-        - K12: np.ndarray
-            ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
-
-    If `inplace` is True, return None
-        "admix_grm_K1", "admix_grm_K2", "admix_grm_K12" will be added to the dataset
+    K1: np.ndarray
+        ancestry specific GRM matrix for the 1st ancestry
+    K2: np.ndarray
+        ancestry specific GRM matrix for the 2nd ancestry
+    K12: np.ndarray
+        ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
     """
+    assert dset.n_anc == 2, "admix_grm only works for 2 ancestries for now"
+    apa = dset.allele_per_anc()
 
-    geno = dset["geno"].data
-    lanc = dset["lanc"].data
-    n_anc = dset.attrs["n_anc"]
-    assert n_anc == 2, "only two-way admixture is implemented"
-    assert np.all(geno.shape == lanc.shape)
-    # TODO: everytime should we recompute? or use the cached version?
-    # how to make sure the cache is up to date?
-    apa = allele_per_anc(dset, center=center).astype(float)
-
-    n_indiv, n_snp = apa.shape[0:2]
+    n_snp, n_indiv = apa.shape[0:2]
 
     a1, a2 = apa[:, :, 0], apa[:, :, 1]
 
-    K1 = np.dot(a1, a1.T) / n_snp
-    K2 = np.dot(a2, a2.T) / n_snp
-    K12 = np.dot(a1, a2.T) / n_snp
+    K1 = np.dot(a1.T, a1) / n_snp
+    K2 = np.dot(a2.T, a2) / n_snp
+    K12 = np.dot(a1.T, a2) / n_snp
 
-    if inplace:
-        dset["admix_grm_K1"] = xr.DataArray(K1, dims=("indiv", "indiv"))
-        dset["admix_grm_K2"] = xr.DataArray(K2, dims=("indiv", "indiv"))
-        dset["admix_grm_K12"] = xr.DataArray(K12, dims=("indiv", "indiv"))
-        return None
-    else:
-        return {"K1": K1, "K2": K2, "K12": K12}
+    return {"11": K1, "22": K2, "12": K12}
+
+
+def admix_ld(dset: admix.Dataset):
+    """Calculate ancestry specific LD matrices
+
+    Parameters
+    ----------
+    dset: admix.Dataset
+        dataset containing geno, lanc
+
+    Returns
+    -------
+    K1: np.ndarray
+        ancestry specific GRM matrix for the 1st ancestry
+    - K2: np.ndarray
+        ancestry specific GRM matrix for the 2nd ancestry
+    - K12: np.ndarray
+        ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
+    """
+    assert dset.n_anc == 2, "admix_ld only works for 2 ancestries for now"
+    apa = dset.allele_per_anc()
+
+    n_snp, n_indiv = apa.shape[0:2]
+
+    a1, a2 = apa[:, :, 0], apa[:, :, 1]
+    # center with row mean
+    a1 -= a1.mean(axis=1, keepdims=True)
+    a2 -= a2.mean(axis=1, keepdims=True)
+    ld1 = np.dot(a1, a1.T) / n_indiv
+    ld2 = np.dot(a2, a2.T) / n_indiv
+    ld12 = np.dot(a1, a2.T) / n_indiv
+    ld1, ld2, ld12 = dask.compute(ld1, ld2, ld12)
+    return {"11": ld1, "22": ld2, "12": ld12}
 
 
 def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
