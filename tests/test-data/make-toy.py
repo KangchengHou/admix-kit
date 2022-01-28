@@ -62,19 +62,17 @@ def process():
         "FREQ2": af_per_anc[:, 1],
         "ATT": admix.assoc.marginal(
             dset_admix, pheno=sim["pheno"][:, sim_i], method="ATT", fast=False
-        ),
+        ).P.values,
         "TRACTOR": admix.assoc.marginal(
             dset_admix, pheno=sim["pheno"][:, sim_i], method="TRACTOR", fast=False
-        ),
+        ).P.values,
     }
     df_snp_info = pd.DataFrame(df_snp_info, index=dset_admix.snp.index)
 
     df_indiv_info = {"PHENO": sim["pheno"][:, sim_i]}
     df_indiv_info = pd.DataFrame(df_indiv_info, index=dset_admix.indiv.index)
     # perform PCA on the toy-admix
-    admix.tools.plink2.pca(
-        "toy-admix", "toy-admix.pca", approx=False, args=["--maf 0.01"]
-    )
+    admix.tools.plink2.pca("toy-admix", "toy-admix.pca", approx=False, maf=0.01)
     df_pca = pd.read_csv("toy-admix.pca.eigenvec", delim_whitespace=True, index_col=0)
 
     # only record 3 PCs because it is a small toy data set
