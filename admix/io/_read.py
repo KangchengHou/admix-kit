@@ -308,7 +308,6 @@ def read_rfmix(
 
     # assign local ancestry
     df_rfmix = pd.read_csv(path, sep="\t", skiprows=1)
-
     # TODO: currently assume 2-way admixture
     # MORE THAN 2-way admixture is easily supported by reading the header and modify
     # the following 6 lines
@@ -325,20 +324,33 @@ def read_rfmix(
     lanc = lanc0.astype(str) + lanc1.astype(str)
 
     df_rfmix_info = df_rfmix.iloc[:, 0:3].copy()
-    # extend local ancestry to two ends of chromosomes
-    df_rfmix_info.loc[0, "spos"] = df_snp["POS"][0] - 1
-    df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"] = df_snp["POS"][-1] + 1
+    # extend local ancestry to two ends of chromosomes if necessary
+    df_rfmix_info.loc[0, "spos"] = min(
+        df_snp["POS"][0] - 1, df_rfmix_info.loc[0, "spos"]
+    )
+    df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"] = max(
+        df_snp["POS"][-1] + 1, df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"]
+    )
 
     assert np.all(df_indiv.index == lanc.columns)
 
     n_indiv = len(df_indiv)
     n_snp = len(df_snp)
 
-    rfmix_break_list = np.zeros(df_rfmix_info.shape[0])
+    rfmix_break_list = np.zeros(df_rfmix_info.shape[0], dtype=int)
     # [start, stop) of SNPs for each rfmix break points
     # find the RFmix break points in coordinates of SNP location
+    chunk_stop = 0
     for chunk_i, chunk in df_rfmix_info.iterrows():
-        chunk_stop = np.argmax(df_snp["POS"] >= chunk["epos"]) - 1
+        chunk_mask = np.where(
+            (chunk.spos <= df_snp["POS"]) & (df_snp["POS"] < chunk.epos)
+        )[0]
+        if len(chunk_mask) > 0:
+            chunk_stop = chunk_mask[-1]
+        else:
+            # use the previous chunk stop if no SNP in this chunk
+            admix.logger.warning(f"No SNP found in {chunk_i}-th region of RFmix")
+            chunk_stop = chunk_stop
         rfmix_break_list[chunk_i] = chunk_stop
 
     # find break points in the data
