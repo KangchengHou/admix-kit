@@ -318,6 +318,9 @@ def read_rfmix(
     lanc1 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".1")].rename(
         columns=lambda x: x[:-2]
     )
+    assert (
+        np.any([col.endswith(".2") for col in df_rfmix.columns]) == False
+    ), "Currently only 2-way admixture is supported, more than 2-way admixture will be added soon"
 
     lanc = lanc0.astype(str) + lanc1.astype(str)
 
@@ -331,15 +334,12 @@ def read_rfmix(
     n_indiv = len(df_indiv)
     n_snp = len(df_snp)
 
-    rfmix_break_list = []
+    rfmix_break_list = np.zeros(df_rfmix_info.shape[0])
     # [start, stop) of SNPs for each rfmix break points
+    # find the RFmix break points in coordinates of SNP location
     for chunk_i, chunk in df_rfmix_info.iterrows():
-        chunk_mask = (
-            (chunk.spos <= df_snp["POS"]) & (df_snp["POS"] < chunk.epos)
-        ).values
-        chunk_start, chunk_stop = np.where(chunk_mask)[0][[0, -1]]
-        rfmix_break_list.append(chunk_stop)
-    rfmix_break_list = np.array(rfmix_break_list)
+        chunk_stop = np.argmax(df_snp["POS"] >= chunk["epos"]) - 1
+        rfmix_break_list[chunk_i] = chunk_stop
 
     # find break points in the data
     chunk_pos, indiv_pos = np.where(lanc.iloc[1:, :].values != lanc.iloc[:-1, :].values)
