@@ -81,7 +81,7 @@ def gwas(
 
     cmds.extend(
         [
-            f"--pheno {pheno_path}",
+            f"--pheno {pheno_path} --no-psam-pheno",
             f"--out {out_prefix}",
         ]
     )
@@ -111,7 +111,7 @@ def gwas(
             df_covar.to_csv(covar_path, sep="\t", na_rep="NA")
 
     else:
-        cmds[2] += " allow-no-covars"
+        cmds[-1] += " allow-no-covars"
 
     if pheno_quantile_normalize:
         cmds.append("--pheno-quantile-normalize")

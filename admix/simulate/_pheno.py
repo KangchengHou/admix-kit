@@ -421,7 +421,8 @@ def quant_pheno_1pop(
         ), "`beta` must be of shape (n_snp,) or (n_snp, n_sim)"
         if beta.shape == (n_snp,):
             # replicate `beta` for each simulation
-            beta = np.repeat(beta[:, np.newaxis], n_sim, axis=2)
+            beta = np.repeat(beta[:, np.newaxis], n_sim, axis=1)
+            print(beta.shape)
 
     pheno_g = admix.data.geno_mult_mat(geno, beta, mat_dim="snp")
 

@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import subprocess
+from typing import Tuple
+import os
 from . import get_dependency
 
 
@@ -16,8 +18,22 @@ def run(cmd: str):
     subprocess.check_call(f"{bin_path} {cmd}", shell=True)
 
 
-def read_grm(file_prefix):
+def read_grm(file_prefix: str) -> Tuple[np.ndarray, pd.DataFrame, np.ndarray]:
+    """read GCTA grm file
 
+    Parameters
+    ----------
+    file_prefix : str
+        prefix of the grm file, <file_prefix>.grm.bin, <file_prefix>.grm.id,
+        <file_prefix>.grm.N.bin should be present
+
+    Returns
+    -------
+    Tuple[np.ndarray, pd.DataFrame, np.ndarray]
+        K: grm matrix
+        df_id: id data frame
+        N: N matrix
+    """
     bin_file = file_prefix + ".grm.bin"
     N_file = file_prefix + ".grm.N.bin"
     id_file = file_prefix + ".grm.id"
@@ -55,6 +71,7 @@ def reml(
     grm_path: str = None,
     df_covar: pd.DataFrame = None,
     n_thread: int = 4,
+    clean_tmp: bool = True,
 ):
     """Wrapper for GCTA --reml
 
@@ -77,7 +94,7 @@ def reml(
     assert df_pheno.columns[1] == "IID"
 
     pheno_path = out_prefix + ".pheno"
-    df_pheno.to_csv(pheno_path, index=False, header=False, sep="\t")
+    df_pheno.to_csv(pheno_path, index=False, header=False, sep="\t", na_rep="NA")
 
     cmds = [
         "--reml --reml-no-lrt --reml-no-constrain",
@@ -92,10 +109,14 @@ def reml(
 
     if df_covar is not None:
         covar_path = out_prefix + ".covar"
-        df_covar.to_csv(covar_path, index=False, header=False, sep="\t")
+        df_covar.to_csv(covar_path, index=False, header=False, sep="\t", na_rep="NA")
         cmds.append(f"--qcovar {covar_path}")
 
     run(" ".join(cmds))
+    if clean_tmp:
+        os.remove(pheno_path)
+        if df_covar is not None:
+            os.remove(covar_path)
 
 
 def read_reml(path_prefix):

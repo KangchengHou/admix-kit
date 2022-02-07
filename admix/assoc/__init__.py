@@ -275,8 +275,8 @@ def marginal(
         # fill nan with column mean
         debug_old_mean = np.nanmean(cov, axis=0)
         cov = admix.data.impute_with_mean(cov, axis=0)
-        assert np.all(
-            np.nanmean(cov, axis=1) == debug_old_mean
+        assert np.allclose(
+            np.nanmean(cov, axis=0), debug_old_mean
         ), "NaN imputation failed"
 
     # check covariates must be full rank
@@ -329,8 +329,16 @@ def marginal(
             0, 1
         )
         var = da.empty((n_indiv, n_snp * n_anc))
+
         for i in range(n_anc):
-            var[:, i::n_anc] = allele_per_anc[:, :, i]
+            # should use var[:, i::n_anc] = allele_per_anc[:, :, i]
+            # however there is a bug in dask
+            # see https://github.com/dask/dask/issues/8598
+            # TODO: remove this workaround after dask fix issue
+            if n_snp == 1:
+                var[:, np.arange(i, var.shape[1], n_anc)] = allele_per_anc[:, :, i]
+            else:
+                var[:, i::n_anc] = allele_per_anc[:, :, i]
         var_size = n_anc
         var_names = [f"G{i + 1}" for i in range(n_anc)]
         test_vars = [i for i in range(n_anc)]
