@@ -51,11 +51,14 @@ def lanc_convert(pfile: str, out: str, rfmix: str = None, raw: str = None):
     ) == 1, "Only one of rfmix and raw should be specified"
     if rfmix is not None:
         geno, df_snp, df_indiv = dapgen.read_pfile(pfile, phase=True)
+        admix.logger.info(f"Reading rfmix file: {rfmix}")
         lanc = admix.io.read_rfmix(
             path=rfmix,
             df_snp=df_snp,
             df_indiv=df_indiv,
         )
+        admix.logger.info(f"Obtaining local ancestry {lanc}")
+        admix.logger.info(f"Writing lanc file: {out}")
         lanc.write(out)
 
     if raw is not None:
