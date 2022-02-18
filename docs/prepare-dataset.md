@@ -33,16 +33,16 @@ There are many choices for local ancestry inference. We assume that you have per
 
 ### RFmix
 ```bash
-admix convert-lanc \
-    --plink <plink_path> \      # e.g., dset.chr1
+admix lanc-convert \
+    --pfile <pgen_prefix> \      # e.g., dset.chr1
     --rfmix <rfmix_msp_path> \  # e.g., rfmix/dset.chr1.msp.tsv
     --out <lanc_path>           # e.g., dset.chr1.lanc
 ```
 
 ### Raw matrix format
 ```bash
-admix convert-lanc \
-    --plink <plink_path> \
+admix lanc-convert \
+    --pfile <pgen_prefix> \
     --raw <rfmix_msp_path> \ # TODO: implement the raw function
     --out <lanc_path>
 ```
