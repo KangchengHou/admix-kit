@@ -204,34 +204,61 @@ def grm(dset: admix.Dataset, method="gcta", inplace=True):
     return grm
 
 
-def admix_grm(dset: admix.Dataset):
+def admix_grm(
+    geno: da.Array, lanc: da.Array, n_anc: int = 2, snp_prior_var: np.ndarray = None
+):
     """Calculate ancestry specific GRM matrix
 
     Parameters
     ----------
-    dset: admix.Dataset
-        dataset containing geno, lanc
+    geno : da.Array
+        Genotype matrix with shape (n_snp, n_indiv, 2)
+    lanc : np.ndarray
+        Local ancestry matrix with shape (n_snp, n_indiv, 2)
+    n_anc : int
+        Number of ancestral populations
+    snp_prior_var : np.ndarray
+        Prior variance of each SNP, shape (n_snp,)
+
     Returns
     -------
-    K1: np.ndarray
+    G1: np.ndarray
         ancestry specific GRM matrix for the 1st ancestry
-    K2: np.ndarray
+    G2: np.ndarray
         ancestry specific GRM matrix for the 2nd ancestry
-    K12: np.ndarray
+    G12: np.ndarray
         ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
     """
-    assert dset.n_anc == 2, "admix_grm only works for 2 ancestries for now"
-    apa = dset.allele_per_anc()
 
+    assert n_anc == 2, "only two-way admixture is implemented"
+    assert np.all(geno.shape == lanc.shape)
+
+    apa = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc)
     n_snp, n_indiv = apa.shape[0:2]
 
-    a1, a2 = apa[:, :, 0], apa[:, :, 1]
+    if snp_prior_var is None:
+        snp_prior_var = np.ones(n_snp)
+    snp_prior_var_sum = snp_prior_var.sum()
+    G1 = np.zeros([n_indiv, n_indiv])
+    G2 = np.zeros([n_indiv, n_indiv])
+    G12 = np.zeros([n_indiv, n_indiv])
 
-    K1 = np.dot(a1.T, a1) / n_snp
-    K2 = np.dot(a2.T, a2) / n_snp
-    K12 = np.dot(a1.T, a2) / n_snp
+    snp_chunks = apa.chunks[0]
+    indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
-    return {"11": K1, "22": K2, "12": K12}
+    for i in tqdm(range(len(indices) - 1), desc="admix.data.admix_grm"):
+        start, stop = indices[i], indices[i + 1]
+        apa_chunk = apa[start:stop, :, :].compute()
+
+        # multiply by the prior variance on each SNP
+        apa_chunk *= np.sqrt(snp_prior_var[start:stop])[:, None, None]
+        a1_chunk, a2_chunk = apa_chunk[:, :, 0], apa_chunk[:, :, 1]
+
+        G1 += np.dot(a1_chunk.T, a1_chunk) / snp_prior_var_sum
+        G2 += np.dot(a2_chunk.T, a2_chunk) / snp_prior_var_sum
+        G12 += np.dot(a1_chunk.T, a2_chunk) / snp_prior_var_sum
+
+    return G1, G2, G12
 
 
 def admix_ld(dset: admix.Dataset):
