@@ -136,9 +136,8 @@ class Dataset(object):
                 # infer number of ancestors
                 n_anc = int(lanc[0:1000, :, :].max().compute() + 1)
                 admix.logger.info(
-                    "admix.Dataset: `n_anc` is not provided"
-                    + f", infered n_anc from the first 1,000 SNPs is {n_anc}. "
-                    + "If this is not correct, provide `n_anc` when constructing admix.Dataset"
+                    f"admix.Dataset: infered n_anc={n_anc}. "
+                    + "If not correct, provide `n_anc` when constructing admix.Dataset.",
                 )
                 self._xr.attrs["n_anc"] = n_anc
             else:

@@ -3,6 +3,8 @@ from typing import List
 import admix
 import pandas as pd
 import dapgen
+import numpy as np
+from ._utils import log_params
 
 
 def _append_pvar(pvar_path: str, df: pd.DataFrame):
@@ -29,7 +31,8 @@ def _append_pvar(pvar_path: str, df: pd.DataFrame):
 
 def append_snp_info(
     pfile: str,
-    info: List[str] = ["LANC_FREQ"],
+    out: str = None,
+    info: List[str] = ["LANC_FREQ", "FREQ"],
 ):
     """
     Append information to .pvar file. Currently only the ancestry-specific frequency
@@ -39,15 +42,20 @@ def append_snp_info(
     ----------
     pfile : str
         Path to the .pvar file.
+    out : str
+        Path to the output file. If specified, the output file will be WRITTEN to
+        this path. Otherwise, the output file will be appended to the <pfile>.pvar file.
     info : List[str]
         List of information to append. Currently supported:
         - "LANC_FREQ": ancestry-specific allele frequency of each SNP. For example,
             for a two-way admixture individual, LANC_FREQ1 indicates the frequency of
             alternate allele in the first ancestry.
     """
+    log_params("append-snp-info", locals())
+
     dset = admix.io.read_dataset(pfile)
 
-    df_info = []
+    df_info: pd.DataFrame = []
     if "LANC_FREQ" in info:
         af = dset.af_per_anc()
         df_af = pd.DataFrame(
@@ -57,5 +65,18 @@ def append_snp_info(
         )
         df_info.append(df_af)
 
+    if "FREQ" in info:
+        df_freq = dapgen.freq(pfile + ".pgen", memory=8)
+        assert np.all(df_freq.ID.values == dset.snp.index)
+        df_freq = pd.DataFrame(
+            df_freq["ALT_FREQS"].values,
+            columns=["FREQ"],
+            index=dset.snp.index,
+        )
+        df_info.append(df_freq)
+
     df_info = pd.concat(df_info, axis=1)
-    _append_pvar(pfile + ".pvar", df_info)
+    if out is None:
+        _append_pvar(pfile + ".pvar", df_info)
+    else:
+        df_info.to_csv(out, sep="\t")

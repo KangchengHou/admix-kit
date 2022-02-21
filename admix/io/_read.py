@@ -308,6 +308,15 @@ def read_rfmix(
 
     # assign local ancestry
     df_rfmix = pd.read_csv(path, sep="\t", skiprows=1)
+    assert (
+        np.unique(df_rfmix["#chm"]).shape[0] == 1
+    ), "rfmix can only contain one chromosome"
+    assert (
+        np.unique(df_snp["CHROM"]).shape[0] == 1
+    ), "df_snp can only contain one chromosome"
+    assert set(df_rfmix["#chm"].values) == set(
+        df_snp["CHROM"].values
+    ), "rfmix and df_snp must contain the same chromosome"
     # TODO: currently assume 2-way admixture
     # MORE THAN 2-way admixture is easily supported by reading the header and modify
     # the following 6 lines

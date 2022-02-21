@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import subprocess
-from typing import Tuple
+from typing import Tuple, List
 import os
 from . import get_dependency
 
@@ -71,6 +71,8 @@ def reml(
     grm_path: str = None,
     df_covar: pd.DataFrame = None,
     n_thread: int = 4,
+    priors: List[float] = None,
+    est_fix: bool = False,
     clean_tmp: bool = True,
 ):
     """Wrapper for GCTA --reml
@@ -102,6 +104,10 @@ def reml(
         f"--out {out_prefix}",
         f"--thread-num {n_thread}",
     ]
+    if est_fix:
+        cmds[0] += " --reml-est-fix"
+    if priors is not None:
+        cmds.append("--reml-priors " + " ".join([str(p) for p in priors]))
     if mgrm_path is not None:
         cmds.append(f"--mgrm {mgrm_path}")
     if grm_path is not None:

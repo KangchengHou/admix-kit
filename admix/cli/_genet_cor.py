@@ -4,13 +4,15 @@ import numpy as np
 from tqdm import tqdm
 from typing import List
 import glob
+from natsort import natsorted
+from ._utils import log_params
 
 
 def _write_admix_grm(
     K1: np.ndarray,
     K2: np.ndarray,
     df_weight: pd.Series,
-    indiv_list: List[str],
+    df_id: pd.DataFrame,
     out_prefix: str,
 ):
     """write admix grm
@@ -25,7 +27,7 @@ def _write_admix_grm(
         snp weights
     n_snp : int
         number of snps
-    indiv_list: List[str]
+    df_id: pd.DataFrame
         list of individuals
     out_prefix: str
         prefix of the output file
@@ -39,8 +41,8 @@ def _write_admix_grm(
         admix.tools.gcta.write_grm(
             out_prefix + name,
             K=K,
-            df_id=pd.DataFrame({"0": indiv_list, "1": indiv_list}),
-            n_snps=np.repeat(len(df_weight), len(indiv_list)),
+            df_id=df_id,
+            n_snps=np.repeat(len(df_weight), len(df_id)),
         )
 
     # write weight
@@ -66,6 +68,7 @@ def admix_grm(pfile: str, out_prefix: str, maf_cutoff: float = 0.005) -> None:
     GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated
     Weight file: {out_prefix}.weight.tsv will be generated
     """
+    log_params("admix-grm", locals())
 
     dset = admix.io.read_dataset(pfile=pfile, snp_chunk=512)
     assert dset.n_anc == 2, "Currently only 2-way admixture is supported"
@@ -91,7 +94,9 @@ def admix_grm(pfile: str, out_prefix: str, maf_cutoff: float = 0.005) -> None:
         K1=K1,
         K2=K2,
         df_weight=dset.snp.PRIOR_VAR,
-        indiv_list=dset.indiv.ID.values,
+        df_id=pd.DataFrame(
+            {"0": dset.indiv.index.values, "1": dset.indiv.index.values}
+        ),
         out_prefix=out_prefix,
     )
 
@@ -110,20 +115,24 @@ def admix_grm_merge(prefix: str, out_prefix: str) -> None:
 
     Compute the GRM and store to {prefix}[.A1.npy | .A2.npy | .weight.tsv]
     """
+    log_params("admix-grm-merge", locals())
+
     # search for files with the pattern of <prefix>.<suffix>.K1.grm.bin and <prefix>.<suffix>.K2.grm.bin
     K1_grm_prefix_list = [
-        f[: -len(".K1.grm.bin")] for f in sorted(glob.glob(f"{prefix}.*.K1.grm.bin"))
+        f[: -len(".K1.grm.bin")] for f in sorted(glob.glob(f"{prefix}*.K1.grm.bin"))
     ]
     K2_grm_prefix_list = [
-        f[: -len(".K2.grm.bin")] for f in sorted(glob.glob(f"{prefix}.*.K2.grm.bin"))
+        f[: -len(".K2.grm.bin")] for f in sorted(glob.glob(f"{prefix}*.K2.grm.bin"))
     ]
     assert len(K1_grm_prefix_list) == len(K2_grm_prefix_list)
     assert K1_grm_prefix_list == K2_grm_prefix_list, (
         "GRM files .K1 and .K2 are not matched, "
         f"K1_grm_list={K1_grm_prefix_list}, K2_grm_list={K2_grm_prefix_list}"
     )
-    grm_prefix_list = K1_grm_prefix_list
-
+    grm_prefix_list = natsorted(K1_grm_prefix_list)
+    admix.logger.info(
+        f"{len(grm_prefix_list)} GRM files to be merged: {grm_prefix_list}"
+    )
     prior_var_list = []
     for grm_prefix in grm_prefix_list:
         prior_var_list.append(
@@ -132,41 +141,41 @@ def admix_grm_merge(prefix: str, out_prefix: str) -> None:
 
     def _merge(suffix):
         total_grm = 0
-        total_indiv_list = None
+        total_df_id = None
 
         weight_list = []
         for i, grm_prefix in enumerate(grm_prefix_list):
             prior_var = prior_var_list[i]
             weight = prior_var["PRIOR_VAR"].sum()
             weight_list.append(weight)
-            grm, indiv_list, n_snps = admix.tools.gcta.read_grm(
-                f"{grm_prefix}.{suffix}"
-            )
+            grm, df_id, n_snps = admix.tools.gcta.read_grm(f"{grm_prefix}.{suffix}")
             total_grm += grm * weight
-            if total_indiv_list is None:
-                total_indiv_list = indiv_list
+            if total_df_id is None:
+                total_df_id = df_id
             else:
-                assert np.allclose(total_indiv_list, indiv_list)
-            assert n_snps == prior_var.shape[0]
+                assert np.all(total_df_id == df_id)
+            assert np.all(n_snps == prior_var.shape[0])
         total_grm /= np.sum(weight_list)
-        return total_grm, indiv_list
+        return total_grm, df_id
 
-    K1, indiv_list1 = _merge("K1")
-    K2, indiv_list2 = _merge("K2")
-    assert np.allclose(indiv_list1, indiv_list2)
-    indiv_list = indiv_list1
+    K1, df_id1 = _merge("K1")
+    K2, df_id2 = _merge("K2")
+    assert df_id1.equals(df_id2)
+    df_id = df_id1
     df_weight = pd.concat(prior_var_list)
 
     _write_admix_grm(
         K1=K1,
         K2=K2,
         df_weight=df_weight,
-        indiv_list=indiv_list,
+        df_id=df_id,
         out_prefix=out_prefix,
     )
 
 
-def rho_grm(prefix: str, out_prefix: str, rho_list=np.linspace(0, 1.0, 21)) -> None:
+def admix_grm_rho(
+    prefix: str, out_prefix: str, rho_list=np.linspace(0, 1.0, 21)
+) -> None:
     """
     Build the GRM for a given rho list
 
@@ -179,12 +188,13 @@ def rho_grm(prefix: str, out_prefix: str, rho_list=np.linspace(0, 1.0, 21)) -> N
     rho_list : list, optional
         List of rho values, by default np.linspace(0, 1.0, 21)
     """
+    log_params("admix-grm-rho", locals())
 
-    K1, indiv_list1, n_snps1 = admix.tools.gcta.read_grm(prefix + ".K1")
-    K2, indiv_list2, n_snps2 = admix.tools.gcta.read_grm(prefix + ".K2")
-    assert np.allclose(indiv_list1, indiv_list2)
+    K1, df_id1, n_snps1 = admix.tools.gcta.read_grm(prefix + ".K1")
+    K2, df_id2, n_snps2 = admix.tools.gcta.read_grm(prefix + ".K2")
+    assert df_id1.equals(df_id2)
     assert np.allclose(n_snps1, n_snps2)
-    indiv_list = indiv_list1
+    df_id = df_id1
     n_snps = n_snps1
 
     for rho in tqdm(rho_list):
@@ -194,6 +204,6 @@ def rho_grm(prefix: str, out_prefix: str, rho_list=np.linspace(0, 1.0, 21)) -> N
         admix.tools.gcta.write_grm(
             name,
             K=K,
-            df_id=pd.DataFrame({"0": indiv_list, "1": indiv_list}),
+            df_id=df_id,
             n_snps=n_snps,
         )
