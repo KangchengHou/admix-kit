@@ -55,16 +55,16 @@ def append_snp_info(
         file.
     info : List[str]
         List of information to append. Currently supported:
-        - "LANC_FREQ": ancestry-specific allele frequency of each SNP. For example,
-            for a two-way admixture population, LANC_FREQ1 indicates the frequency of
-            alternate allele in the first ancestry. LANC_NHAPLO1 will also be added,
-            indicating the number of haplotypes in the first ancestry.
-        - "FREQ": allele frequency of each SNP regardless of ancestry.
+
+        * "LANC_FREQ": ancestry-specific allele frequency of each SNP. For example, for a two-way admixture population, `LANC_FREQ1` indicates the frequency of alternate allele in the first ancestry. `LANC_NHAPLO1` will also be added, indicating the number of haplotypes in the first ancestry.
+        * "FREQ": allele frequency of each SNP regardless of ancestry.
 
     Examples
     --------
     .. code-block:: bash
-        # toy-admix.snp_info will be created containing LANC_FREQ[1,2], LANC_NHAPLO[1,2], FREQ
+
+        # toy-admix.snp_info will be created containing 
+        # LANC_FREQ[1,2], LANC_NHAPLO[1,2], FREQ
         admix append-snp-info \\
             --pfile toy-admix \\
             --out toy-admix.snp_info
