@@ -15,7 +15,12 @@ Phenotype simulation
 
 .. autofunction:: admix.cli.simulate_pheno
 
+Utility functions
+-----------------
 
+.. autofunction:: admix.cli.append_snp_info
+
+   
 Miscellaneous
 -------------
 

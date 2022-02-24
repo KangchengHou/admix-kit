@@ -3,6 +3,7 @@ from tqdm import tqdm
 import dask.array as da
 import admix
 import dask
+from typing import Union, Tuple
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -294,7 +295,9 @@ def admix_ld(dset: admix.Dataset):
     return {"11": ld1, "22": ld2, "12": ld12}
 
 
-def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
+def af_per_anc(
+    geno, lanc, n_anc=2, return_nhaplo=False
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """
     Calculate allele frequency per ancestry
 
@@ -307,6 +310,10 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
         genotype matrix
     lanc: np.ndarray
         local ancestry matrix
+    n_anc: int
+        number of ancestries
+    return_nhaplo: bool
+        whether to return the number of haplotypes per ancestry
 
     Returns
     -------
@@ -316,7 +323,7 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
     assert np.all(geno.shape == lanc.shape)
     n_snp = geno.shape[0]
     af = np.zeros((n_snp, n_anc))
-
+    lanc_nhaplo = np.zeros((n_snp, n_anc))
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
 
@@ -326,14 +333,19 @@ def af_per_anc(geno, lanc, n_anc=2) -> np.ndarray:
         lanc_chunk = lanc[start:stop, :, :].compute()
 
         for anc_i in range(n_anc):
+            lanc_mask = lanc_chunk == anc_i
+            lanc_nhaplo[start:stop, anc_i] = np.sum(lanc_mask, axis=(1, 2))
             # mask SNPs with local ancestry not `i_anc`
             af[start:stop, anc_i] = (
-                np.ma.masked_where(lanc_chunk != anc_i, geno_chunk)
+                np.ma.masked_where(np.logical_not(lanc_mask), geno_chunk)
                 .sum(axis=(1, 2))
                 .data
-            ) / np.sum(lanc_chunk == anc_i, axis=(1, 2))
+            ) / lanc_nhaplo[start:stop, anc_i]
 
-    return af
+    if return_nhaplo:
+        return af, lanc_nhaplo
+    else:
+        return af
 
 
 def allele_per_anc(

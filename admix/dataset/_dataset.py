@@ -229,12 +229,49 @@ class Dataset(object):
         )
 
     def af_per_anc(self, force=False) -> da.Array:
-        """Return the allele-per-ancestry matrix"""
+        """
+        Return the allele frequency per ancestry (n_snp, n_anc)
+
+        nhaplo_per_anc will also be computed / updated.
+        Parameters
+        ----------
+        force : bool
+            If True, force re-computation of the matrix.
+        """
         if ("af_per_anc" not in self._xr) or force:
-            self._xr["af_per_anc"] = ("snp", "anc"), admix.data.af_per_anc(
-                geno=self.geno, lanc=self.lanc, n_anc=self.n_anc
+            res = admix.data.af_per_anc(
+                geno=self.geno,
+                lanc=self.lanc,
+                n_anc=self.n_anc,
+                return_nhaplo=True,
             )
+            self._xr["af_per_anc"] = ("snp", "anc"), res[0]
+            self._xr["nhaplo_per_anc"] = ("snp", "anc"), res[1]
+
         return self._xr["af_per_anc"].data
+
+    def nhaplo_per_anc(self, force=False) -> da.Array:
+        """
+        Return the number of haplotype per ancestry (n_snp, n_anc)
+
+        af_per_anc will also be computed / updated.
+
+        Parameters
+        ----------
+        force : bool
+            If True, force re-computation of the matrix.
+        """
+        if ("nhaplo_per_anc" not in self._xr) or force:
+            res = admix.data.af_per_anc(
+                geno=self.geno,
+                lanc=self.lanc,
+                n_anc=self.n_anc,
+                return_lanc_count=True,
+            )
+            self._xr["af_per_anc"] = ("snp", "anc"), res[0]
+            self._xr["nhaplo_per_anc"] = ("snp", "anc"), res[1]
+
+        return self._xr["nhaplo_per_anc"].data
 
     @property
     def uns(self) -> MutableMapping:

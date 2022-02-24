@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import List
 import glob
 from natsort import natsorted
+import os
 from ._utils import log_params
 
 
@@ -50,7 +51,13 @@ def _write_admix_grm(
 
 
 # Implementing genetic correlation related functions
-def admix_grm(pfile: str, out_prefix: str, maf_cutoff: float = 0.005) -> None:
+def admix_grm(
+    pfile: str,
+    out_prefix: str,
+    maf_cutoff: float = 0.005,
+    her_model="mafukb",
+    freq_cols=["LANC_FREQ1", "LANC_FREQ2"],
+) -> None:
     """
     Calculate the admix GRM for a given pfile
 
@@ -62,24 +69,28 @@ def admix_grm(pfile: str, out_prefix: str, maf_cutoff: float = 0.005) -> None:
         Prefix of the output files
     maf_cutoff : float, optional
         MAF cutoff for the admixed individuals, by default 0.005
+    her_model : str, optional
+        Heritability model, by default "mafukb"
+        one of "uniform", "gcta", "ldak", "mafukb"
 
     Returns
     -------
     GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated
     Weight file: {out_prefix}.weight.tsv will be generated
     """
-    log_params("admix-grm", locals())
 
+    log_params("admix-grm", locals())
+    assert len(freq_cols) == 2, "freq_cols must be a list of length 2"
     dset = admix.io.read_dataset(pfile=pfile, snp_chunk=512)
     assert dset.n_anc == 2, "Currently only 2-way admixture is supported"
 
     snp_subset = np.where(
-        dset.snp.LANC_FREQ1.between(maf_cutoff, 1 - maf_cutoff)
-        & dset.snp.LANC_FREQ2.between(maf_cutoff, 1 - maf_cutoff)
+        dset.snp[freq_cols[0]].between(maf_cutoff, 1 - maf_cutoff)
+        & dset.snp[freq_cols[1]].between(maf_cutoff, 1 - maf_cutoff)
     )[0]
 
     dset = dset[snp_subset]
-    dset.snp["PRIOR_VAR"] = admix.data.calc_snp_prior_var(dset.snp, her_model="mafukb")
+    dset.snp["PRIOR_VAR"] = admix.data.calc_snp_prior_var(dset.snp, her_model=her_model)
 
     G1, G2, G12 = admix.data.admix_grm(
         geno=dset.geno,
@@ -101,7 +112,7 @@ def admix_grm(pfile: str, out_prefix: str, maf_cutoff: float = 0.005) -> None:
     )
 
 
-def admix_grm_merge(prefix: str, out_prefix: str) -> None:
+def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     """
     Merge multiple GRM matrices
 
@@ -112,6 +123,8 @@ def admix_grm_merge(prefix: str, out_prefix: str) -> None:
         will be merged
     out_prefix : str
         Prefix of the output file
+    n_part : int, optional
+        Number of partitions, by default 22
 
     Compute the GRM and store to {prefix}[.A1.npy | .A2.npy | .weight.tsv]
     """
@@ -130,6 +143,10 @@ def admix_grm_merge(prefix: str, out_prefix: str) -> None:
         f"K1_grm_list={K1_grm_prefix_list}, K2_grm_list={K2_grm_prefix_list}"
     )
     grm_prefix_list = natsorted(K1_grm_prefix_list)
+    if len(grm_prefix_list) != n_part:
+        raise ValueError(
+            f"Number of GRM files ({len(grm_prefix_list)}) is not equal to n_part ({n_part})"
+        )
     admix.logger.info(
         f"{len(grm_prefix_list)} GRM files to be merged: {grm_prefix_list}"
     )
@@ -173,9 +190,7 @@ def admix_grm_merge(prefix: str, out_prefix: str) -> None:
     )
 
 
-def admix_grm_rho(
-    prefix: str, out_prefix: str, rho_list=np.linspace(0, 1.0, 21)
-) -> None:
+def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -> None:
     """
     Build the GRM for a given rho list
 
@@ -183,8 +198,8 @@ def admix_grm_rho(
     ----------
     prefix : str
         Prefix of the GRM files, with .K1.grm.bin and .K2.grm.bin
-    out_prefix : str
-        Prefix of the output file
+    out_dir : str
+        folder to store the output files, must not exist
     rho_list : list, optional
         List of rho values, by default np.linspace(0, 1.0, 21)
     """
@@ -197,10 +212,11 @@ def admix_grm_rho(
     df_id = df_id1
     n_snps = n_snps1
 
+    os.makedirs(out_dir, exist_ok=False)
     for rho in tqdm(rho_list):
         K = K1 + K2 * rho
 
-        name = f"{out_prefix}.rho{int(rho * 100)}"
+        name = os.path.join(out_dir, f"rho{int(rho * 100)}")
         admix.tools.gcta.write_grm(
             name,
             K=K,
