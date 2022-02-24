@@ -288,8 +288,7 @@ def read_rfmix(
     df_indiv: pd.DataFrame,
 ):
     """
-    Assign local ancestry to a dataset. Currently we assume that the rfmix file contains
-    2-way admixture information.
+    Assign local ancestry to a dataset. 2-way, 3-way admixture are all supported.
 
     Parameters
     ----------
@@ -317,9 +316,7 @@ def read_rfmix(
     assert set(df_rfmix["#chm"].values) == set(
         df_snp["CHROM"].values
     ), "rfmix and df_snp must contain the same chromosome"
-    # TODO: currently assume 2-way admixture
-    # MORE THAN 2-way admixture is easily supported by reading the header and modify
-    # the following 6 lines
+    # read the 2 haplotype, the value of those haplotype corresponds to the local ancestry
     lanc0 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".0")].rename(
         columns=lambda x: x[:-2]
     )
@@ -328,7 +325,7 @@ def read_rfmix(
     )
     assert (
         np.any([col.endswith(".2") for col in df_rfmix.columns]) == False
-    ), "Currently only 2-way admixture is supported, more than 2-way admixture will be added soon"
+    ), "There are columns with .2 in the rfmix file (not expected), please raise an issue"
 
     lanc = lanc0.astype(str) + lanc1.astype(str)
 
