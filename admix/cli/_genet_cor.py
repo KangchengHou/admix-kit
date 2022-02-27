@@ -223,3 +223,70 @@ def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -
             df_id=df_id,
             n_snps=n_snps,
         )
+
+
+def estimate_genetic_cor(
+    grm_dir: str, pheno: str, out_dir: str, quantile_normalize: bool = True
+):
+    """
+    Estimate genetic correlation from a set of GRM files (with different rho values)
+
+    Parameters
+    ----------
+    grm_dir : str
+        folder containing GRM files
+    pheno : str
+        phenotype file, the 1st column contains ID, 2nd column contains phenotype, and
+        the rest of columns are covariates.
+    out_dir : str
+        folder to store the output files, if exist, a warning will be logged
+    quantile_normalize: bool
+        whether to perform quantile normalization
+    """
+    # compile phenotype and covariates
+    df_pheno = pd.read_csv(pheno, sep="\t", index_col=0)
+    df_pheno.index = df_pheno.index.astype(str)
+
+    # subset for individuals with non-nan value in df_trait
+    covar_cols = df_pheno.columns[1:]
+
+    df_trait = df_pheno[[df_pheno.columns[0]]].copy()
+    df_covar = df_pheno[covar_cols].copy()
+    df_covar = admix.data.convert_dummy(df_covar)
+
+    if quantile_normalize:
+        # perform quantile normalization
+        for col in df_trait.columns:
+            df_trait[col] = admix.data.quantile_normalize(df_trait[col])
+
+        for col in df_covar.columns:
+            df_covar[col] = admix.data.quantile_normalize(df_covar[col])
+
+    # fill na with column mean
+    df_covar.fillna(df_covar.mean(), inplace=True)
+
+    df_id = pd.DataFrame(
+        {"FID": df_trait.index.values, "IID": df_trait.index.values},
+        index=df_trait.index.values,
+    )
+    df_trait = pd.merge(df_id, df_trait, left_index=True, right_index=True)
+    df_covar = pd.merge(df_id, df_covar, left_index=True, right_index=True)
+
+    os.makedirs(out_dir, exist_ok=True)
+
+    ### fit different rho
+    grm_prefix_list = [
+        p.split("/")[-1][: -len(".grm.bin")]
+        for p in glob.glob(os.path.join(grm_dir, "*.grm.bin"))
+    ]
+    for grm_prefix in grm_prefix_list:
+        grm = os.path.join(grm_dir, grm_prefix)
+        out_prefix = os.path.join(out_dir, grm_prefix)
+        if not os.path.exists(out_prefix + ".hsq"):
+            admix.tools.gcta.reml(
+                grm_path=grm,
+                df_pheno=df_trait,
+                df_covar=df_covar,
+                out_prefix=out_prefix,
+                n_thread=4,
+            )

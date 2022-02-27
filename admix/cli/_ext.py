@@ -40,11 +40,10 @@ def pca(pfile: str, out: str, approx=False):
     ----------
     pfile : str
         Path to the pgen file
-    prune : bool
-        Whether to prune the pfile using the default recipe
-        --indep 200 5 1.15, --indep-pairwise 100 5 0.1
     out : str
         Path to the output file
+    approx : bool, optional
+        If True, use the approximate algorithm.
     """
     log_params("pca", locals())
 
