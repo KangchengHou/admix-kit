@@ -226,7 +226,12 @@ def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -
 
 
 def estimate_genetic_cor(
-    grm_dir: str, pheno: str, out_dir: str, quantile_normalize: bool = True
+    pheno: str,
+    out_dir: str,
+    grm_dir: str = None,
+    grm_prefix: str = None,
+    quantile_normalize: bool = True,
+    n_thread: int = 2,
 ):
     """
     Estimate genetic correlation from a set of GRM files (with different rho values)
@@ -242,18 +247,30 @@ def estimate_genetic_cor(
         folder to store the output files, if exist, a warning will be logged
     quantile_normalize: bool
         whether to perform quantile normalization
+    n_thread : int, optional
+        number of threads, by default 2
     """
+    log_params("estimate-genetic-cor", locals())
+
+    # either grm_dir or grm_prefix must be specified
+    assert (grm_dir is not None) + (
+        grm_prefix is not None
+    ) == 1, "Either grm_dir or grm_prefix must be specified"
+
     # compile phenotype and covariates
     df_pheno = pd.read_csv(pheno, sep="\t", index_col=0)
     df_pheno.index = df_pheno.index.astype(str)
 
     # subset for individuals with non-nan value in df_trait
+    trait_col = df_pheno.columns[0]
     covar_cols = df_pheno.columns[1:]
 
-    df_trait = df_pheno[[df_pheno.columns[0]]].copy()
+    # filter out individuals with missing phenotype
+    df_pheno = df_pheno[df_pheno[trait_col].notna()]
+
+    df_trait = df_pheno[[trait_col]].copy()
     df_covar = df_pheno[covar_cols].copy()
     df_covar = admix.data.convert_dummy(df_covar)
-
     if quantile_normalize:
         # perform quantile normalization
         for col in df_trait.columns:
@@ -274,11 +291,17 @@ def estimate_genetic_cor(
 
     os.makedirs(out_dir, exist_ok=True)
 
-    ### fit different rho
-    grm_prefix_list = [
-        p.split("/")[-1][: -len(".grm.bin")]
-        for p in glob.glob(os.path.join(grm_dir, "*.grm.bin"))
-    ]
+    if grm_dir is not None:
+        # fit different rho
+        grm_prefix_list = [
+            p.split("/")[-1][: -len(".grm.bin")]
+            for p in glob.glob(os.path.join(grm_dir, "*.grm.bin"))
+        ]
+    else:
+        assert grm_prefix is not None
+        grm_dir = os.path.dirname(grm_prefix)
+        grm_prefix_list = [grm_prefix.split("/")[-1]]
+
     for grm_prefix in grm_prefix_list:
         grm = os.path.join(grm_dir, grm_prefix)
         out_prefix = os.path.join(out_dir, grm_prefix)
@@ -288,5 +311,6 @@ def estimate_genetic_cor(
                 df_pheno=df_trait,
                 df_covar=df_covar,
                 out_prefix=out_prefix,
-                n_thread=4,
+                n_thread=n_thread,
+                est_fix=True,
             )

@@ -62,9 +62,8 @@ def append_snp_info(
     Examples
     --------
     .. code-block:: bash
-
-        # toy-admix.snp_info will be created containing 
-        # LANC_FREQ[1,2], LANC_NHAPLO[1,2], FREQ
+        
+        # toy-admix.snp_info will be created containing LANC_FREQ[1-n_anc], LANC_NHAPLO[1-n_anc], FREQ
         admix append-snp-info \\
             --pfile toy-admix \\
             --out toy-admix.snp_info
