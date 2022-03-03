@@ -70,7 +70,7 @@ def liftover(pfile: str, out: str, chain="hg19->hg38"):
 
 def merge_pfile_indiv(pfile1: str, pfile2: str, out: str):
     log_params("merge-pfile-indiv", locals())
-    admix.tools.plink2.merge(pfile1=pfile1, pfile2=pfile2, out_prefix=out)
+    admix.tools.plink2.merge_indiv(pfile1=pfile1, pfile2=pfile2, out_prefix=out)
     admix.logger.info(
         f"Currently PLINK2 pmerge does not fully support merging pfiles with different individuals, writing PLINK1 bed file instead."
     )
