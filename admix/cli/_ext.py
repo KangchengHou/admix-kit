@@ -48,3 +48,30 @@ def pca(pfile: str, out: str, approx=False):
     log_params("pca", locals())
 
     admix.tools.plink2.pca(pfile=pfile, out_prefix=out, approx=approx)
+
+
+def liftover(pfile: str, out: str, chain="hg19->hg38"):
+    """
+    Lift over a pgen file
+
+    Parameters
+    ----------
+    pfile : str
+        Path to the pgen file
+    out : str
+        Path to the output file
+    chain : str, optional
+        Chain file to use.
+    """
+    log_params("liftover", locals())
+
+    admix.tools.plink2.lift_over(pfile=pfile, out_prefix=out, chain=chain)
+
+
+def merge_pfile_indiv(pfile1: str, pfile2: str, out: str):
+    log_params("merge-pfile-indiv", locals())
+    admix.tools.plink2.merge(pfile1=pfile1, pfile2=pfile2, out_prefix=out)
+    admix.logger.info(
+        f"Currently PLINK2 pmerge does not fully support merging pfiles with different individuals, writing PLINK1 bed file instead."
+    )
+    admix.logger.info(f"{out}.bed, {out}.bim, {out}.fam are created")

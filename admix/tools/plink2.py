@@ -192,7 +192,8 @@ def clump(
 
 
 def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
-    """Lift over a plink file to another genome
+    """Lift over a plink file to another genome. First, use liftover to convert to
+    another genome, then use plink2 --sort-vars to sort the variants.
 
     Parameters
     ----------
@@ -224,54 +225,104 @@ def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
     )
 
     # extract the lifted SNPs
-    np.savetxt(f"{out_prefix}.snp", df_lifted.index.values, fmt="%s")
+    np.savetxt(f"{out_prefix}-tmp.snp", df_lifted.index.values, fmt="%s")
     admix.tools.plink2.run(
-        f"--pfile {pfile} --extract {out_prefix}.snp --sort-vars --make-pgen --out {out_prefix}"
+        f"--pfile {pfile} --extract {out_prefix}-tmp.snp --sort-vars --make-pgen --out {out_prefix}-tmp"
     )
 
     # substitute the coordinates obtained from liftover
-    pgen, pvar, psam = dapgen.read_pfile(out_prefix)
+    pgen, pvar, psam = dapgen.read_pfile(out_prefix + "-tmp")
     assert np.all(pvar.index == df_lifted.index)
 
     pvar["POS"] = df_lifted["POS"]
     pvar.insert(2, "ID", pvar.index)
     pvar = pvar.reset_index(drop=True).rename(columns={"CHROM": "#CHROM"})
-    pvar.to_csv(f"{out_prefix}.pvar", sep="\t", index=False)
+    pvar.to_csv(f"{out_prefix}-tmp.pvar", sep="\t", index=False)
+
+    admix.tools.plink2.run(
+        f"--pfile {out_prefix}-tmp --sort-vars --make-pgen --out {out_prefix}"
+    )
+    # remove the tmp files
+    for f in glob.glob(out_prefix + "-tmp*"):
+        os.remove(f)
 
 
-def merge(sample_pfile: str, ref_pfile: str, out_prefix: str):
-    """Given two plink files from different samples, take the common set of SNPs
+def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
+    """Given two plink files from different individuals, take the common set of SNPs
     and merge them into one data set.
+
+    This is a wrapper for various PLINK functions. Since PLINK2's pmerge function is
+    not complete now. We use PLINK1 merge functionality instead. A PLINK1 bfile is
+    produced (rather than PLINK2 pfile).
 
     This can be useful for example when we want to perform a joint PCA for the two
     data sets.
 
     Parameters
     ----------
-    pfile1 : str
+    sample_pfile : str
         plink file 1
-    pfile2 : str
+    ref_pfile : str
         plink file 2
     out_prefix: str
         prefix to the output files
     """
-
-    # TODO: cope with allele flop in the sample pfile
-
-    # Step 1: rename the SNPstwo files
-    admix.tools.plink2.run(
-        f"--pfile {sample_pfile} --set-all-var-ids @:#:\$r:\$a --make-pgen --out {out_prefix}"
+    # Step 1: read pvar and find the common SNPs
+    df_snp1 = dapgen.read_pvar(pfile1 + ".pvar").drop_duplicates(
+        subset=["CHROM", "POS"]
+    )
+    df_snp2 = dapgen.read_pvar(pfile2 + ".pvar").drop_duplicates(
+        subset=["CHROM", "POS"]
     )
 
-    admix.tools.plink2.run(
-        f"--pfile {ref_pfile} --set-all-var-ids @:#:\$r:\$a --make-pgen --out {out_prefix}"
+    idx1, idx2, flip = dapgen.align_snp(df_snp1, df_snp2)
+
+    print(
+        f"{len(idx1)} / {len(df_snp1)} ({len(idx1) / len(df_snp1) * 100:.3g}%) SNPs extracted in sample pfile: {pfile1}"
+    )
+    print(
+        f"{len(idx2)} / {len(df_snp2)} ({len(idx2) / len(df_snp2) * 100:.3g}%) SNPs extracted in ref pfile: {pfile2}"
     )
 
-    # TODO
-    # Step 2: find common SNPs
-    # load in the SNPs and find the intersection
+    # Step 2: extract the common SNPs from the two files and fix the allele order
+    allele1 = df_snp1.loc[idx1]["REF"]
+    allele2 = df_snp2.loc[idx2]["REF"]
 
-    # Step 3: extract SNPs and merge the data
+    allele1.to_csv(out_prefix + "-tmp.1.refallele", sep="\t", header=False)
+    np.savetxt(out_prefix + "-tmp.1.snplist", allele1.index.values, fmt="%s")
+
+    # use sample ref-allele values, but use ref-allele index
+    pd.Series(allele1.values, index=allele2.index).to_csv(
+        out_prefix + "-tmp.2.refallele", sep="\t", header=False
+    )
+    np.savetxt(out_prefix + "-tmp.2.snplist", allele2.index.values, fmt="%s")
+
+    # extract common SNPs and align REF ALT
+    admix.tools.plink2.run(
+        f"--pfile {pfile1} --extract {out_prefix + '-tmp.1.snplist'}"
+        f" --ref-allele {out_prefix + '-tmp.1.refallele'} 2 1 --make-bed --out {out_prefix}-tmp.1"
+    )
+    admix.tools.plink2.run(
+        f"--pfile {pfile2} --extract {out_prefix + '-tmp.2.snplist'} "
+        f" --ref-allele force {out_prefix + '-tmp.2.refallele'} 2 1 --make-bed --out {out_prefix}-tmp.2"
+    )
+
+    # Step 3: unify SNP ID
+    admix.tools.plink2.run(
+        f"--bfile {out_prefix}-tmp.1 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.1.fixid"
+    )
+    admix.tools.plink2.run(
+        f"--bfile {out_prefix}-tmp.2 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.2.fixid"
+    )
+
+    # Step 4: make final merged bfile
+    admix.tools.plink.run(
+        f"--bfile {out_prefix}-tmp.1.fixid --bmerge {out_prefix}-tmp.2.fixid --make-bed --out {out_prefix}"
+    )
+
+    # remove the tmp files
+    for f in glob.glob(out_prefix + "-tmp*"):
+        os.remove(f)
 
 
 def subset(

@@ -6,7 +6,7 @@ from ._geno import append_snp_info
 from ._utils import log_params
 from ._simulate import simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_rfmix
-from ._ext import prune, pca
+from ._ext import prune, pca, liftover, merge_pfile_indiv
 from ._plot import plot_pca
 from ._genet_cor import admix_grm, admix_grm_merge, admix_grm_rho, estimate_genetic_cor
 

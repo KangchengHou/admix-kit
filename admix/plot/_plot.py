@@ -1,3 +1,4 @@
+from importlib.resources import path
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,7 @@ from admix.data import quantile_normalize
 from admix.data import lambda_gc
 import seaborn as sns
 import admix
+from matplotlib import patheffects
 
 
 def pca(
@@ -17,6 +19,8 @@ def pca(
     y: str = "PC2",
     label_col: str = None,
     s=5,
+    legend_loc="on data",
+    alpha=None,
     ax=None,
 ):
     """PCA plot
@@ -33,9 +37,45 @@ def pca(
         column name for labels, by default None
     s : float, optional
     """
+    if alpha is None:
+        alpha = 1.0
+    else:
+        assert isinstance(alpha, float) or isinstance(alpha, dict)
     if ax is None:
         ax = plt.gca()
-    sns.scatterplot(data=df_pca, x=x, y=y, hue=label_col, linewidth=0, s=s, ax=ax)
+    for label, group in df_pca.groupby(label_col):
+        if isinstance(alpha, dict):
+            label_alpha = alpha[label] if label in alpha else 1.0
+        else:
+            label_alpha = alpha
+        ax.scatter(group[x], group[y], s=s, label=label, alpha=label_alpha)
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+
+    if legend_loc == "on data":
+
+        all_pos = (
+            pd.DataFrame(df_pca[[x, y, label_col]])
+            .groupby(label_col, observed=True)
+            .median()
+            .sort_index()
+        )
+
+        for label, x_pos, y_pos in all_pos.itertuples():
+            ax.text(
+                x_pos,
+                y_pos,
+                label,
+                # weight="bold",
+                path_effects=[patheffects.withStroke(linewidth=2.5, foreground="w")],
+                verticalalignment="center",
+                horizontalalignment="center",
+            )
+
+    legend = ax.legend()
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+        lh.set_sizes([30])
 
 
 def qq(pval, label=None, ax=None, bootstrap_ci=False):
