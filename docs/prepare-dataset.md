@@ -25,7 +25,7 @@ plink2 --vcf <vcf_path> --make-pgen --out <plink2_path>
 PLINK2 is also versatile for converting other formats into .pgen format. See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-genomics.org/plink/2.0/input#pgen).
 
 ```{note}
-Make sure your source data is phased because it is essential for many analyses with admix-kit.
+Make sure your source data is phased because it is essential for many analyses with admix-kit. Use `plink2 --pfile <pfile> --pgen-info` for basic check. If there is a line "Explicitly phased hardcalls present", that means phasing data is present.
 ```
 
 ## Local ancestry inference
