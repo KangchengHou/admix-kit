@@ -2,6 +2,9 @@ import admix
 import subprocess
 import dapgen
 import os
+import glob
+import numpy as np
+import pandas as pd
 from ._utils import log_params
 
 
@@ -27,6 +30,80 @@ def lanc(
     ]
     est = admix.ancestry.lanc(sample_dset=sample_dset, ref_dsets=ref_dsets)
     admix.data.Lanc(array=est).write(out)
+
+
+def lanc_count(lanc: str, out: str, n_anc: int = None):
+    """Count the number / proportion of local ancestries for each individual
+
+    Parameters
+    ----------
+    lanc : str
+        path to the lanc file, this can be a .lanc file, a wildcard of .lanc files,
+        or a directory containing .lanc files. If the corresponding .psam file is
+        present, the .psam file will be used as the individual list.
+    out : str
+        path to the output file
+    n_anc : int
+        number of ancestral populations in the data
+    """
+    log_params("lanc-count", locals())
+    if lanc.endswith(".lanc"):
+        lanc_path = [lanc]
+    elif "*" in lanc:
+        lanc_path = glob.glob(lanc)
+    elif os.path.isdir(lanc):
+        lanc_path = [p for p in glob.glob(lanc + "/*.lanc")]
+    else:
+        raise ValueError("Unable to parse lanc pathname")
+
+    admix.logger.info(f"Found {len(lanc_path)} lanc files: {','.join(lanc_path)}")
+    # read psam if available
+    psam_path = [p.replace(".lanc", ".psam") for p in lanc_path]
+
+    if all(os.path.exists(p) for p in psam_path):
+        # check all psam files have the same individual ID
+        psam_indiv = [dapgen.read_psam(p).index for p in psam_path]
+        assert all(
+            psam_indiv[0].equals(i) for i in psam_indiv[1:]
+        ), "Individuals in psam files do not match"
+        indiv_list = psam_indiv[0].values
+    elif not any(os.path.exists(p) for p in psam_path):
+        indiv_list = None
+    else:
+        raise ValueError("either .psam all exists or none exists")
+
+    lanc_mat = admix.data.Lanc(lanc_path[0])
+    n_indiv = lanc_mat.n_indiv
+    if indiv_list is not None:
+        assert n_indiv == len(
+            indiv_list
+        ), "Number of individuals in lanc and psam files do not match"
+    else:
+        indiv_list = np.arange(n_indiv).astype(str)
+
+    lanc_count = lanc_mat.lanc_count()
+    if n_anc is not None:
+        assert (
+            lanc_count.shape[1] == n_anc
+        ), "Number of ancestral populations do not match"
+    else:
+        n_anc = lanc_count.shape[1]
+        admix.logger.info(f"Inferred number of ancestral populations: {n_anc}")
+
+    for p in lanc_path[1:]:
+        lanc_count += admix.data.Lanc(p).lanc_count(n_anc=n_anc)
+
+    lanc_prop = lanc_count / lanc_count.sum(axis=1, keepdims=True)
+    admix.logger.info(f"Writing lanc count file: {out}")
+
+    df_res = pd.DataFrame(
+        data=np.concatenate([lanc_count, lanc_prop], axis=1),
+        index=indiv_list,
+        columns=[f"COUNT{i + 1}" for i in range(n_anc)]
+        + [f"PROP{i+1}" for i in range(n_anc)],
+    )
+    df_res.index.name = "indiv"
+    df_res.to_csv(out, sep="\t", float_format="%.4g")
 
 
 def lanc_convert(pfile: str, out: str, rfmix: str = None, raw: str = None):

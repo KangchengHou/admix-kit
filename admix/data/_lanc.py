@@ -14,7 +14,7 @@ is_sorted = lambda a: np.all(a[:-1] <= a[1:])
 
 class Lanc(object):
     """
-    Class for local ancestry matrix (n_snp, n_indiv, 2 ploidy)
+    Class for local ancestry matrix (n_snp, n_indiv, 2 x ploidy)
     The internal representation is sparse using `breaks` and `values`
     """
 
@@ -60,6 +60,44 @@ class Lanc(object):
     def n_snp(self) -> int:
         """Number of SNPs."""
         return self._n_snp
+
+    def lanc_count(self, n_anc: int = None) -> np.ndarray:
+        """
+        Count the number of local ancestries for each individual.
+
+        Parameters
+        ----------
+        n_anc : int
+            Number of local ancestries in the local ancestries matrix. If None,
+            the number of local ancestries is inferred from the data.
+
+        Returns
+        -------
+            Number of local ancestries for each individual.
+        """
+
+        breaks, values = self._breaks, self._values
+        n_indiv = self.n_indiv
+
+        # the maximal number of ancestries is assumed to be 10
+        MAX_ANC = 10
+        lanc_count = np.zeros((n_indiv, MAX_ANC), dtype=int)
+        if n_anc is not None:
+            lanc_count = lanc_count[:, :n_anc]
+
+        for indiv_i in range(n_indiv):
+            start = 0
+            for stop, val in zip(breaks[indiv_i], values[indiv_i]):
+                a1, a2 = int(val[0]), int(val[1])
+                lanc_count[indiv_i, a1] += stop - start
+                lanc_count[indiv_i, a2] += stop - start
+                start = stop
+
+        # remove any column with zero entries
+        if n_anc is None:
+            n_anc = np.argmax(np.sum(lanc_count, axis=0) == 0)
+        lanc_count = lanc_count[:, :n_anc]
+        return lanc_count
 
     def impute(self, chrom_pos: np.ndarray, dst_chrom_pos: np.ndarray) -> "Lanc":
         """
