@@ -484,3 +484,40 @@ def pca(pfile: str, out_prefix: str, approx: bool = False, **kwargs):
     else:
         cmd.append("--pca")
     run(" ".join(cmd), **kwargs)
+
+
+def subset_hapmap3(pfile: str, out_prefix: str, build: str):
+    """Overlap a pfile with HapMap3 SNPs
+
+    Parameters
+    ----------
+    pfile : str
+        input pfile
+    out_prefix: str
+        output pfile prefix
+    build: str
+        hg19 or hg38
+    """
+    assert build in ["hg19", "hg38"], "build must be hg19 or hg38"
+    try:
+        import pyreadr
+    except ImportError:
+        raise ImportError("pyreadr is not installed. Use pip install pyreadr")
+    hm3_snps = pyreadr.read_r(admix.tools.get_cache_data("hapmap3_snps"))[None]
+    if build == "hg19":
+        hm3_snps = hm3_snps[["chr", "pos"]].rename(
+            columns={"chr": "CHROM", "pos": "POS"}
+        )
+    elif build == "hg38":
+        hm3_snps = hm3_snps[["chr", "pos_hg38"]].rename(
+            columns={"chr": "CHROM", "pos_hg38": "POS"}
+        )
+    else:
+        raise NotImplementedError
+
+    df_snp = dapgen.read_pvar(pfile + ".pvar")
+    snp_list = df_snp.reset_index().merge(hm3_snps, on=["CHROM", "POS"])["snp"].values
+
+    admix.logger.info(f"{len(snp_list)}/{len(hm3_snps)} SNPs are retained")
+
+    subset(pfile, out_prefix, snp_list=snp_list)

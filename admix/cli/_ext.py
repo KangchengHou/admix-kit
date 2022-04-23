@@ -75,3 +75,8 @@ def merge_pfile_indiv(pfile1: str, pfile2: str, out: str):
         f"Currently PLINK2 pmerge does not fully support merging pfiles with different individuals, writing PLINK1 bed file instead."
     )
     admix.logger.info(f"{out}.bed, {out}.bim, {out}.fam are created")
+
+
+def subset_hapmap3(pfile: str, out: str, build: str):
+    log_params("subset-hapmap3", locals())
+    admix.tools.plink2.subset_hapmap3(pfile, out_prefix=out, build=build)

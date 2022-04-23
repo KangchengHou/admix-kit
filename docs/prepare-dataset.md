@@ -46,8 +46,9 @@ PLINK2 is also versatile for converting other formats into .pgen format. See mor
 
 ### Step 2.2 (optional): select HM3 SNPs
 Most genetic analysis (e.g., local ancestry inference) can be made more efficient by subsetting the data to HapMap3 SNPs.
-
-
+```bash
+admix subset-hapmap3 --pfile ${imputed_pfile} --out ${hm3_pfile} --build hg38
+```
 
 ```{note}
 Make sure your source data is phased because it is essential for many analyses with admix-kit. Use `plink2 --pfile <pfile> --pgen-info` for basic check. If there is a line "Explicitly phased hardcalls present", that means phasing data is present.

@@ -172,7 +172,8 @@ def get_cache_data(name: str, **kwargs) -> str:
         - genetic_map: used for HAPGEN2, download from
             https://alkesgroup.broadinstitute.org/Eagle/downloads/tables/
             kwargs["build"] = hg19 or hg38
-        - TODO:
+        - hapmap3_snps: used to intersect with HM3 SNPs, download from
+            https://ndownloader.figshare.com/files/25503788 (see https://privefl.github.io/bigsnpr/articles/LDpred2.html)
 
     Returns
     -------
@@ -191,6 +192,15 @@ def get_cache_data(name: str, **kwargs) -> str:
             "https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/"
             + file_name
         )
+        if not os.path.exists(cache_path):
+            urllib.request.urlretrieve(
+                url,
+                cache_path,
+            )
+    elif name == "hapmap3_snps":
+        file_name = "hapmap3_snps.rds"
+        cache_path = join(cache_dir, file_name)
+        url = "https://ndownloader.figshare.com/files/25503788"
         if not os.path.exists(cache_path):
             urllib.request.urlretrieve(
                 url,
