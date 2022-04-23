@@ -11,6 +11,7 @@ from admix.data import lambda_gc
 import seaborn as sns
 import admix
 from matplotlib import patheffects
+import matplotlib
 
 
 def pca(
@@ -18,6 +19,7 @@ def pca(
     x: str = "PC1",
     y: str = "PC2",
     label_col: str = None,
+    label_order: list = None,
     s=5,
     legend_loc="on data",
     alpha=None,
@@ -43,7 +45,11 @@ def pca(
         assert isinstance(alpha, float) or isinstance(alpha, dict)
     if ax is None:
         ax = plt.gca()
-    for label, group in df_pca.groupby(label_col):
+    if label_order is None:
+        label_order = df_pca[label_col].unique()
+
+    for label in label_order:
+        group = df_pca.loc[df_pca[label_col] == label, :]
         if isinstance(alpha, dict):
             label_alpha = alpha[label] if label in alpha else 1.0
         else:
@@ -113,7 +119,9 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
         return lgc
 
 
-def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=None):
+def manhattan(
+    pval, chrom=None, pos=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=None
+):
     """Manhatton plot of p-values
 
     Parameters
@@ -122,6 +130,8 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=Non
         array-like
     pval : np.ndarray
         p-values, array-like
+    pos: np.ndarray
+        array-like, position for each SNP, if provided, position will be used
     axh_y : np.ndarray, optional
         horizontal line for genome-wide significance, by default -np.log10(5e-8)
     s : float, optional
@@ -129,22 +139,44 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=Non
     ax : matplotlib.axes, optional
         axes, by default None
     """
+    color = "#3b76af"
+
     if ax is None:
         ax = plt.gca()
 
+    assert (chrom is None) or (pos is None), "chrom and pos cannot be both provided"
+    if pos is None:
+        pos_provided = False
+        pos = np.arange(len(pval))
+    else:
+        pos_provided = True
+        assert len(pos) == len(pval)
+
     if chrom is None:
         # use snp index
-        ax.scatter(np.arange(len(pval)), -np.log10(pval), s=s, label=label)
-        ax.set_xlabel("SNP index")
+        if pos_provided:
+            ax.scatter(
+                pos / 1e6,
+                -np.log10(pval),
+                s=s,
+                label=label,
+                facecolor=color,
+                marker="o",
+            )
+            ax.set_xlabel("SNP position (Mb)")
+        else:
+            ax.scatter(pos, -np.log10(pval), s=s, label=label, c=color)
+            ax.set_xlabel("SNP index")
 
     else:
+        assert pos_provided is False
         assert len(chrom) == len(pval)
         color_list = ["#1b9e77", "#d95f02"]
         # plot dots for odd and even chromosomes
         for mod in range(2):
             index = np.where(chrom % 2 == mod)[0]
             ax.scatter(
-                np.arange(len(pval))[index],
+                pos[index],
                 -np.log10(pval)[index],
                 s=s,
                 color=color_list[mod],
@@ -165,6 +197,38 @@ def manhattan(pval, chrom=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=Non
     ax.set_ylabel("-$\log_{10}(P)$")
     if axh_y is not None:
         ax.axhline(y=axh_y, color="r", ls="--")
+
+
+def susie(pip, dict_cs, pos=None, ax=None, cmap="Set1"):
+    cmap = plt.get_cmap(cmap)
+    if ax is None:
+        ax = plt.gca()
+    if pos is None:
+        pos = np.arange(len(pip))
+        pos_provided = False
+    else:
+        pos_provided = True
+        assert len(pos) == len(pip)
+        pos = pos / 1e6
+
+    ax.scatter(x=pos, y=pip, s=3, color="gray")
+
+    for i, cs in enumerate(dict_cs):
+        cs_pos = dict_cs[cs]
+        ax.scatter(
+            x=pos[cs_pos],
+            y=pip[cs_pos],
+            s=15,
+            edgecolors=cmap.colors[i],
+            facecolors=cmap.colors[i],
+            alpha=0.6,
+        )
+    if pos_provided:
+        ax.set_xlabel("SNP position (Mb)")
+    else:
+        ax.set_xlabel("SNP index")
+    ax.set_ylabel("PIP")
+    ax.set_ylim(-0.05, 1.05)
 
 
 def lanc(
@@ -329,12 +393,49 @@ def admixture(
     return ax
 
 
-def compare_pval(x_pval, y_pval, xlabel=None, ylabel=None, ax=None, s=5):
+def compare_pval(
+    x_pval: np.ndarray,
+    y_pval: np.ndarray,
+    xlabel: str = None,
+    ylabel: str = None,
+    ax=None,
+    s: int = 5,
+):
+    """Compare two p-values.
+
+    Parameters
+    ----------
+    x_pval: np.ndarray
+        The p-value for the first variable.
+    y_pval: np.ndarray
+        The p-value for the second variable.
+    xlabel: str
+        The label for the first variable.
+    ylabel: str
+        The label for the second variable.
+    ax: matplotlib.Axes
+        A matplotlib axes object to plot on. If None, will create a new one.
+    """
     if ax is None:
         ax = plt.gca()
-    ax.scatter(-np.log10(x_pval), -np.log10(y_pval), s=s)
-    lim = max(np.nanmax(-np.log10(x_pval)), np.nanmax(-np.log10(y_pval))) * 1.1
-    ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1)
+    nonnan_idx = ~np.isnan(x_pval) & ~np.isnan(y_pval)
+    x_pval, y_pval = -np.log10(x_pval[nonnan_idx]), -np.log10(y_pval[nonnan_idx])
+    ax.scatter(x_pval, y_pval, s=s)
+    lim = max(np.nanmax(x_pval), np.nanmax(y_pval)) * 1.1
+    ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1, label="y=x")
+
+    # add a regression line
+    slope = np.linalg.lstsq(x_pval[:, None], y_pval[:, None])[0].item()
+
+    ax.axline(
+        (0, 0),
+        slope=slope,
+        color="black",
+        ls="--",
+        lw=1,
+        label=f"y={slope:.2f} x",
+    )
+    ax.legend()
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:

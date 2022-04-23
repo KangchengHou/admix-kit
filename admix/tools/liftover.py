@@ -7,7 +7,7 @@ from os.path import join
 import pandas as pd
 
 
-def run(df_chrom_pos: np.ndarray, chain: str, verbose: bool = False):
+def run(df_chrom_pos: pd.DataFrame, chain: str, verbose: bool = False):
 
     """Lift over between genome assembly
     Download appropriate chain file from
@@ -40,13 +40,16 @@ def run(df_chrom_pos: np.ndarray, chain: str, verbose: bool = False):
         "hg38->hg19": "http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz",
         "hg19->hg38": "http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz",
     }
-    df_chrom_pos = df_chrom_pos.copy()
-    df_chrom_pos["CHROM"] = df_chrom_pos["CHROM"].apply(lambda x: "chr" + str(x))
-    df_chrom_pos["POS+1"] = df_chrom_pos["POS"] + 1
-    df_chrom_pos["ID"] = df_chrom_pos.index.values.astype(str)
+    df_chrom_pos = pd.DataFrame(
+        {
+            "CHROM": "chr" + df_chrom_pos["CHROM"].astype(str),
+            "POS0": df_chrom_pos["POS"] - 1,
+            "POS": df_chrom_pos["POS"],
+            "ID": df_chrom_pos.index.values.astype(str),
+        }
+    )
 
     tmp_dir = tempfile.TemporaryDirectory()
-
     old_file = join(tmp_dir.name, "old.bed")
     chain_file = join(tmp_dir.name, "chain.gz")
     new_file = join(tmp_dir.name, "new.bed")
@@ -59,13 +62,11 @@ def run(df_chrom_pos: np.ndarray, chain: str, verbose: bool = False):
 
     # read the mapped data frame, SNPs with ambiguous mapping are dropped
     df_new = pd.read_csv(
-        new_file, sep="\t", header=None, names=["CHROM", "POS", "POS+1", "ID"]
+        new_file, sep="\t", header=None, names=["CHROM", "POS0", "POS", "ID"]
     ).drop_duplicates(subset=["ID"], keep=False)
-
-    subprocess.check_call(
-        f"cat {unmapped_file}",
-        shell=True,
-    )
+    # count number of lines starting with a #
+    n_unmapped = sum(1 for line in open(unmapped_file) if line.startswith("#"))
+    print(f"{n_unmapped} variants were not mapped")
 
     tmp_dir.cleanup()
 
