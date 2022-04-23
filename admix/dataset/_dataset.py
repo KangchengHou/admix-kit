@@ -331,6 +331,7 @@ class Dataset(object):
                             f"{col} is updated from {self.indiv[col].values[0:5]} ..."
                             f"to {df_info[col].values[0:5]} ..."
                         )
+                        self._indiv[col] = df_info[col]
                     else:
                         raise ValueError(
                             "admix.dataset.append_indiv_info: "

@@ -558,6 +558,8 @@ def array_to_lanc(array: Union[da.Array, np.ndarray]) -> Tuple[List, List]:
     # convert to dask.array if numpy array
     if isinstance(array, np.ndarray):
         lanc = da.from_array(array)
+    else:
+        lanc = array
 
     assert isinstance(lanc, da.Array), "`lanc` must be dask array"
 

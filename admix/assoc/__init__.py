@@ -276,7 +276,7 @@ def marginal(
         debug_old_mean = np.nanmean(cov, axis=0)
         cov = admix.data.impute_with_mean(cov, axis=0)
         assert np.allclose(
-            np.nanmean(cov, axis=0), debug_old_mean
+            np.nanmean(cov, axis=0), debug_old_mean, equal_nan=True
         ), "NaN imputation failed"
 
     # check covariates must be full rank

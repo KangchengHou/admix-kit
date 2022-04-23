@@ -96,12 +96,15 @@ def lanc_count(lanc: str, out: str, n_anc: int = None):
     lanc_prop = lanc_count / lanc_count.sum(axis=1, keepdims=True)
     admix.logger.info(f"Writing lanc count file: {out}")
 
+    count_cols = [f"COUNT{i + 1}" for i in range(n_anc)]
+    prop_cols = [f"PROP{i+1}" for i in range(n_anc)]
     df_res = pd.DataFrame(
         data=np.concatenate([lanc_count, lanc_prop], axis=1),
         index=indiv_list,
-        columns=[f"COUNT{i + 1}" for i in range(n_anc)]
-        + [f"PROP{i+1}" for i in range(n_anc)],
+        columns=count_cols + prop_cols,
     )
+
+    df_res[count_cols] = df_res[count_cols].astype(int)
     df_res.index.name = "indiv"
     df_res.to_csv(out, sep="\t", float_format="%.4g")
 

@@ -13,6 +13,8 @@ def assoc(
     covar: str = None,
     method: Union[str, List[str]] = "ATT",
     family: str = "quant",
+    pheno_quantile_normalize: bool = False,
+    covar_quantile_normalize: bool = False,
     fast: bool = True,
 ):
     """
@@ -46,6 +48,10 @@ def assoc(
     family : str
         Family to use for association analysis (default quant). One of :code:`quant` or 
         :code:`binary`.
+    pheno_quantile_normalize : bool
+        Whether to quantile normalize the phenotype.
+    covar_quantile_normalize : bool
+        Whether to quantile normalize each column of the covariates.
     fast : bool
         Whether to use fast mode (default True).
 
@@ -61,6 +67,8 @@ def assoc(
             --pheno-col SIM0 \\
             --covar toy-admix.covar \\
             --method ATT,TRACTOR \\
+            --pheno-quantile-normalize True \\
+            --covar-quantile-normalize True \\
             --out toy-admix
     """
     log_params("assoc", locals())
@@ -99,20 +107,28 @@ def assoc(
         "after filtering for missing phenotype, or completely missing covariate"
     )
 
+    if isinstance(method, str):
+        method = [method]
+
+    # extract pheno_values and covar_values
+    pheno_values = dset.indiv[pheno_col].values
     if covar_cols is not None:
         covar_values = admix.data.convert_dummy(dset.indiv[covar_cols]).values
     else:
         covar_values = None
 
-    if isinstance(method, str):
-        method = [method]
+    if pheno_quantile_normalize:
+        pheno_values = admix.data.quantile_normalize(pheno_values)
+    if covar_quantile_normalize:
+        for i in range(covar_values.shape[1]):
+            covar_values[:, i] = admix.data.quantile_normalize(covar_values[:, i])
 
     dict_rls = {}
     for m in method:
         admix.logger.info(f"Performing association analysis with method {m}")
         dict_rls[m] = admix.assoc.marginal(
             dset=dset,
-            pheno=dset.indiv[pheno_col].values,
+            pheno=pheno_values,
             cov=covar_values,
             method=m,
             family="logistic" if family == "binary" else "linear",
