@@ -16,19 +16,44 @@ dset.chr2.pgen dset.chr2.psam ....
 
 We details the steps to prepare data set as follows:
 
-## PLINK2 format genotype
+## Step 1: format genotype
 
-To convert phased vcf file into PLINK2 format, use the following command:
+### Step 1.1 (optional): select well-imputed SNPs
+Often we start with the imputed genotype from imputation server. We can filter by MAF > 0.005 (5th column) and R2 > 0.8 (7th column) to select the SNPs with high quality.
 ```bash
-plink2 --vcf <vcf_path> --make-pgen --out <plink2_path>
+IN_DIR=/path/to/vcf
+OUT_DIR=/path/to/imputed
+
+# filter well-imputed SNPs
+zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > ${OUT_DIR}/chr${chrom}.snplist
+
+# convert to PLINK2 format
+plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
+    --extract ${OUT_DIR}/chr${chrom}.snplist \
+    --rm-dup exclude-all \
+    --snps-only \
+    --maf 0.005 \
+    --max-alleles 2 \
+    --make-pgen \
+    --memory 16000 \
+    --out ${OUT_DIR}/chr${chrom}
+
+# (alternative) if your vcf file is already processed, use the following
+plink2 --vcf ${vcf} --make-pgen --out ${out_plink}
 ```
+
 PLINK2 is also versatile for converting other formats into .pgen format. See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-genomics.org/plink/2.0/input#pgen).
+
+### Step 2.2 (optional): select HM3 SNPs
+Most genetic analysis (e.g., local ancestry inference) can be made more efficient by subsetting the data to HapMap3 SNPs.
+
+
 
 ```{note}
 Make sure your source data is phased because it is essential for many analyses with admix-kit. Use `plink2 --pfile <pfile> --pgen-info` for basic check. If there is a line "Explicitly phased hardcalls present", that means phasing data is present.
 ```
 
-## Local ancestry inference
+## Step 2: Local ancestry inference
 There are many choices for local ancestry inference. We assume that you have performed the local ancestry. We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry.
 
 ### RFmix
