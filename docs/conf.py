@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("."))
 # -- Project information -----------------------------------------------------
 
 project = "admix-kit"
-copyright = "2021, Kangcheng Hou"
+copyright = "2021-2022, Kangcheng Hou"
 author = "Kangcheng Hou"
 
 # The full version, including alpha/beta/rc tags

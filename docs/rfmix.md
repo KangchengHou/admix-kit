@@ -1,5 +1,6 @@
+## Step 1: process reference data
 
-## Obtain aligned vcf files
+TODO: point downloading 1kg reference data at https://www.cog-genomics.org/plink/2.0/resources#1kg_phase3
 
 We now align the SNPs to a reference panel, e.g. 1000 Genomes project. It is possible
 to let the ``bcftools`` directly inferface with the 1000G genotype file on the FTP server
@@ -10,24 +11,8 @@ reference panel (GRCh38) with
 
     wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/*
 
-We now align the sample VCF file and reference genotype with the following script, for example.
 
-.. code-block:: bash
-
-    chrom=22
-    kg_vcf=ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/CCDG_14151_B01_GRM_WGS_2020-08-05_chr${chrom}.filtered.shapeit2-duohmm-phased.vcf.gz
-    bash align_to_ref.sh ${prefix}.typed.vcf.gz ${kg_vcf} lanc_input/${prefix}
-
-where ``align_to_ref.sh`` is as follows:
-
-.. literalinclude:: snippets/align_to_ref.sh
-  :language: bash
-
-
-After this step, you will obtain aligned sample genotype ``${prefix}.sample.vcf.gz`` and 
-reference panel genotype ``${prefix}.ref.vcf.gz``
-
-## Local ancestry inference with RFmix
+## Step 2: run RFmix
 
 We provide some helper scripts to use RFmix. First follow https://github.com/slowkoni/rfmix#building-rfmix to build the rfmix executables.
 
@@ -59,21 +44,18 @@ from online and format it for the purpose.
         raw_map.to_csv(f"metadata/genetic_map/chr{chrom}.tsv", sep='\t', index=False, header=False)
 
 
-## TL;DR
+## Complete code example
 
-Prepare external reference data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: bash
+Prepare reference data:
+```bash
 
-    mkdir -p metadata/genetic_map/raw && cd metadata/genetic_map/raw
-    wget http://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.GRCh38.map.zip
-    unzip plink.GRCh38.map.zip
-    cd ../..
-    python format_map.py
-
-### Perform local ancestry inference
-
-
+mkdir -p metadata/genetic_map/raw && cd metadata/genetic_map/raw
+wget http://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.GRCh38.map.zip
+unzip plink.GRCh38.map.zip
+cd ../..
+python format_map.py
+```
+RFmix
 ```bash
 vcf_input=$1 # phased VCF.gz with typed density
 chrom=22 # chromosome no. for the vcf file

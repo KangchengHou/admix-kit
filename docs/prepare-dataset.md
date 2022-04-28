@@ -25,7 +25,8 @@ IN_DIR=/path/to/vcf
 OUT_DIR=/path/to/imputed
 
 # filter well-imputed SNPs
-zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > ${OUT_DIR}/chr${chrom}.snplist
+zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > \
+    ${OUT_DIR}/chr${chrom}.snplist
 
 # convert to PLINK2 format
 plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
@@ -44,7 +45,7 @@ plink2 --vcf ${vcf} --make-pgen --out ${out_plink}
 
 PLINK2 is also versatile for converting other formats into .pgen format. See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-genomics.org/plink/2.0/input#pgen).
 
-### Step 2.2 (optional): select HM3 SNPs
+### Step 1.2 (optional): select HM3 SNPs
 Most genetic analysis (e.g., local ancestry inference) can be made more efficient by subsetting the data to HapMap3 SNPs.
 ```bash
 admix subset-hapmap3 --pfile ${imputed_pfile} --out ${hm3_pfile} --build hg38
@@ -57,7 +58,8 @@ Make sure your source data is phased because it is essential for many analyses w
 ## Step 2: Local ancestry inference
 There are many choices for local ancestry inference. We assume that you have performed the local ancestry. We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry.
 
-### RFmix
+To convert the RFmix local ancestry into .lanc format, use the following command.
+This command can be applied to both imputed and hm3 data.
 ```bash
 admix lanc-convert \
     --pfile <pgen_prefix> \      # e.g., dset.chr1
@@ -65,13 +67,7 @@ admix lanc-convert \
     --out <lanc_path>           # e.g., dset.chr1.lanc
 ```
 
-### Raw matrix format
-```bash
-admix lanc-convert \
-    --pfile <pgen_prefix> \
-    --raw <rfmix_msp_path> \ # TODO: implement the raw function
-    --out <lanc_path>
-```
+
 
 
 ## Other files
