@@ -4,6 +4,14 @@ admix-kit documentation
 .. toctree::
    :glob:
    :maxdepth: 1
+   :caption: Command line interface
+
+   cli
+
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
    :caption: Example usage
     
    notebooks/quickstart
@@ -15,12 +23,6 @@ admix-kit documentation
    .. notebooks/admix-corr
    .. notebooks/admix-prs
 
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Command line interface
-
-   cli
 
 .. toctree::
    :maxdepth: 1

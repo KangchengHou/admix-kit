@@ -9,6 +9,16 @@ Association testing
 
 .. autofunction:: admix.cli.assoc
 
+Genetic correlation estimation
+------------------------------
+
+.. autofunction:: admix.cli.admix_grm
+
+.. autofunction:: admix.cli.admix_grm_merge
+
+.. autofunction:: admix.cli.admix_grm_rho
+
+.. autofunction:: admix.cli.estimate_genetic_cor
 
 Phenotype simulation
 --------------------
