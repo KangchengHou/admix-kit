@@ -56,10 +56,9 @@ Make sure your source data is phased because it is essential for many analyses w
 ```
 
 ## Step 2: Local ancestry inference
-There are many choices for local ancestry inference. We assume that you have performed the local ancestry. We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry.
+There are many choices for local ancestry inference. We assume that you have performed the local ancestry. If you have not done so, we prepare a guideline to use RFmix for local ancestry inference ([see guideline](rfmix.md)).
 
-To convert the RFmix local ancestry into .lanc format, use the following command.
-This command can be applied to both imputed and hm3 data.
+We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry. To convert the RFmix local ancestry into .lanc format, use the following command. This command can be applied to both imputed and hm3 data.
 ```bash
 admix lanc-convert \
     --pfile <pgen_prefix> \      # e.g., dset.chr1

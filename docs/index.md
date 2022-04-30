@@ -6,7 +6,14 @@ hide-toc: true
 `admix-kit` is a Python library to faciliate analyses and methods development of genetics 
 data from admixed populations.
 
-We implemented multiple functions to analyze admixed populations. We also have created command line interface (CLI)  
+This is designed to be a [python library](api.md) to faciliate analyzing admixed populations. 
+We have also created [command line interface (CLI)](cli/index.md) for main functionalities.
+
+```{note}
+`admix-kit` is still in beta version undergoing frequent updates, we welcome any [feedbacks](https://github.com/KangchengHou/admix-kit/pulls) and [bug reports](https://github.com/KangchengHou/admix-kit/issues).   
+```
+
+Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](quickstart-cli.md).
 
 
 ```{toctree}

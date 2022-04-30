@@ -1,4 +1,4 @@
-# Quick start (command line interface)
+# Quick start (CLI)
 
 We go through the basic function of `admix-kit` using the toy data we prepared.
 ```bash
