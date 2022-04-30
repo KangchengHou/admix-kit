@@ -1,4 +1,6 @@
 # Quick start (command line interface)
+
+We go through the basic function of `admix-kit` using the toy data we prepared.
 ```bash
 # install the admix-kit package, make a new directory and cd into it
 # try running the following code

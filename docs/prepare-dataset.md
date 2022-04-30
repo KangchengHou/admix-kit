@@ -68,8 +68,6 @@ admix lanc-convert \
 ```
 
 
-
-
 ## Other files
 PLINK2 genotype file and `.lanc` file are almost you need to start the analysis. The 
 other files might be useful for better structuring your analysis. `.snp_info` contains 
