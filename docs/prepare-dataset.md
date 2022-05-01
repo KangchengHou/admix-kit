@@ -10,8 +10,16 @@ To start genetic analysis for admixed populations with admix-kit, it is required
 
 For genome-wide analysis, it is recommended to divide the data set by chromosomes. For example, the file structure will look like
 ```
-dset.chr1.pgen dset.chr1.psam dset.chr1.pvar dset.chr1.lanc dset.chr1.snp_info dset.chr1.indiv_info
-dset.chr2.pgen dset.chr2.psam ....
+.
+├── genotype
+│   ├── chr1.pgen
+│   ├── chr1.psam
+│   ├── chr1.pvar
+│   ├── chr1.lanc
+│   ├── chr1.indiv_info
+│   ├── chr1.snp_info
+│   ├── chr2.pgen
+│   ├── ...
 ```
 
 We details the steps to prepare data set as follows:
