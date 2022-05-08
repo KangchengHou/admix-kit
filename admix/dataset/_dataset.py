@@ -135,10 +135,6 @@ class Dataset(object):
             if ("lanc" in self._xr) and (n_anc is None):
                 # infer number of ancestors
                 n_anc = int(lanc[0:1000, :, :].max().compute() + 1)
-                admix.logger.info(
-                    f"admix.Dataset: infered n_anc={n_anc}. "
-                    + "If not correct, provide `n_anc` when constructing admix.Dataset.",
-                )
                 self._xr.attrs["n_anc"] = n_anc
             else:
                 self._xr.attrs["n_anc"] = n_anc
