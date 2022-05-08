@@ -224,9 +224,9 @@ Now we will run RFmix to infer local ancestry for your genotype file (see how to
 ```bash
 ## Specify constants
 chrom=XX # this script should be ran 1 chromosome at a time
+build=hg38 # replace hg38 with hg19 as needed
 REF_DIR=/path/to/1kg_pgen/ # see step 1
 RFMIX=/path/to/rfmix # see above
-build=hg38 # replace hg38 with hg19 as needed
 
 pfile=/path/to/your-plink2-file # see "Prepare dataset" section
 out_prefix=/path/to/output/chr${chrom} # output prefix

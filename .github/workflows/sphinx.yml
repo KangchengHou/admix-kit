@@ -32,8 +32,8 @@ jobs:
     - name: Deploy docs
       uses: JamesIves/github-pages-deploy-action@4.1.5
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: docs/_build/html
+        token: ${{ secrets.GITHUB_TOKEN }}
+        brach: gh-pages
+        folder: docs/_build/html
         CLEAN: true
         single-commit: true
