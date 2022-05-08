@@ -41,6 +41,7 @@ extensions = [
     "sphinx.ext.mathjax",  # LaTeX style math
     "sphinx.ext.viewcode",  # view code links
     "sphinx.ext.napoleon",  # for NumPy style docstrings
+    "sphinx_inline_tabs",
     "nbsphinx",
     "myst_parser",
 ]

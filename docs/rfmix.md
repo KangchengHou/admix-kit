@@ -1,52 +1,103 @@
 # Guideline to use RFmix for local ancestry inference
 
 ```{warning}
-This guideline assume you have phased genotype data PLINK2 format in GRCh38 coordinates.
-Please [raise an issue](https://github.com/KangchengHou/admix-kit/issues) if you have other data format so we can help update this guideline to 
+This guideline assume you have **phased** genotype in PLINK2 pgen format in hg38 or hg19 coordinates.
+PLINK2 can convert many other formats to pgen format [(see here)](https://www.cog-genomics.org/plink/2.0/input). 
+Please [raise an issue](https://github.com/KangchengHou/admix-kit/issues) so we can help update this guideline to 
 adapt to your data.
 ```
-## Step 1: process reference data
+## Step 1: download and process reference data
 ```{note}
-Before we start, create a new folder to store these reference data (e.g. `/path/to/1kg_GRCh38_phased`) and
-`cd /path/to/1kg_GRCh38_phased`. This will be the directory where we run the following steps 
+Before we start, create a new folder to store these reference data (e.g. `/path/to/1kg_pgen`) and
+`cd /path/to/1kg_pgen`. This will be the directory where we run the following steps 
 (each step will correspond to a script file).
 ```
 
-<!-- TODO: point downloading 1kg reference data at https://www.cog-genomics.org/plink/2.0/resources#1kg_phase3 -->
+### Step 1.1: download 1,000 Genomes reference panel
 
-### Step 1.1: download 1,000 Genomes reference panel (GRCh38)
-
-In this step, we download 1000 Genomes reference panel (GRCh38). It will take some time (~5 hrs, also depending on network) to download.
+We download the 1,000 Genomes reference panel from [PLINK2 website](https://www.cog-genomics.org/plink/2.0/resources).
+````{tab} hg38
 ```bash
-# step1-download-vcf.sh
-# =====================
-mkdir -p out/vcf
-wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/*
+# step1-download-pgen.sh
+# ======================
+mkdir -p out/pgen && cd out/pgen
+wget https://www.dropbox.com/s/23xlpscis1p5xud/all_hg38_ns.pgen.zst?dl=1 -O hg38.raw.pgen.zst
+wget https://www.dropbox.com/s/hy54ba9yvw665xf/all_hg38_ns_noannot.pvar.zst?dl=1 -O hg38.raw.pvar.zst
+wget https://www.dropbox.com/s/3j9zg103fi8cjfs/hg38_corrected.psam?dl=1 -O hg38.raw.psam
+
+plink2 --zst-decompress hg38.raw.pgen.zst >hg38.raw.pgen
+plink2 --zst-decompress hg38.raw.pvar.zst >hg38.raw.pvar
+
+# related samples
+wget https://www.dropbox.com/s/129gx0gl2v7ndg6/deg2_hg38.king.cutoff.out.id?dl=1 -O hg38.king.cutoff.out.id
+
+# basic QC: bi-allelic SNPs, MAC >= 5, chromosome 1-22
+plink2 --pfile hg38.raw \
+    --allow-extra-chr \
+    --rm-dup exclude-all \
+    --max-alleles 2 \
+    --mac 5 \
+    --snps-only \
+    --chr 1-22 \
+    --set-all-var-ids @:#:\$r:\$a \
+    --make-pgen --out hg38
+
+# clean up
+rm hg38.*.zst
+rm hg38.raw*
+cd ../../
 ```
+````
 
-### Step 1.2: rename chromosome names in vcf files
-In this step, we just want to rename the `chr` in `#CHROM` column in the downloaded VCF file.
-This step will also take some time (~10 hrs for largest chromosome).
+````{tab} hg19
+```bash
+# step1-download-pgen.sh
+# ======================
+mkdir -p out/pgen && cd out/pgen
+wget https://www.dropbox.com/s/dps1kvlq338ukz8/all_phase3_ns.pgen.zst?dl=1 -O hg19.raw.pgen.zst
+wget https://www.dropbox.com/s/uqk3gfhwsvf7bf3/all_phase3_ns_noannot.pvar.zst?dl=1 -O hg19.raw.pvar.zst
+wget https://www.dropbox.com/s/6ppo144ikdzery5/phase3_corrected.psam?dl=1 -O hg19.raw.psam
+
+plink2 --zst-decompress hg19.raw.pgen.zst >hg19.raw.pgen
+plink2 --zst-decompress hg19.raw.pvar.zst >hg19.raw.pvar
+
+# related samples
+wget https://www.dropbox.com/s/zj8d14vv9mp6x3c/deg2_phase3.king.cutoff.out.id?dl=1 -O hg19.king.cutoff.out.id
+
+# basic QC: bi-allelic SNPs, MAC >= 5, chromosome 1-22
+plink2 --pfile hg19.raw \
+    --allow-extra-chr \
+    --rm-dup exclude-all \
+    --max-alleles 2 \
+    --mac 5 \
+    --snps-only \
+    --chr 1-22 \
+    --set-all-var-ids @:#:\$r:\$a \
+    --make-pgen --out hg19
+
+# clean up
+rm hg19.*.zst
+rm hg19.raw*
+cd ../../
+```
+````
+
+### Step 1.2: divide by chromosome to VCF files
+This is to export pgen format to VCF files as input to RFmix.
 
 ```bash
-# step2-rename-chrs.sh
-# ====================
-# this script is run separately for each chromosome
-chrom=XX # fill this with a number (1-22), e.g. provided by cluster task ID ${SGE_TASK_ID}
+# step2-divide-chrom.sh
+# =====================
 
-tmpfile=$(mktemp)
-
-for i in {1..22}; do
-    echo "chr$i $i" >>"${tmpfile}"
+# replace hg38 with hg19 as needed
+mkdir -p vcf
+for chrom in {1..22}; do
+    plink2 --pfile out/pgen/hg38 \
+        --export vcf bgz \
+        --chr $chrom \
+        --out out/vcf/hg38.chr$chrom
+    tabix -p vcf out/vcf/hg38.chr$chrom.vcf.gz
 done
-
-cat "${tmpfile}"
-
-bcftools annotate --rename-chrs "${tmpfile}" \ 
-    out/vcf/CCDG_14151_B01_GRM_WGS_2020-08-05_chr"${chrom}".filtered.shapeit2-duohmm-phased.vcf.gz | \ 
-    bgzip >out/vcf/chr"${chrom}".nochr.vcf.gz
-
-tabix -p vcf out/vcf/chr"${chrom}".nochr.vcf.gz
 ```
 
 ### Step 1.3: download and process sample map and genetic map
@@ -55,67 +106,89 @@ genetic map information.
 ```python
 # step3-download-map.py
 # =====================
-# run this file as python step3-download-map.py
-
+# save this code into a file and
+# call: python step3-download-map.py hg38
+# replace hg38 with hg19 as needed
+import sys
 import pandas as pd
 import subprocess
+import shutil
+import os
 
-def download_sample_map():
+def process_sample_map(build):
     """Download and format sample map from 1000 Genomes"""
 
     sample_map = pd.read_csv(
-        "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/20130606_g1k_3202_samples_ped_population.txt",
+        f"out/pgen/{build}.psam",
         delim_whitespace=True,
     )
-    sample_map[["SampleID", "Population", "Superpopulation"]].to_csv(
-        "out/metadata/sample_map.full.tsv", sep="\t", index=False, header=False
+    unrelated_id = pd.read_csv(
+        f"out/pgen/{build}.king.cutoff.out.id", delim_whitespace=True
     )
-    # from https://www.cog-genomics.org/plink/2.0/resources "pedigree-corrected"
-    unrelated_sample_map = pd.read_csv(
-        "https://www.dropbox.com/s/yozrzsdrwqej63q/phase3_corrected.psam?dl=1",
-        delim_whitespace=True,
+    os.makedirs("out/metadata", exist_ok=True)
+    sample_map[["#IID", "Population", "SuperPop"]].to_csv(
+        f"out/metadata/{build}.full_sample.tsv", sep="\t", index=False, header=False
     )
-    assert set(unrelated_sample_map["#IID"]).issubset(set(sample_map["SampleID"]))
+    # filter unrelated
+    unrelated_sample_map = sample_map[~sample_map["#IID"].isin(unrelated_id["#IID"])]
     unrelated_sample_map[["#IID", "Population", "SuperPop"]].to_csv(
-        "out/metadata/sample_map.unrelated.tsv", sep="\t", index=False, header=False
+        f"out/metadata/{build}.unrelated_sample.tsv",
+        sep="\t",
+        index=False,
+        header=False,
     )
     print("Population in unrelated sample map:")
     print(unrelated_sample_map["Population"].value_counts())
 
-def download_genetic_map():
+
+def process_genetic_map(build):
     """
     Download and format genetic map
     1. call bash script to download genetic map to out/metadata/genetic_map/raw
     2. process the genetic map and save to out/metadata/genetic_map
     """
 
-    cmds = """
+    if build == "hg38":
+        name = "GRCh38"
+    elif build == "hg19":
+        name = "GRCh37"
+    else:
+        raise ValueError("build should be hg38 or hg19")
+
+    cmds = f"""
         mkdir -p out/metadata/genetic_map/raw && cd out/metadata/genetic_map/raw
-        wget http://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.GRCh38.map.zip
-        unzip plink.GRCh38.map.zip
+        wget http://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.{name}.map.zip
+        unzip plink.{name}.map.zip
     """
 
     subprocess.check_output(cmds, shell=True)
 
     for chrom in range(1, 23):
         raw_map = pd.read_csv(
-            f"out/metadata/genetic_map/raw/plink.chr{chrom}.GRCh38.map",
+            f"out/metadata/genetic_map/raw/plink.chr{chrom}.{name}.map",
             delim_whitespace=True,
             header=None,
         )
         raw_map = raw_map[[0, 3, 2]]
         raw_map.to_csv(
-            f"out/metadata/genetic_map/chr{chrom}.tsv",
+            f"out/metadata/genetic_map/{build}.chr{chrom}.tsv",
             sep="\t",
             index=False,
             header=False,
         )
+    # clean up
+    shutil.rmtree("out/metadata/genetic_map/raw")
+
+
 if __name__ == "__main__":
-    download_sample_map()
-    download_genetic_map()
+    build = sys.argv[1]
+    print("Received build:", build)
+    process_sample_map(build)
+    process_genetic_map(build)
 ```
+
 ```{note}
-After these 3 steps, check if your folder contains the following files (you would also expect some other additional intermediate files).
+After these 3 steps, check if your folder contains the following files (you would also expect some other additional intermediate files; replace `hg38` with `hg19` as needed).
 Then we are ready to run RFmix.
 ```
 ```
@@ -127,18 +200,16 @@ Then we are ready to run RFmix.
 │   │   │   ├── chr2.tsv
 │   │   │   ├── ...
 │   │   │   ├── chr22.tsv
-│   │   ├── sample_map.full.tsv
-│   │   └── sample_map.unrelated.tsv
+│   │   ├── hg38.full_sample.tsv
+│   │   └── hg38.unrelated_sample.tsv
 │   └── vcf
-│       ├── chr1.nochr.vcf.gz
-│       ├── chr1.nochr.vcf.gz.tbi
-│       ├── chr2.nochr.vcf.gz
-│       ├── chr2.nochr.vcf.gz.tbi
+│       ├── hg38.chr1.vcf.gz
+│       ├── hg38.chr1.vcf.gz.tbi
 │       ├── ...
-│       ├── chr22.nochr.vcf.gz
-│       ├── chr22.nochr.vcf.gz.tbi
-├── step1-download-vcf.sh
-├── step2-rename-chrs.sh
+│       ├── hg38.chr22.vcf.gz
+│       ├── hg38.chr22.vcf.gz.tbi
+├── step1-download-pgen.sh
+├── step2-divide-chrom.sh
 └── step3-download-map.py
 ```
 
@@ -153,8 +224,9 @@ Now we will run RFmix to infer local ancestry for your genotype file (see how to
 ```bash
 ## Specify constants
 chrom=XX # this script should be ran 1 chromosome at a time
-REF_DIR=/path/to/1kg_GRCh38_phased/ # see step 1
+REF_DIR=/path/to/1kg_pgen/ # see step 1
 RFMIX=/path/to/rfmix # see above
+build=hg38 # replace hg38 with hg19 as needed
 
 pfile=/path/to/your-plink2-file # see "Prepare dataset" section
 out_prefix=/path/to/output/chr${chrom} # output prefix
@@ -172,14 +244,14 @@ tabix -p vcf ${out_prefix}.tmp.vcf.gz
 # extract 1st column (sample name) and 2nd column (populations)
 # here we use CEU, YRI, PEL for reference populations for Latino populations
 awk '$2=="CEU" || $2=="YRI" || $2=="PEL" {print $1 "\t" $2}' \
-    ${REF_DIR}/out/metadata/sample_map.unrelated.tsv >${out_prefix}.tmp.sample_map.tsv
+    ${REF_DIR}/out/metadata/${build}.unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
 
 ## run RFmix
 ${RFMIX} \
     -f ${out_prefix}.tmp.vcf.gz \
-    -r ${REF_DIR}/out/vcf/chr${chrom}.nochr.vcf.gz \
+    -r ${REF_DIR}/out/vcf/${build}.chr${chrom}.vcf.gz \
     -m ${out_prefix}.tmp.sample_map.tsv \
-    -g ${REF_DIR}/out/metadata/genetic_map/chr${chrom}.tsv \
+    -g ${REF_DIR}/out/metadata/genetic_map/${build}.chr${chrom}.tsv \
     --chromosome=${chrom} \
     -o ${out_prefix}
 

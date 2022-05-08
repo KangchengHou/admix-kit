@@ -41,3 +41,4 @@ dependencies:
     - pydata-sphinx-theme
     - furo
     - myst-parser
+    - sphinx-inline-tabs
