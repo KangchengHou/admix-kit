@@ -33,7 +33,7 @@ jobs:
       uses: JamesIves/github-pages-deploy-action@4.1.5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        brach: gh-pages
+        branch: gh-pages
         folder: docs/_build/html
         CLEAN: true
         single-commit: true
