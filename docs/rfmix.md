@@ -90,7 +90,7 @@ This is to export pgen format to VCF files as input to RFmix.
 # =====================
 
 # replace hg38 with hg19 as needed
-mkdir -p vcf
+mkdir -p out/vcf
 for chrom in {1..22}; do
     plink2 --pfile out/pgen/hg38 \
         --export vcf bgz \
@@ -107,7 +107,7 @@ genetic map information.
 # step3-download-map.py
 # =====================
 # save this code into a file and
-# call: python step3-download-map.py hg38
+# call: python3 step3-download-map.py hg38
 # replace hg38 with hg19 as needed
 import sys
 import pandas as pd
@@ -242,7 +242,10 @@ tabix -p vcf ${out_prefix}.tmp.vcf.gz
 
 ## Filter reference samples
 # extract 1st column (sample name) and 2nd column (populations)
-# here we use CEU, YRI, PEL for reference populations for Latino populations
+# Here, we use CEU, YRI, PEL for reference populations for Latino populations
+# NOTE: it is up to your choice what reference populations to use
+# e.g., For local ancestry inference of European-African admixed individuals, we 
+# recommend using CEU, YRI only.
 awk '$2=="CEU" || $2=="YRI" || $2=="PEL" {print $1 "\t" $2}' \
     ${REF_DIR}/out/metadata/${build}.unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
 
