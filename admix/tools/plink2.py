@@ -272,11 +272,11 @@ def align_snp(pfile1: str, pfile2: str, out_prefix: str):
 
     idx1, idx2, flip = dapgen.align_snp(df_snp1, df_snp2)
 
-    print(
-        f"{len(idx1)} / {len(df_snp1)} ({len(idx1) / len(df_snp1) * 100:.3g}%) SNPs extracted in sample pfile: {pfile1}"
+    admix.logger.info(
+        f"{len(idx1)} / {len(df_snp1)} ({len(idx1) / len(df_snp1) * 100:.3g}%) SNPs extracted in pfile1: {pfile1}"
     )
-    print(
-        f"{len(idx2)} / {len(df_snp2)} ({len(idx2) / len(df_snp2) * 100:.3g}%) SNPs extracted in ref pfile: {pfile2}"
+    admix.logger.info(
+        f"{len(idx2)} / {len(df_snp2)} ({len(idx2) / len(df_snp2) * 100:.3g}%) SNPs extracted in pfile2: {pfile2}"
     )
 
     # Step 2: extract the common SNPs from the two files and fix the allele order
@@ -295,11 +295,11 @@ def align_snp(pfile1: str, pfile2: str, out_prefix: str):
     # extract common SNPs and align REF ALT
     admix.tools.plink2.run(
         f"--pfile {pfile1} --extract {out_prefix + '-tmp.1.snplist'}"
-        f" --ref-allele {out_prefix + '-tmp.1.refallele'} 2 1 --make-bed --out {out_prefix}.1"
+        f" --ref-allele {out_prefix + '-tmp.1.refallele'} 2 1 --make-pgen --out {out_prefix}.1"
     )
     admix.tools.plink2.run(
         f"--pfile {pfile2} --extract {out_prefix + '-tmp.2.snplist'} "
-        f" --ref-allele force {out_prefix + '-tmp.2.refallele'} 2 1 --make-bed --out {out_prefix}.2"
+        f" --ref-allele force {out_prefix + '-tmp.2.refallele'} 2 1 --make-pgen --out {out_prefix}.2"
     )
 
     # remove the tmp files
@@ -334,10 +334,10 @@ def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
 
     # Step 3: unify SNP ID
     admix.tools.plink2.run(
-        f"--bfile {out_prefix}-tmp.1 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.1.fixid"
+        f"--pfile {out_prefix}-tmp.1 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.1.fixid"
     )
     admix.tools.plink2.run(
-        f"--bfile {out_prefix}-tmp.2 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.2.fixid"
+        f"--pfile {out_prefix}-tmp.2 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.2.fixid"
     )
 
     # Step 4: make final merged bfile

@@ -100,6 +100,7 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
         ax = plt.gca()
 
     pval = np.array(pval)
+    pval = pval[~np.isnan(pval)]
     expected_pval = stats.norm.sf(quantile_normalize(-pval))
     ax.scatter(-np.log10(expected_pval), -np.log10(pval), s=2, label=label)
     lim = max(-np.log10(expected_pval))
@@ -120,7 +121,14 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
 
 
 def manhattan(
-    pval, chrom=None, pos=None, axh_y=-np.log10(5e-8), s=0.1, label=None, ax=None
+    pval,
+    chrom=None,
+    pos=None,
+    axh_y=-np.log10(5e-8),
+    s=0.1,
+    label=None,
+    ax=None,
+    color="#3b76af",
 ):
     """Manhatton plot of p-values
 
@@ -139,7 +147,6 @@ def manhattan(
     ax : matplotlib.axes, optional
         axes, by default None
     """
-    color = "#3b76af"
 
     if ax is None:
         ax = plt.gca()
