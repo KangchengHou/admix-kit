@@ -77,6 +77,22 @@ def merge_pfile_indiv(pfile1: str, pfile2: str, out: str):
     admix.logger.info(f"{out}.bed, {out}.bim, {out}.fam are created")
 
 
+def align_pfile_snp(pfile1: str, pfile2: str, out: str):
+    """align the SNP for 2 pfiles
+
+    Parameters
+    ----------
+    pfile1 : str
+        plink file 1
+    pfile2 : str
+        plink file 2
+    out : str
+        output prefix
+    """
+    log_params("align-pfile-snp", locals())
+    admix.tools.plink2.align_snp(pfile1=pfile1, pfile2=pfile2, out_prefix=out)
+
+
 def subset_hapmap3(pfile: str, out: str, build: str):
     log_params("subset-hapmap3", locals())
     admix.tools.plink2.subset_hapmap3(pfile, out_prefix=out, build=build)

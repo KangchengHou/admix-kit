@@ -247,22 +247,17 @@ def lift_over(pfile: str, out_prefix: str, chain="hg19->hg38"):
         os.remove(f)
 
 
-def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
-    """Given two plink files from different individuals, take the common set of SNPs
-    and merge them into one data set.
+def align_snp(pfile1: str, pfile2: str, out_prefix: str):
+    """Given two plink files from different individuals, take the common set of SNPs.
+    Matching by (1) chromosome (2) position (3) ref allele (4) alt allele
 
-    This is a wrapper for various PLINK functions. Since PLINK2's pmerge function is
-    not complete now. We use PLINK1 merge functionality instead. A PLINK1 bfile is
-    produced (rather than PLINK2 pfile).
-
-    This can be useful for example when we want to perform a joint PCA for the two
-    data sets.
+    This can be useful for software that requires an aligned set of SNPs
 
     Parameters
     ----------
-    sample_pfile : str
+    pfile1 : str
         plink file 1
-    ref_pfile : str
+    pfile2 : str
         plink file 2
     out_prefix: str
         prefix to the output files
@@ -300,11 +295,41 @@ def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
     # extract common SNPs and align REF ALT
     admix.tools.plink2.run(
         f"--pfile {pfile1} --extract {out_prefix + '-tmp.1.snplist'}"
-        f" --ref-allele {out_prefix + '-tmp.1.refallele'} 2 1 --make-bed --out {out_prefix}-tmp.1"
+        f" --ref-allele {out_prefix + '-tmp.1.refallele'} 2 1 --make-bed --out {out_prefix}.1"
     )
     admix.tools.plink2.run(
         f"--pfile {pfile2} --extract {out_prefix + '-tmp.2.snplist'} "
-        f" --ref-allele force {out_prefix + '-tmp.2.refallele'} 2 1 --make-bed --out {out_prefix}-tmp.2"
+        f" --ref-allele force {out_prefix + '-tmp.2.refallele'} 2 1 --make-bed --out {out_prefix}.2"
+    )
+
+    # remove the tmp files
+    for f in glob.glob(out_prefix + "-tmp*"):
+        os.remove(f)
+
+
+def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
+    """Given two plink files from different individuals, take the common set of SNPs
+    and merge them into one data set.
+
+    This is a wrapper for various PLINK functions. Since PLINK2's pmerge function is
+    not complete now. We use PLINK1 merge functionality instead. A PLINK1 bfile is
+    produced (rather than PLINK2 pfile).
+
+    This can be useful for example when we want to perform a joint PCA for the two
+    data sets.
+
+    Parameters
+    ----------
+    pfile1 : str
+        plink file 1
+    pfile2 : str
+        plink file 2
+    out_prefix: str
+        prefix to the output files
+    """
+
+    admix.tools.plink2.align_snp(
+        pfile1=pfile1, pfile2=pfile2, out_prefix=out_prefix + "-tmp"
     )
 
     # Step 3: unify SNP ID
