@@ -404,7 +404,8 @@ def distance_to_refpop(
     n_dim = sample.shape[1]
     assert (anc1.shape[1] == n_dim) & (anc2.shape[1] == n_dim)
     if weight is not None:
-        assert weight.shape[1] == n_dim
+        assert weight.ndim == 1
+        assert len(weight) == n_dim
     p1, p2 = anc1.mean(axis=0), anc2.mean(axis=0)
     sample_dist, sample_t, sample_n = distance_to_line(sample, p1, p2, weight)
     anc1_dist, anc1_t, anc1_n = distance_to_line(anc1, p1, p2, weight)
