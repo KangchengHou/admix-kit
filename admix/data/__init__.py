@@ -12,5 +12,11 @@ from ._geno import admix_ld, admix_grm
 
 from ._stats import quantile_normalize, pval2chisq, lambda_gc, zsc2pval
 from ._lanc import Lanc, concat_lancs, lanc_impute_single_chrom, haplo2diplo
-from ._utils import index_over_chunks, make_dataset, match_prs_weights
+from ._utils import (
+    index_over_chunks,
+    make_dataset,
+    match_prs_weights,
+    distance_to_line,
+    distance_to_refpop,
+)
 from ._misc import convert_dummy

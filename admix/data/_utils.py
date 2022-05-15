@@ -328,3 +328,89 @@ def seperate_ld_blocks(anc, phgeno, legend, ld_blocks):
         block_phgeno = phgeno[:, block_index]
         rls_list.append((block_anc, block_phgeno, block_legend))
     return rls_list
+
+
+def distance_to_line(
+    p: np.ndarray, a: np.ndarray, b: np.ndarray, weight: np.ndarray = None
+):
+    """
+    Calculate the distance of each row of a matrix to a reference line
+
+    https://stackoverflow.com/questions/50727961/shortest-distance-between-a-point-and-a-line-in-3-d-space
+
+    Parameters
+    ----------
+    p: np.ndarray
+        matrix (n_indiv, n_var)
+    a: np.ndarray
+        ref point 1
+    b: np.ndarray
+        ref point 2
+    weight: np.ndarray, optional
+        weight associated to each dimension, for example, could be sqrt(eigenvalues)
+        if not provided, equal weights for each coordinate will be used
+
+    Returns
+    -------
+    dist: np.ndarray
+        vector distance to the line
+    t: np.ndarray
+        projected length on the line, normalized according to the length of (b - a)
+        t = 0 corresponds projection to a; t = 1 corresponds projection to b.
+    n: np.ndarray
+        normal vector from the projection point to the original point
+        t*b + (1 - t)*a + n can be used to reconstruct the point position.
+    """
+    if weight is not None:
+        p = p * weight
+        a = a * weight
+        b = b * weight
+    x = b - a
+    # projected length on the line
+    t = np.dot(p - a, x) / np.dot(x, x)
+    # orthogonal vector to the line
+    n = (p - a) - np.outer(t, x)
+    dist = np.linalg.norm(n, axis=1)
+    return dist, t, n
+
+
+def distance_to_refpop(
+    sample: np.ndarray, anc1: np.ndarray, anc2: np.ndarray, weight: np.ndarray = None
+):
+    """
+    Calculate the projection distance and position for every sample individuals to the
+    line defined by two ancestry populations.
+
+    Parameters
+    ----------
+    sample: np.ndarray
+        (n_indiv, n_dim) matrix
+    anc1: np.ndarray
+        (n_indiv, n_dim) matrix
+    anc2: np.ndarray
+        (n_indiv, n_dim) matrix
+    weight: np.ndarray, optional
+        weight associated to each dimension, for example, could be sqrt(eigenvalues)
+        if each dimension corresponds to a principal components.
+        if not provided, equal weights for each dimension will be used
+
+    Returns
+    -------
+    dist: np.ndarray
+        normalized distance to the line defined by two ancestral populations
+    t: np.ndarray
+        projection position
+    """
+    n_dim = sample.shape[1]
+    assert (anc1.shape[1] == n_dim) & (anc2.shape[1] == n_dim)
+    if weight is not None:
+        assert weight.shape[1] == n_dim
+    p1, p2 = anc1.mean(axis=0), anc2.mean(axis=0)
+    sample_dist, sample_t, sample_n = distance_to_line(sample, p1, p2, weight)
+    anc1_dist, anc1_t, anc1_n = distance_to_line(anc1, p1, p2, weight)
+    anc2_dist, anc2_t, anc2_n = distance_to_line(anc2, p1, p2, weight)
+    anc1_maxdist, anc2_maxdist = np.max(anc1_dist), np.max(anc2_dist)
+    sample_normalized_dist = sample_dist / (
+        (1 - sample_t) * anc1_maxdist + sample_t * anc2_maxdist
+    )
+    return sample_normalized_dist, sample_t

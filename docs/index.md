@@ -43,4 +43,5 @@ prepare-dataset
 notebooks/assoc
 notebooks/dataset
 notebooks/simulate-genotype
+notebooks/select-admixed
 ```

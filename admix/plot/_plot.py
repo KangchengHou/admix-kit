@@ -45,9 +45,17 @@ def pca(
         assert isinstance(alpha, float) or isinstance(alpha, dict)
     if ax is None:
         ax = plt.gca()
+
     if label_order is None:
         label_order = df_pca[label_col].unique()
 
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+
+    if label_col is None:
+        return
+
+    # otherwise label_col is present
     for label in label_order:
         group = df_pca.loc[df_pca[label_col] == label, :]
         if isinstance(alpha, dict):
@@ -55,8 +63,6 @@ def pca(
         else:
             label_alpha = alpha
         ax.scatter(group[x], group[y], s=s, label=label, alpha=label_alpha)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
 
     if legend_loc == "on data":
 
