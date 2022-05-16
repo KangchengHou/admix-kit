@@ -115,6 +115,13 @@ import subprocess
 import shutil
 import os
 
+# ROOT_DIR contains:
+# - {ROOT_DIR}/pgen/
+# - {ROOT_DIR}/vcf/
+# this script will create
+# - {ROOT_DIR}/metadata/
+ROOT_DIR = "out/"
+
 def process_sample_map(build):
     """Download and format sample map from 1000 Genomes"""
 

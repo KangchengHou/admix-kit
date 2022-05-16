@@ -27,8 +27,7 @@ class Dataset(object):
     - dset.indiv[new_col] = new_values
     - dset.snp[new_col] = new_values
 
-    Design principles
-    -----------------
+    Design principles:
     Use admix.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
     such as `af_per_anc`, `allele_per_anc`
 

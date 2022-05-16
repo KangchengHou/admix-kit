@@ -152,6 +152,9 @@ def quant_pheno_grm(
     n_sim=10,
 ):
     """Simulate continuous phenotype of admixed individuals [continuous] using GRM
+
+    Parameters
+    ----------
     grm: str, list of str or dict
         column name(s) of GRM, or a dict of {name: grm}
         Don't include the identity matrix, the indentify matrix representing environemntal
