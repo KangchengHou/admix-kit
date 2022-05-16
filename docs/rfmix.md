@@ -126,20 +126,20 @@ def process_sample_map(build):
     """Download and format sample map from 1000 Genomes"""
 
     sample_map = pd.read_csv(
-        f"out/pgen/{build}.psam",
+        f"{ROOT_DIR}/pgen/{build}.psam",
         delim_whitespace=True,
     )
     unrelated_id = pd.read_csv(
-        f"out/pgen/{build}.king.cutoff.out.id", delim_whitespace=True
+        f"{ROOT_DIR}/pgen/{build}.king.cutoff.out.id", delim_whitespace=True
     )
-    os.makedirs("out/metadata", exist_ok=True)
+    os.makedirs(f"{ROOT_DIR}/metadata", exist_ok=True)
     sample_map[["#IID", "Population", "SuperPop"]].to_csv(
-        f"out/metadata/{build}.full_sample.tsv", sep="\t", index=False, header=False
+        f"{ROOT_DIR}/metadata/{build}.full_sample.tsv", sep="\t", index=False, header=False
     )
     # filter unrelated
     unrelated_sample_map = sample_map[~sample_map["#IID"].isin(unrelated_id["#IID"])]
     unrelated_sample_map[["#IID", "Population", "SuperPop"]].to_csv(
-        f"out/metadata/{build}.unrelated_sample.tsv",
+        f"{ROOT_DIR}/metadata/{build}.unrelated_sample.tsv",
         sep="\t",
         index=False,
         header=False,
@@ -163,8 +163,8 @@ def process_genetic_map(build):
         raise ValueError("build should be hg38 or hg19")
 
     cmds = f"""
-        mkdir -p out/metadata/genetic_map/raw && cd out/metadata/genetic_map/raw
-        wget http://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.{name}.map.zip
+        mkdir -p {ROOT_DIR}/metadata/genetic_map/raw && cd {ROOT_DIR}/metadata/genetic_map/raw
+        wget https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.{name}.map.zip
         unzip plink.{name}.map.zip
     """
 
@@ -172,20 +172,19 @@ def process_genetic_map(build):
 
     for chrom in range(1, 23):
         raw_map = pd.read_csv(
-            f"out/metadata/genetic_map/raw/plink.chr{chrom}.{name}.map",
+            f"{ROOT_DIR}/metadata/genetic_map/raw/plink.chr{chrom}.{name}.map",
             delim_whitespace=True,
             header=None,
         )
         raw_map = raw_map[[0, 3, 2]]
         raw_map.to_csv(
-            f"out/metadata/genetic_map/{build}.chr{chrom}.tsv",
+            f"{ROOT_DIR}/metadata/genetic_map/{build}.chr{chrom}.tsv",
             sep="\t",
             index=False,
             header=False,
         )
     # clean up
-    shutil.rmtree("out/metadata/genetic_map/raw")
-
+    shutil.rmtree(f"{ROOT_DIR}/metadata/genetic_map/raw")
 
 if __name__ == "__main__":
     build = sys.argv[1]
@@ -232,14 +231,15 @@ Now we will run RFmix to infer local ancestry for your genotype file (see how to
 ## Specify constants
 chrom=XX # this script should be ran 1 chromosome at a time
 build=hg38 # replace hg38 with hg19 as needed
-REF_DIR=/path/to/1kg_pgen/ # see step 1
+REF_DIR=/path/to/1kg/ # see step 1
 RFMIX=/path/to/rfmix # see above
 
 pfile=/path/to/your-plink2-file # see "Prepare dataset" section
 out_prefix=/path/to/output/chr${chrom} # output prefix
 
 ## convert pfile to vcf because RFmix takes vcf as input
-plink2 --pfile ${pfile} \
+plink2 \
+    --pfile ${pfile} \
     --chr ${chrom} \
     --output-chr 26 \
     --export vcf bgz \
@@ -254,14 +254,14 @@ tabix -p vcf ${out_prefix}.tmp.vcf.gz
 # e.g., For local ancestry inference of European-African admixed individuals, we 
 # recommend using CEU, YRI only.
 awk '$2=="CEU" || $2=="YRI" || $2=="PEL" {print $1 "\t" $2}' \
-    ${REF_DIR}/out/metadata/${build}.unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
+    ${REF_DIR}/metadata/${build}.unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
 
 ## run RFmix
 ${RFMIX} \
     -f ${out_prefix}.tmp.vcf.gz \
-    -r ${REF_DIR}/out/vcf/${build}.chr${chrom}.vcf.gz \
+    -r ${REF_DIR}/vcf/${build}.chr${chrom}.vcf.gz \
     -m ${out_prefix}.tmp.sample_map.tsv \
-    -g ${REF_DIR}/out/metadata/genetic_map/${build}.chr${chrom}.tsv \
+    -g ${REF_DIR}/metadata/genetic_map/${build}.chr${chrom}.tsv \
     --chromosome=${chrom} \
     -o ${out_prefix}
 
