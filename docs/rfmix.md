@@ -272,3 +272,5 @@ rm ${out_prefix}*tmp*
 rm ${out_prefix}.sis.tsv
 rm ${out_prefix}.fb.tsv
 ```
+
+After you finish this step, you can proceed to the rest of [preparing the dataset](prepare-dataset.md).

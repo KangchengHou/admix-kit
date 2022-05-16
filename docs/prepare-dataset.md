@@ -71,6 +71,7 @@ We assume you already know which individuals corresponds to the admixed individu
 There are many choices for local ancestry inference. We assume that you have performed the local ancestry. If you have not done so, we prepare a guideline to use RFmix for local ancestry inference ([see guideline](rfmix.md)).
 
 We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry. To convert the RFmix local ancestry into .lanc format, use the following command. This command can be applied to both imputed and hm3 data.
+
 ```bash
 admix lanc-convert \
     --pfile <pgen_prefix> \      # e.g., dset.chr1
@@ -78,6 +79,13 @@ admix lanc-convert \
     --out <lanc_path>           # e.g., dset.chr1.lanc
 ```
 
+Now you already formatted all the required for other downstream analysis. Besides that,
+we also recommend calculating some basic statistics for the data set with:
+```bash
+admix append-snp-info \
+    --pfile <pgen_prefix> \      # e.g., dset.chr1
+    --out <snp_info>  # e.g., dset.chr1.snp_info
+```
 
 ## Other files
 PLINK2 genotype file and `.lanc` file are almost you need to start the analysis. The 
@@ -122,3 +130,8 @@ for stop, anc0, anc1 in zip(break_list, anc0_list, anc1_list):
 ```
 
 Note these ranges are right-open intervals `[start, stop)` and the last position of each line always ends with `<n_snp>`. We provide helper function to convert between sparse `.lanc` format and dense matrix format.
+
+## Next steps
+With the prepared data set, you can use `admix-kit` to perform:
+- [GWAS](cli/assoc-test.md)
+- [Genetic correlation analysis](cli/genet-cor.md)

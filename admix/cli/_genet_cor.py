@@ -57,6 +57,7 @@ def admix_grm(
     maf_cutoff: float = 0.005,
     her_model="mafukb",
     freq_cols=["LANC_FREQ1", "LANC_FREQ2"],
+    snp_chunk_size: int = 256,
 ) -> None:
     """
     Calculate the admix GRM for a given pfile
@@ -72,6 +73,12 @@ def admix_grm(
     her_model : str, optional
         Heritability model, by default "mafukb"
         one of "uniform", "gcta", "ldak", "mafukb"
+    freq_cols : List[str], optional
+        Columns of the pfile to use as frequency, by default ["LANC_FREQ1", "LANC_FREQ2"]
+        to perform the ancestry-specific MAF cutoffs
+    snp_chunk_size : int, optional
+        Number of SNPs to read at a time, by default 256
+        This can be tuned to reduce memory usage
 
     Returns
     -------
@@ -81,7 +88,7 @@ def admix_grm(
 
     log_params("admix-grm", locals())
     assert len(freq_cols) == 2, "freq_cols must be a list of length 2"
-    dset = admix.io.read_dataset(pfile=pfile, snp_chunk=512)
+    dset = admix.io.read_dataset(pfile=pfile, snp_chunk=snp_chunk_size)
     assert dset.n_anc == 2, "Currently only 2-way admixture is supported"
 
     snp_subset = np.where(

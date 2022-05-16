@@ -5,7 +5,7 @@ from ._assoc import assoc
 from ._geno import append_snp_info
 from ._utils import log_params
 from ._simulate import simulate_pheno
-from ._lanc import lanc, lanc_convert, lanc_rfmix, lanc_count
+from ._lanc import lanc, lanc_convert, lanc_count
 from ._ext import (
     prune,
     pca,
