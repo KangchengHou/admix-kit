@@ -11,7 +11,16 @@ adapt to your data.
 Before we start, create a new folder to store these reference data (e.g. `/path/to/1kg_pgen`) and
 `cd /path/to/1kg_pgen`. This will be the directory where we run the following steps 
 (each step will correspond to a script file).
+
+If you want to skip the details, just save the following 3 steps as 3 separate script files:
+1. `step1-download.pgen.sh`
+2. `step2-divide-chrom.sh`
+3. `step3-download-map.py`
+
+And run each of them, you will get the 1,000 Genomes project reference panel ready.
 ```
+
+
 
 ### Step 1.1: download 1,000 Genomes reference panel
 
