@@ -1,3 +1,4 @@
+wheel
 setuptools
 Cython
 numpy
