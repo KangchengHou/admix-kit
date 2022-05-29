@@ -6,6 +6,8 @@ from typing import List
 import glob
 from natsort import natsorted
 import os
+import json
+from scipy import stats
 from ._utils import log_params
 
 
@@ -133,7 +135,10 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     n_part : int, optional
         Number of partitions, by default 22
 
-    Compute the GRM and store to {prefix}[.A1.npy | .A2.npy | .weight.tsv]
+    Returns
+    -------
+    GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated
+    Weight file: {out_prefix}.weight.tsv will be generated
     """
     log_params("admix-grm-merge", locals())
 
@@ -173,11 +178,14 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
             weight = prior_var["PRIOR_VAR"].sum()
             weight_list.append(weight)
             grm, df_id, n_snps = admix.tools.gcta.read_grm(f"{grm_prefix}.{suffix}")
-            total_grm += grm * weight
             if total_df_id is None:
                 total_df_id = df_id
             else:
-                assert np.all(total_df_id == df_id)
+                assert np.all(
+                    total_df_id == df_id
+                ), f"df_id of {grm_prefix} is not matched does not match with already loaded ones"
+            total_grm += grm * weight
+
             assert np.all(n_snps == prior_var.shape[0])
         total_grm /= np.sum(weight_list)
         return total_grm, df_id
@@ -206,7 +214,7 @@ def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -
     prefix : str
         Prefix of the GRM files, with .K1.grm.bin and .K2.grm.bin
     out_dir : str
-        folder to store the output files, must not exist
+        folder to store the output files
     rho_list : list, optional
         List of rho values, by default np.linspace(0, 1.0, 21)
     """
@@ -219,7 +227,7 @@ def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -
     df_id = df_id1
     n_snps = n_snps1
 
-    os.makedirs(out_dir, exist_ok=False)
+    os.makedirs(out_dir, exist_ok=True)
     for rho in tqdm(rho_list):
         K = K1 + K2 * rho
 
@@ -245,15 +253,16 @@ def estimate_genetic_cor(
 
     Parameters
     ----------
-    grm_dir : str
-        folder containing GRM files
     pheno : str
         phenotype file, the 1st column contains ID, 2nd column contains phenotype, and
         the rest of columns are covariates.
     out_dir : str
-        folder to store the output files, if exist, a warning will be logged
+        folder to store the output files
+    grm_dir : str
+        folder containing GRM files
+
     quantile_normalize: bool
-        whether to perform quantile normalization
+        whether to perform quantile normalization for both phenotype and each column of covariates
     n_thread : int, optional
         number of threads, by default 2
     """
@@ -321,3 +330,101 @@ def estimate_genetic_cor(
                 n_thread=n_thread,
                 est_fix=True,
             )
+
+
+def summarize_genetic_cor(
+    est_dir: str, out_prefix: str, weight_file: str = None, freq_file: str = None
+):
+    """Summarize the results of genetic correlation analysis.
+
+    Parameters
+    ----------
+    est_dir : str
+        Estimation directory, containing rho<rho>.hsq, rho<rho>.log
+    out_prefix : str
+        output prefix
+    weight_file: str
+        weight_file specifying the prior variance file (<grm_prefix>.weight.tsv),
+    freq_file: str
+        frequency file (dataset *.snp_info files)
+
+    Returns
+    -------
+    Log-likelihood curve for different rho: <out_prefix>.loglkl.txt
+    Summarization file: <out_prefix>.summary.json. This file contains
+        - poterior mode
+        - highest posterior density interval (50% / 95%)
+        - heritability (if grm_prefix is provided)
+
+    Notes
+    -----
+    If `weight_file` and `freq_file` are provided, heritability at rho = 1
+    (using rho100.hsq) will be estimated.
+    """
+    from scipy.interpolate import CubicSpline
+
+    log_params("summarize-genetic-cor", locals())
+
+    rho_list = np.array(
+        sorted(
+            [
+                int(os.path.basename(p).split(".")[0][3:])
+                for p in glob.glob(os.path.join(est_dir, "rho*.hsq"))
+            ]
+        )
+    )
+
+    # read log-likelihood curve
+    n_indiv = None
+    loglkl_list = []
+    for rho in rho_list:
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho{rho}"))
+        if n_indiv is None:
+            n_indiv = dict_reml["n"]
+        else:
+            assert (
+                n_indiv == dict_reml["n"]
+            ), f"n_indiv={dict_reml['n']} from rho={rho} different from previous one {n_indiv}"
+        loglkl_list.append(dict_reml["loglik"])
+
+    # interpolate
+    rho_list = rho_list / 100
+
+    # write raw estimation file
+    pd.DataFrame({"rg": rho_list, "loglkl": loglkl_list}).to_csv(
+        out_prefix + "loglkl.txt", sep="\t", index=False
+    )
+
+    # summarize results
+    assert rho_list[-1] == 1, "rho=1 (rho100.hsq) should be included"
+    dense_rho_list = np.linspace(min(rho_list), max(rho_list), 1001)
+    dense_loglkl_list = CubicSpline(rho_list, loglkl_list)(dense_rho_list)
+
+    dict_summary = {
+        "rg_mode": dense_rho_list[dense_loglkl_list.argmax()],
+        "rg_hpdi(50%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.5),
+        "rg_hpdi(95%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.95),
+        "rg=1_pval": stats.chi2.sf(
+            (dense_loglkl_list.max() - dense_loglkl_list[-1]) * 2, df=1
+        ),
+    }
+
+    assert (weight_file is None) == (
+        freq_file is None
+    ), "weight_file and freq_file should be provided together"
+
+    if (weight_file is not None) and (freq_file is not None):
+        scale_factor = admix.tools.gcta.calculate_hsq_scale(
+            weight_file=weight_file, freq_file=freq_file
+        )
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho100"))
+        est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
+            dict_reml, scale_factor=scale_factor
+        )
+        est_hsq_stderr = np.sqrt(est_hsq_var)
+        dict_summary["hsq_est"] = est_hsq
+        dict_summary["hsq_stderr"] = est_hsq_stderr
+
+    # write summary
+    with open(out_prefix + ".summary.json", "w") as f:
+        json.dump(dict_summary, f, indent=4)

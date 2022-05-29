@@ -1,6 +1,50 @@
 import numpy as np
 from scipy import stats
 import scipy
+from typing import Union, List, Tuple
+
+
+def hdi(
+    x: np.ndarray, loglik: np.ndarray, ci: float = 0.95
+) -> Union[List[Tuple], Tuple]:
+    """
+    Find the high density interval for 1-dimensional likelihood curve.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        1-dimensional data
+    loglik : np.ndarray
+        log-likelihood of the corresponding data
+    ci : float
+        targeted interval
+
+    Returns
+    -------
+    Tuple, List[Tuple]
+        High density interval for the data. Returns a tuple denoting [low_ci, high_ci].
+        Returns a list of tuples in cases where the likelihood curve is not concave (
+        typically indicating the low sample size when maximizing the likelihood).
+    """
+    prob = np.exp(loglik - np.max(loglik))
+    prob /= prob.sum()
+    sorted_prob = np.sort(prob)[::-1]
+    # critical value
+    crit = sorted_prob[np.argmax(np.cumsum(sorted_prob) >= ci)]
+    np.where(prob > crit)
+    hdi_index = np.where(prob > crit)[0]
+
+    from itertools import groupby
+    from operator import itemgetter
+
+    intervals: List[Tuple] = []
+    for k, g in groupby(enumerate(hdi_index), lambda ix: ix[0] - ix[1]):
+        hdi_index = list(map(itemgetter(1), g))
+        intervals.append((x[hdi_index[0]], x[hdi_index[-1]]))
+    if len(intervals) == 1:
+        return intervals[0]
+    else:
+        return intervals
 
 
 def lambda_gc(pval, bootstrap_ci=False, n_resamples=499):

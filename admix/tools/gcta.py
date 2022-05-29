@@ -3,6 +3,7 @@ import numpy as np
 import subprocess
 from typing import Tuple, List
 import os
+import glob
 from . import get_dependency
 
 
@@ -185,3 +186,105 @@ def read_reml(path_prefix):
 
     # 3. find "Log-likelihood ratio converged."
     return {"est": df_est, "varcov": df_varcov, "loglik": loglik, "n": n_indiv}
+
+
+def estimate_hsq(dict_est, scale_factor=1):
+    """
+    Estimate the heritability, and standard error of heritability (using delta method)
+    from the results of a single component REML:
+    hsq = (var_g * scale_factor) / [var_g * scale_factor + var_e]
+
+    Parameters
+    ----------
+    dict_est : dict
+        dictionary of the results of a single component REML, as returned by read_reml
+        {"est": df_est, "varcov": df_varcov}
+    scale_factor : float
+        scale factor for genotypical variance, default 1
+
+    Returns
+    -------
+    hsq : float
+        heritability
+    hsq_var : float
+        estimated variance of heritability
+    """
+    assert len(dict_est["est"]) == 2
+    assert np.all(dict_est["est"].Source.values == ["V(G)", "V(e)"])
+    est = dict_est["est"].Variance.values
+    est_var = dict_est["varcov"].values
+
+    ## method 1
+    x, y = est[0], est[1]
+    hsq = (x * scale_factor) / (x * scale_factor + y)
+
+    # grad = [y / (x + y)^2, - x / (x + y)^2]
+    grad = np.array(
+        [
+            scale_factor * y / ((scale_factor * x + y) ** 2),
+            -scale_factor * x / ((scale_factor * x + y) ** 2),
+        ]
+    )
+
+    def quad_form(x, A):
+        return np.dot(np.dot(x.T, A), x)
+
+    return hsq, quad_form(grad, est_var)
+
+
+def calculate_hsq_scale(
+    weight_file: str, freq_file: str, freq_col: str = "FREQ", index_col: str = "snp"
+) -> float:
+    """Calculate the heritability scaling factor using weight (prior variance) files
+    scale_factor = sum(normalized_weight * 2 * freq * (1 - freq)), where
+    normalized_weight = weight / sum(weight).
+
+
+    Parameters
+    ----------
+    weight_file : str
+        weight file
+    freq_file : str
+        frequency file, use a wildcard '*' to multiple frequency files
+    freq_col : str
+        column name of the frequency, default 'FREQ'
+    index_col : str
+        column name of the index, default 'snp'
+
+    Returns
+    -------
+    scale_factor : float
+        scaling factor
+
+    Notes
+    -----
+    SNP list in weight_file should be a superset of the SNP list in freq_file.
+    """
+    df_weight = pd.read_csv(
+        weight_file,
+        sep="\t",
+        index_col=0,
+    )
+
+    freq_file_list = glob.glob(freq_file)
+    df_freq = (
+        pd.concat(
+            [
+                pd.read_csv(
+                    f,
+                    delim_whitespace=True,
+                )
+                for f in freq_file_list
+            ]
+        ).reset_index(drop=True)
+    ).set_index(index_col)
+
+    # df_freq.index should be a superset of df_weight.index
+    assert set(df_freq.index).issuperset(set(df_weight.index))
+    df_weight["PRIOR_VAR"] /= df_weight["PRIOR_VAR"].sum()
+    df_weight["FREQ"] = df_freq["FREQ"].reindex(df_weight.index)
+    df_weight["FREQ_VAR"] = 2 * df_weight["FREQ"] * (1 - df_weight["FREQ"])
+
+    scale_factor = np.sum(df_weight["PRIOR_VAR"] * df_weight["FREQ_VAR"])
+
+    return scale_factor
