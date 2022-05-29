@@ -333,7 +333,11 @@ def estimate_genetic_cor(
 
 
 def summarize_genetic_cor(
-    est_dir: str, out_prefix: str, weight_file: str = None, freq_file: str = None
+    est_dir: str,
+    out_prefix: str,
+    weight_file: str = None,
+    freq_file: str = None,
+    scale_factor: float = None,
 ):
     """Summarize the results of genetic correlation analysis.
 
@@ -347,6 +351,10 @@ def summarize_genetic_cor(
         weight_file specifying the prior variance file (<grm_prefix>.weight.tsv),
     freq_file: str
         frequency file (dataset *.snp_info files)
+    scale_factor: float
+        rather calculating the scale factor from `weight_file` and `freq_file` from
+        scratch, specify the scale factor. This scale factor be pre-computed from
+        admix.tools.gcta.calculate_hsq_scale
 
     Returns
     -------
@@ -417,6 +425,8 @@ def summarize_genetic_cor(
         scale_factor = admix.tools.gcta.calculate_hsq_scale(
             weight_file=weight_file, freq_file=freq_file
         )
+
+    if scale_factor is not None:
         dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho100"))
         est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
             dict_reml, scale_factor=scale_factor
