@@ -338,6 +338,8 @@ def summarize_genetic_cor(
     weight_file: str = None,
     freq_file: str = None,
     scale_factor: float = None,
+    freq_col: str = "FREQ",
+    index_col: str = "snp",
 ):
     """Summarize the results of genetic correlation analysis.
 
@@ -355,6 +357,10 @@ def summarize_genetic_cor(
         rather calculating the scale factor from `weight_file` and `freq_file` from
         scratch, specify the scale factor. This scale factor be pre-computed from
         admix.tools.gcta.calculate_hsq_scale
+    freq_col: str
+        column name for frequency in freq_file
+    index_col: str
+        column name for index in freq_file
 
     Returns
     -------
@@ -369,9 +375,9 @@ def summarize_genetic_cor(
     If `weight_file` and `freq_file` are provided, heritability at rho = 1
     (using rho100.hsq) will be estimated.
     """
-    from scipy.interpolate import CubicSpline
 
     log_params("summarize-genetic-cor", locals())
+    from scipy.interpolate import CubicSpline
 
     rho_list = np.array(
         sorted(
@@ -400,8 +406,9 @@ def summarize_genetic_cor(
 
     # write raw estimation file
     pd.DataFrame({"rg": rho_list, "loglkl": loglkl_list}).to_csv(
-        out_prefix + "loglkl.txt", sep="\t", index=False
+        out_prefix + ".loglkl.txt", sep="\t", index=False
     )
+    admix.logger.info(f"Log-likehood curves written to {out_prefix}.loglkl.txt")
 
     # summarize results
     assert rho_list[-1] == 1, "rho=1 (rho100.hsq) should be included"
@@ -423,8 +430,12 @@ def summarize_genetic_cor(
 
     if (weight_file is not None) and (freq_file is not None):
         scale_factor = admix.tools.gcta.calculate_hsq_scale(
-            weight_file=weight_file, freq_file=freq_file
+            weight_file=weight_file,
+            freq_file=freq_file,
+            freq_col=freq_col,
+            index_col=index_col,
         )
+        admix.logger.info(f"Computed hsq scale factor = {scale_factor:.3g}")
 
     if scale_factor is not None:
         dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho100"))
@@ -438,3 +449,4 @@ def summarize_genetic_cor(
     # write summary
     with open(out_prefix + ".summary.json", "w") as f:
         json.dump(dict_summary, f, indent=4)
+    admix.logger.info(f"Summary written to {out_prefix}.summary.json")

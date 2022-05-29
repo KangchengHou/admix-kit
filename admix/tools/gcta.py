@@ -239,7 +239,6 @@ def calculate_hsq_scale(
     scale_factor = sum(normalized_weight * 2 * freq * (1 - freq)), where
     normalized_weight = weight / sum(weight).
 
-
     Parameters
     ----------
     weight_file : str
@@ -282,8 +281,8 @@ def calculate_hsq_scale(
     # df_freq.index should be a superset of df_weight.index
     assert set(df_freq.index).issuperset(set(df_weight.index))
     df_weight["PRIOR_VAR"] /= df_weight["PRIOR_VAR"].sum()
-    df_weight["FREQ"] = df_freq["FREQ"].reindex(df_weight.index)
-    df_weight["FREQ_VAR"] = 2 * df_weight["FREQ"] * (1 - df_weight["FREQ"])
+    df_weight[freq_col] = df_freq[freq_col].reindex(df_weight.index)
+    df_weight["FREQ_VAR"] = 2 * df_weight[freq_col] * (1 - df_weight[freq_col])
 
     scale_factor = np.sum(df_weight["PRIOR_VAR"] * df_weight["FREQ_VAR"])
 
