@@ -416,6 +416,7 @@ def summarize_genetic_cor(
     dense_loglkl_list = CubicSpline(rho_list, loglkl_list)(dense_rho_list)
 
     dict_summary = {
+        "n": n_indiv,
         "rg_mode": dense_rho_list[dense_loglkl_list.argmax()],
         "rg_hpdi(50%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.5),
         "rg_hpdi(95%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.95),
