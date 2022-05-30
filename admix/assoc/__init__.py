@@ -16,12 +16,50 @@ warnings.filterwarnings(action="error", category=sm_exceptions.ValueWarning)
 __all__ = ["marginal"]
 
 
+def _format_block_test(
+    var: np.ndarray,
+    cov: np.ndarray,
+    pheno: np.ndarray,
+    var_size: int,
+    test_vars: np.ndarray,
+):
+    n_indiv = var.shape[0]
+    assert (
+        cov.shape[0] == n_indiv
+    ), "Number of individuals in genotype and covariate do not match"
+    assert pheno.ndim == 1, "Phenotype must be a vector"
+    assert (
+        pheno.shape[0] == n_indiv
+    ), "Number of individuals in genotype and phenotype do not match"
+    assert var_size > 0, "Variable size must be greater than 0"
+    assert (
+        var.shape[1] % var_size == 0
+    ), "Number of variables in var must be a multiple of var_size"
+    n_var = var.shape[1] // var_size
+
+    if isinstance(test_vars, List):
+        test_vars = np.array(test_vars)
+
+    assert np.all(test_vars < var_size), "test_vars must be less than var_size"
+
+    # fill covariates
+    n_cov = cov.shape[1]
+    design = np.zeros((n_indiv, var_size + n_cov))
+    design[:, var_size : var_size + n_cov] = cov
+
+    if isinstance(var, da.Array):
+        var = var.compute()
+
+    assert isinstance(var, np.ndarray), "var must be a numpy array"
+    return var, design, n_var, n_cov, test_vars
+
+
 def _block_test(
     var: np.ndarray,
     cov: np.ndarray,
     pheno: np.ndarray,
     var_size: int,
-    test_vars: List[int],
+    test_vars: np.ndarray,
     fast: bool,
     family: str,
     logistic_kwargs: Dict[str, Any] = dict(),
@@ -50,32 +88,9 @@ def _block_test(
         and standard error (even columns) for each variable.
         - The last two columns are the number of individuals and p-value.
     """
-    n_indiv = var.shape[0]
-    assert (
-        cov.shape[0] == n_indiv
-    ), "Number of individuals in genotype and covariate do not match"
-    assert pheno.ndim == 1, "Phenotype must be a vector"
-    assert (
-        pheno.shape[0] == n_indiv
-    ), "Number of individuals in genotype and phenotype do not match"
-    assert var_size > 0, "Variable size must be greater than 0"
-    assert (
-        var.shape[1] % var_size == 0
-    ), "Number of variables in var must be a multiple of var_size"
-    n_var = var.shape[1] // var_size
-
-    test_vars = np.array(test_vars)
-    assert np.all(test_vars < var_size), "test_vars must be less than var_size"
-
-    # fill covariates
-    n_cov = cov.shape[1]
-    design = np.zeros((n_indiv, var_size + n_cov))
-    design[:, var_size : var_size + n_cov] = cov
-
-    if isinstance(var, da.Array):
-        var = var.compute()
-
-    assert isinstance(var, np.ndarray), "var must be a numpy array"
+    var, design, n_var, n_cov, test_vars = _format_block_test(
+        var, cov, pheno, var_size, test_vars
+    )
 
     if fast:
         try:
@@ -331,14 +346,8 @@ def marginal(
         var = da.empty((n_indiv, n_snp * n_anc))
 
         for i in range(n_anc):
-            # should use var[:, i::n_anc] = allele_per_anc[:, :, i]
-            # however there is a bug in dask
-            # see https://github.com/dask/dask/issues/8598
-            # TODO: remove this workaround after dask fix issue
-            if n_snp == 1:
-                var[:, np.arange(i, var.shape[1], n_anc)] = allele_per_anc[:, :, i]
-            else:
-                var[:, i::n_anc] = allele_per_anc[:, :, i]
+            var[:, i::n_anc] = allele_per_anc[:, :, i]
+
         var_size = n_anc
         var_names = [f"G{i + 1}" for i in range(n_anc)]
         test_vars = [i for i in range(n_anc)]
