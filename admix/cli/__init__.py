@@ -22,6 +22,7 @@ from ._genet_cor import (
     admix_grm_rho,
     estimate_genetic_cor,
     summarize_genetic_cor,
+    meta_analyze_genetic_cor,
 )
 
 
