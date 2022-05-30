@@ -9,6 +9,7 @@ import os
 import json
 from scipy import stats
 from ._utils import log_params
+from scipy.interpolate import CubicSpline
 
 
 def _write_admix_grm(
@@ -377,7 +378,6 @@ def summarize_genetic_cor(
     """
 
     log_params("summarize-genetic-cor", locals())
-    from scipy.interpolate import CubicSpline
 
     rho_list = np.array(
         sorted(
@@ -451,3 +451,53 @@ def summarize_genetic_cor(
     with open(out_prefix + ".summary.json", "w") as f:
         json.dump(dict_summary, f, indent=4)
     admix.logger.info(f"Summary written to {out_prefix}.summary.json")
+
+
+def meta_analyze_genetic_cor(loglkl_files):
+    """Meta-analyze the results of genetic correlation analysis.
+
+    Parameters
+    ----------
+    loglkl_files : str
+        file patterns of log-likelihood curve files
+    """
+
+    loglkl_files = glob.glob(loglkl_files)
+
+    rg_list = None
+    total_dense_loglik: np.ndarray = 0
+
+    for f in loglkl_files:
+        df_loglkl = pd.read_csv(f, sep="\t")
+        if rg_list is None:
+            rg_list = df_loglkl["rg"].values
+            dense_rg_list = np.linspace(min(rg_list), max(rg_list), 1001)
+        else:
+            assert np.all(rg_list == df_loglkl["rg"].values)
+
+        total_dense_loglik += CubicSpline(rg_list, df_loglkl["loglkl"].values)(
+            dense_rg_list
+        )
+
+    rg_mode = dense_rg_list[total_dense_loglik.argmax()]
+
+    pval_rg_1 = stats.chi2.sf(
+        (total_dense_loglik.max() - total_dense_loglik[-1]) * 2, df=1
+    )
+
+    print(f"Meta-analysis results across {len(loglkl_files)} files")
+    print("-" * 37)
+    print(f"rg mode  = {rg_mode:4g}")
+    for ci in [0.5, 0.95]:
+        rg_hpdi = admix.data.hdi(dense_rg_list, total_dense_loglik, ci=ci)
+        if isinstance(rg_hpdi, List):
+            intervals = [f"[{i[0]:.4g}, {i[1]:.4g}]" for i in rg_hpdi]
+            admix.logger.warning(
+                f"Multiple intervals for ci={ci}, indicating some issues of model fit."
+                " Please inspect log-liklihood curves for each trait."
+            )
+            print(f"{ci * 100:g}% HPDI = {' '.join(intervals)}")
+        else:
+            assert len(rg_hpdi) == 2
+            print(f"{ci * 100:g}% HPDI = [{rg_hpdi[0]:.4g}, {rg_hpdi[1]:.4g}]")
+    print(f"Null (rg = 1) p-value: {pval_rg_1:.4g}")
