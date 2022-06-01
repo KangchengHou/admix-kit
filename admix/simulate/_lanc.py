@@ -3,7 +3,6 @@ from typing import List, Tuple
 from admix.tools import get_cache_data
 import pandas as pd
 from bisect import bisect_right, bisect_left
-import random
 
 
 def calculate_mosaic_size(
@@ -130,7 +129,7 @@ def hap_lanc(
 
     # shuffle the break_list and value_list
     shuffled = list(zip(break_list, value_list))
-    random.shuffle(shuffled)
+    np.random.shuffle(shuffled)
     break_list, value_list = zip(*shuffled)
 
     return break_list, value_list
