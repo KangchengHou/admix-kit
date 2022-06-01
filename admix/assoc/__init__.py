@@ -34,7 +34,7 @@ def _format_block_test(
     assert var_size > 0, "Variable size must be greater than 0"
     assert (
         var.shape[1] % var_size == 0
-    ), "Number of variables in var must be a multiple of var_size"
+    ), f"Number of variables in var ({var.shape[1]}) must be a multiple of var_size ({var_size})"
     n_var = var.shape[1] // var_size
 
     if isinstance(test_vars, List):
@@ -44,14 +44,96 @@ def _format_block_test(
 
     # fill covariates
     n_cov = cov.shape[1]
-    design = np.zeros((n_indiv, var_size + n_cov))
-    design[:, var_size : var_size + n_cov] = cov
 
     if isinstance(var, da.Array):
         var = var.compute()
 
     assert isinstance(var, np.ndarray), "var must be a numpy array"
-    return var, design, n_var, n_cov, test_vars
+    return var, n_var, n_cov, test_vars
+
+
+def _block_het_test(
+    var: np.ndarray,
+    cov: np.ndarray,
+    pheno: np.ndarray,
+    var_size: int,
+    test_vars: np.ndarray,
+    fast: bool,
+    family: str,
+    logistic_kwargs: Dict[str, Any] = dict(),
+):
+    admix.logger.info(
+        "Currently HET test is implemented through statsmodels, which can be slow. "
+        "Pass in small amount of data whenever possible."
+    )
+
+    ## Format data
+    var, n_var, n_cov, test_vars = _format_block_test(
+        var, cov, pheno, var_size, test_vars
+    )
+
+    # format reduced variable matrix
+    n_indiv = var.shape[0]
+    reduced_var_size = var_size - len(test_vars) + 1
+    design_full = np.zeros((n_indiv, var_size + n_cov))
+    design_full[:, var_size : var_size + n_cov] = cov
+    design_reduced = np.zeros((n_indiv, reduced_var_size + n_cov))
+    design_reduced[:, reduced_var_size : reduced_var_size + n_cov] = cov
+    other_vars = np.array([i for i in range(var_size) if i not in test_vars])
+    shared_param_index = np.concatenate(
+        [other_vars, np.arange(var_size, var_size + n_cov)]
+    ).astype(int)
+
+    # statsmodels implementation
+    if family == "linear":
+        reg_method = lambda pheno, design, start_params=None: sm.OLS(
+            pheno, design, missing="drop"
+        ).fit(disp=0, start_params=start_params)
+
+    elif family == "logistic":
+        reg_method = lambda pheno, design, start_params=None: sm.Logit(
+            pheno, design, missing="drop"
+        ).fit(disp=0, start_params=start_params)
+    else:
+        raise NotImplementedError
+
+    # legacy implementation of using F-test
+    # ftest_mat = np.zeros([len(test_vars) - 1, design_full.shape[1]])
+    # for i in range(len(test_vars) - 1):
+    #     ftest_mat[i, test_vars[i]] = 1
+    #     ftest_mat[i, test_vars[i + 1]] = -1
+
+    res = np.zeros((n_var, var_size * 2 + 2))
+
+    for i in range(n_var):
+        design_full[:, 0:var_size] = var[:, i * var_size : (i + 1) * var_size]
+        model_full = reg_method(pheno, design_full)
+
+        # coefficients
+        res[i, 0 : var_size * 2 : 2] = model_full.params[0:var_size]
+        # standard errors
+        res[i, 1 : var_size * 2 : 2] = model_full.bse[0:var_size]
+        res[i, -2] = model_full.nobs
+
+        design_reduced[:, 0] = var[:, test_vars + i * var_size].sum(axis=1)
+        if len(other_vars) > 0:
+            design_reduced[:, 1:reduced_var_size] = var[:, other_vars + i * var_size]
+
+        model_reduced = reg_method(
+            pheno,
+            design_reduced,
+            start_params=np.concatenate([[0.0], model_full.params[shared_param_index]]),
+        )
+
+        if family == "linear" or family == "logistic":
+            p = stats.chi2.sf(
+                -2 * (model_reduced.llf - model_full.llf),
+                (model_full.df_model - model_reduced.df_model),
+            )
+            res[i, -1] = p
+        else:
+            raise NotImplementedError
+    return res
 
 
 def _block_test(
@@ -88,7 +170,7 @@ def _block_test(
         and standard error (even columns) for each variable.
         - The last two columns are the number of individuals and p-value.
     """
-    var, design, n_var, n_cov, test_vars = _format_block_test(
+    var, n_var, n_cov, test_vars = _format_block_test(
         var, cov, pheno, var_size, test_vars
     )
 
@@ -133,6 +215,10 @@ def _block_test(
             raise ValueError(f"Unknown family: {family}")
     else:
         # statsmodels implementation
+        n_indiv = var.shape[0]
+        design = np.zeros((n_indiv, var_size + n_cov))
+        design[:, var_size : var_size + n_cov] = cov
+
         if family == "linear":
             reg_method = lambda pheno, design, start_params=None: sm.OLS(
                 pheno, design, missing="drop"
@@ -251,7 +337,7 @@ def marginal(
             )
 
     # format data
-    assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE"]
+    assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE", "HET"]
     if dset is not None:
         assert (geno is None) and (
             lanc is None
@@ -359,6 +445,18 @@ def marginal(
         var_size = n_anc - 1
         var_names = [f"L{i + 1}" for i in range(n_anc - 1)]
         test_vars = [i for i in range(n_anc - 1)]
+    elif method == "HET":
+        allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
+            0, 1
+        )
+        var = da.empty((n_indiv, n_snp * n_anc))
+
+        for i in range(n_anc):
+            var[:, i::n_anc] = allele_per_anc[:, :, i]
+
+        var_size = n_anc
+        var_names = [f"G{i + 1}" for i in range(n_anc)]
+        test_vars = [i for i in range(n_anc)]
     else:
         raise NotImplementedError
 
@@ -379,9 +477,13 @@ def marginal(
         desc="admix.assoc.marginal",
         total=len(snp_chunks),
     ):
+        if method == "HET":
+            test_func = _block_het_test
+        else:
+            test_func = _block_test
         # test each SNP in block
         res.append(
-            _block_test(
+            test_func(
                 var=var[:, snp_start * var_size : snp_stop * var_size],
                 cov=cov,
                 pheno=pheno,
