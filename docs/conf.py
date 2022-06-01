@@ -29,10 +29,10 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autosummary",
     "sphinx_copybutton",
-    "sphinx.ext.todo",  # Todo headers and todo:: directives
-    "sphinx.ext.mathjax",  # LaTeX style math
-    "sphinx.ext.viewcode",  # view code links
-    "sphinx.ext.napoleon",  # for NumPy style docstrings
+    "sphinx.ext.todo",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
     "sphinx_inline_tabs",
     "nbsphinx",
     "myst_parser",
