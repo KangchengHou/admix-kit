@@ -14,6 +14,7 @@ def assoc(
     method: Union[str, List[str]] = "ATT",
     family: str = "quant",
     quantile_normalize: bool = False,
+    snp_list: str = None,
     fast: bool = True,
 ):
     """
@@ -49,6 +50,9 @@ def assoc(
         :code:`binary`.
     quantile_normalize : bool
         Whether to quantile normalize the phenotype and every covariate.
+    snp_list : str
+        Path to the SNP list file. Each line should be a SNP ID. Only SNPs in the
+        list will be used for the analysis.
     fast : bool
         Whether to use fast mode (default True).
 
@@ -100,8 +104,24 @@ def assoc(
         indiv_mask &= covar_mask
     dset = dset[:, indiv_mask]
     admix.logger.info(
-        f"{dset.n_snp} SNPs and {dset.n_indiv} individuals left "
+        f"{dset.n_indiv} individuals left "
         "after filtering for missing phenotype, or completely missing covariate"
+    )
+
+    # filter for SNPs
+    if snp_list is not None:
+        with open(snp_list, "r") as f:
+            filter_snp_list = [line.strip() for line in f]
+        n_filter_snp = len(filter_snp_list)
+        filter_snp_list = [snp for snp in filter_snp_list if snp in dset.snp.index]
+        if len(filter_snp_list) < n_filter_snp:
+            admix.logger.warning(
+                f"{n_filter_snp - len(filter_snp_list)} SNPs in {snp_list} are not in the dataset"
+            )
+        dset = dset[filter_snp_list]
+
+    admix.logger.info(
+        f"{dset.n_snp} SNPs and {dset.n_indiv} individuals in the analysis"
     )
 
     if isinstance(method, str):

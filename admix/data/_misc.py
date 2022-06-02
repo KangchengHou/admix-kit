@@ -22,7 +22,8 @@ def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
     """
     if cols is None:
         cols = list(set(df.columns) - set(df._get_numeric_data().columns))
-        admix.logger.info(f"Detected categorical columns: {','.join(cols)}")
+        if len(cols) > 0:
+            admix.logger.info(f"Detected categorical columns: {','.join(cols)}")
 
     added_cols = []
     df = df.copy()
@@ -34,5 +35,6 @@ def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
         added_cols.extend(dummies.columns)
         df = pd.concat([df, dummies], axis=1)
         df = df.drop(columns=[col])
-    admix.logger.info(f"Added dummy variables: {','.join(added_cols)}")
+    if len(added_cols) > 0:
+        admix.logger.info(f"Added dummy variables: {','.join(added_cols)}")
     return df
