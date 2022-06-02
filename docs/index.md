@@ -3,10 +3,10 @@ hide-toc: true
 ---
 
 ## admix-kit: Toolkit for analyzing genetic data of admixed populations
-`admix-kit` is a Python library to faciliate analyses and methods development of genetics 
+`admix-kit` is a Python library to facilitate analyses and methods development of genetics 
 data from admixed populations.
 
-This is designed to be a [python library](api.md) to faciliate analyzing admixed populations. 
+This is designed to be a [python library](api.md) to facilitate analyzing admixed populations. 
 We have also created [command line interface (CLI)](cli/index.md) for main functionalities.
 
 `admix-kit` can be installed with
@@ -42,6 +42,7 @@ api
 prepare-dataset
 notebooks/assoc
 notebooks/dataset
+marginal-het
 notebooks/simulate-genotype
 notebooks/select-admixed
 ```
