@@ -262,21 +262,23 @@ def admix_grm(
     return G1, G2, G12
 
 
-def admix_ld(dset: admix.Dataset):
+def admix_ld(dset: admix.Dataset, cov: np.ndarray = None):
     """Calculate ancestry specific LD matrices
 
     Parameters
     ----------
     dset: admix.Dataset
         dataset containing geno, lanc
-
+    cov : Optional[np.ndarray]
+        (n_indiv, n_cov) covariates of the genotypes, an all `1` intercept covariate will always be added
+        so there is no need to add the intercept in covariates.
     Returns
     -------
     K1: np.ndarray
         ancestry specific LD matrix for the 1st ancestry
-    - K2: np.ndarray
+    K2: np.ndarray
         ancestry specific LD matrix for the 2nd ancestry
-    - K12: np.ndarray
+    K12: np.ndarray
         ancestry specific LD matrix for cross term of the 1st and 2nd ancestry
     """
     assert dset.n_anc == 2, "admix_ld only works for 2 ancestries for now"
@@ -285,9 +287,19 @@ def admix_ld(dset: admix.Dataset):
     n_snp, n_indiv = apa.shape[0:2]
 
     a1, a2 = apa[:, :, 0], apa[:, :, 1]
+    if cov is None:
+        cov = np.ones((n_indiv, 1))
+    else:
+        cov = np.hstack([np.ones((n_indiv, 1)), cov])
+    # projection = I - X * (X'X)^-1 * X'
+    cov_proj_mat = np.eye(n_indiv) - np.linalg.multi_dot(
+        [cov, np.linalg.inv(np.dot(cov.T, cov)), cov.T]
+    )
+    a1 = np.dot(a1, cov_proj_mat)
+    a2 = np.dot(a2, cov_proj_mat)
     # center with row mean
-    a1 -= a1.mean(axis=1, keepdims=True)
-    a2 -= a2.mean(axis=1, keepdims=True)
+    # a1 -= a1.mean(axis=1, keepdims=True)
+    # a2 -= a2.mean(axis=1, keepdims=True)
     ld1 = np.dot(a1, a1.T) / n_indiv
     ld2 = np.dot(a2, a2.T) / n_indiv
     ld12 = np.dot(a1, a2.T) / n_indiv
