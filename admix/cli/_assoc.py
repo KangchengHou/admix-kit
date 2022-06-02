@@ -1,6 +1,6 @@
 import admix
 import pandas as pd
-from typing import Union, List
+from typing import Union, List, Optional
 from admix import logger
 from ._utils import log_params
 
@@ -8,13 +8,12 @@ from ._utils import log_params
 def assoc(
     pfile: str,
     pheno: str,
-    pheno_col: str,
     out: str,
-    covar: str = None,
+    pheno_col: Optional[str] = None,
+    covar: Optional[str] = None,
     method: Union[str, List[str]] = "ATT",
     family: str = "quant",
-    pheno_quantile_normalize: bool = False,
-    covar_quantile_normalize: bool = False,
+    quantile_normalize: bool = False,
     fast: bool = True,
 ):
     """
@@ -29,29 +28,27 @@ def assoc(
         Path to the phenotype file. The text file should be space delimited with header 
         and one individual per row. The first column should be the individual ID. Use 
         :code:`--pheno-col` to specify the column for the phenotype value 
-    pheno_col : str
+    pheno_col : Optional[str]
         Column name for the phenotype value. NaN should be encoded as "NA" and these 
         individuals will be removed in the analysis. Binary phenotype should be encoded 
         as 0 and 1, and :code:`--family binary` should be used.
-    covar: str
+    covar: Optional[str]
         Path to the covariate file. The text file should be space delimited with header 
         and one individual per row. The first column should be the individual ID, and 
         the remaining columns should be the covariate values. All columns will be used
         for the analysis. NaN should be encoded as "NA" and NaN will be imputed with 
         the mean of each covariate. Categorical covariates will be converted to one
-        hot encodings by the program.
+        hot encodings internally.
     out : str
         Path the output file. <out>.<method>.assoc will be created. 
     method : Union[str, List[str]]
         Method to use for association analysis (default ATT). Other methods include:
-        TRACTOR, ADM, SNP1. 
+        TRACTOR, ADM, SNP1, HET
     family : str
         Family to use for association analysis (default quant). One of :code:`quant` or 
         :code:`binary`.
-    pheno_quantile_normalize : bool
-        Whether to quantile normalize the phenotype.
-    covar_quantile_normalize : bool
-        Whether to quantile normalize each column of the covariates.
+    quantile_normalize : bool
+        Whether to quantile normalize the phenotype and every covariate.
     fast : bool
         Whether to use fast mode (default True).
 
@@ -67,8 +64,7 @@ def assoc(
             --pheno-col SIM0 \\
             --covar toy-admix.covar \\
             --method ATT,TRACTOR \\
-            --pheno-quantile-normalize True \\
-            --covar-quantile-normalize True \\
+            --quantile-normalize True \\
             --out toy-admix
     """
     log_params("assoc", locals())
@@ -77,10 +73,11 @@ def assoc(
     # TODO: infer block size using memory use in dask-pgen read
     dset = admix.io.read_dataset(pfile)
     admix.logger.info(f"{dset.n_snp} SNPs and {dset.n_indiv} individuals are loaded")
+    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)
+    if pheno_col is None:
+        pheno_col = df_pheno.columns[0]
 
-    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)[
-        [pheno_col]
-    ]
+    df_pheno = df_pheno[[pheno_col]]
     dset.append_indiv_info(df_pheno, force_update=True)
     # adding covariates
     if covar is not None:
@@ -117,9 +114,8 @@ def assoc(
     else:
         covar_values = None
 
-    if pheno_quantile_normalize:
+    if quantile_normalize:
         pheno_values = admix.data.quantile_normalize(pheno_values)
-    if covar_quantile_normalize:
         for i in range(covar_values.shape[1]):
             covar_values[:, i] = admix.data.quantile_normalize(covar_values[:, i])
 
