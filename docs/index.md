@@ -45,4 +45,5 @@ notebooks/dataset
 marginal-het
 notebooks/simulate-genotype
 notebooks/select-admixed
+notebooks/admix-ld
 ```

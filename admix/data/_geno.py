@@ -273,11 +273,11 @@ def admix_ld(dset: admix.Dataset):
     Returns
     -------
     K1: np.ndarray
-        ancestry specific GRM matrix for the 1st ancestry
+        ancestry specific LD matrix for the 1st ancestry
     - K2: np.ndarray
-        ancestry specific GRM matrix for the 2nd ancestry
+        ancestry specific LD matrix for the 2nd ancestry
     - K12: np.ndarray
-        ancestry specific GRM matrix for cross term of the 1st and 2nd ancestry
+        ancestry specific LD matrix for cross term of the 1st and 2nd ancestry
     """
     assert dset.n_anc == 2, "admix_ld only works for 2 ancestries for now"
     apa = dset.allele_per_anc()
