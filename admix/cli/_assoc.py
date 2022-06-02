@@ -113,7 +113,7 @@ def assoc(
         with open(snp_list, "r") as f:
             filter_snp_list = [line.strip() for line in f]
         n_filter_snp = len(filter_snp_list)
-        filter_snp_list = [snp for snp in filter_snp_list if snp in dset.snp.index]
+        filter_snp_list = dset.snp.index[dset.snp.index.isin(filter_snp_list)]
         if len(filter_snp_list) < n_filter_snp:
             admix.logger.warning(
                 f"{n_filter_snp - len(filter_snp_list)} SNPs in {snp_list} are not in the dataset"
