@@ -78,6 +78,7 @@ def assoc(
     dset = admix.io.read_dataset(pfile)
     admix.logger.info(f"{dset.n_snp} SNPs and {dset.n_indiv} individuals are loaded")
     df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)
+    df_pheno.index = df_pheno.index.astype(str)
     if pheno_col is None:
         pheno_col = df_pheno.columns[0]
 
@@ -88,6 +89,7 @@ def assoc(
         df_covar = pd.read_csv(
             covar, delim_whitespace=True, index_col=0, low_memory=False
         )
+        df_covar.index = df_covar.index.astype(str)
         dset.append_indiv_info(df_covar, force_update=True)
         covar_cols = df_covar.columns
         admix.logger.info(
