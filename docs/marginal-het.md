@@ -1,9 +1,10 @@
 # Evaluating heterogeneity at marginal effects
 
-Prepare the input data
+## Prepare the input data
 
 ```python
-df_pheno = pd.read_csv(f"{PHENO_DIR}/LDL-sample10pc.tsv", sep='\t', index_col=0)
+df_pheno = pd.read_csv(<pheno_path>, index_col=0)
+# index name should be #IID so that plink2 could recognize
 df_pheno.index.name = "#IID"
 df_pheno.iloc[:, [0]].to_csv(f"{out_dir}/pheno.tsv", sep='\t', na_rep='NA')
 df_pheno.iloc[:, 1:].to_csv(f"{out_dir}/covar.tsv", sep='\t', na_rep='NA')
