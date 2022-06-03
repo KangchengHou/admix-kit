@@ -431,6 +431,10 @@ def compare_pval(
     """
     if ax is None:
         ax = plt.gca()
+    if not isinstance(x_pval, np.ndarray):
+        x_pval = np.array(x_pval)
+    if not isinstance(y_pval, np.ndarray):
+        y_pval = np.array(y_pval)
     nonnan_idx = ~np.isnan(x_pval) & ~np.isnan(y_pval)
     x_pval, y_pval = -np.log10(x_pval[nonnan_idx]), -np.log10(y_pval[nonnan_idx])
     ax.scatter(x_pval, y_pval, s=s)
@@ -438,7 +442,7 @@ def compare_pval(
     ax.plot([0, lim], [0, lim], "k--", alpha=0.5, lw=1, label="y=x")
 
     # add a regression line
-    slope = np.linalg.lstsq(x_pval[:, None], y_pval[:, None])[0].item()
+    slope = np.linalg.lstsq(x_pval[:, None], y_pval[:, None], rcond=None)[0].item()
 
     ax.axline(
         (0, 0),
