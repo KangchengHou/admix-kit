@@ -10,7 +10,14 @@ from ._geno import allele_per_anc, af_per_anc, geno_mult_mat
 from ._geno import calc_snp_prior_var, impute_with_mean
 from ._geno import admix_ld, admix_grm
 
-from ._stats import quantile_normalize, pval2chisq, lambda_gc, zsc2pval, hdi
+from ._stats import (
+    quantile_normalize,
+    pval2chisq,
+    lambda_gc,
+    zsc2pval,
+    hdi,
+    deming_regression,
+)
 from ._lanc import Lanc, concat_lancs, lanc_impute_single_chrom, haplo2diplo
 from ._utils import (
     index_over_chunks,
