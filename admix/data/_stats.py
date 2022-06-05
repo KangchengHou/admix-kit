@@ -134,3 +134,48 @@ def quad_form(x, A):
 
 def chi2_to_logpval(chi2, dof=1):
     return scipy.stats.chi2.logsf(chi2, dof)
+
+
+def deming_regression(
+    x: np.ndarray,
+    y: np.ndarray,
+    sx: np.ndarray = None,
+    sy: np.ndarray = None,
+    no_intercept: bool = False,
+):
+    """Deming regression.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        x variables
+    y : np.ndarray
+        y variables
+    sx : np.ndarray, optional
+        standard errors of x variables, by default None
+    sy : np.ndarray, optional
+        standard errors of y variables, by default None
+    no_intercept : bool, optional
+        whether not to fit intercept or not, by default False
+
+    Returns
+    -------
+    If no_intercept is False:
+        no intercept is fit, return a single slope
+    If no_intercept is True:
+        intercept is fit, return slope and intercept
+    """
+
+    def no_intercept_func(B, x):
+        return B[0] * x
+
+    if no_intercept:
+        model = scipy.odr.Model(no_intercept_func)
+        odr = scipy.odr.ODR(scipy.odr.RealData(x, y, sx=sx, sy=sy), model, beta0=[1])
+        fit = odr.run()
+        return fit.beta[0]
+    else:
+        model = scipy.odr.unilinear
+        odr = scipy.odr.ODR(scipy.odr.RealData(x, y, sx=sx, sy=sy), model)
+        fit = odr.run()
+        return fit.beta[0], fit.beta[1]
