@@ -1,17 +1,17 @@
-from importlib.resources import path
 import warnings
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib import collections as mc
+from matplotlib import patheffects
+
+import numpy as np
 import pandas as pd
-import warnings
 from scipy import stats
+
+import admix
 from admix.data import quantile_normalize
 from admix.data import lambda_gc
-import seaborn as sns
-import admix
-from matplotlib import patheffects
-import matplotlib
+
+from typing import Dict
 
 
 def pca(
@@ -457,3 +457,82 @@ def compare_pval(
         ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
+
+
+def rg_posterior(
+    xs: np.ndarray,
+    dict_loglik: Dict[str, np.ndarray],
+    ci=[0.5, 0.95],
+    colors="black",
+    ax=None,
+):
+    """
+    Plot the posterior distribution
+
+    Parameters
+    ----------
+    xs: np.ndarray
+        list of x coordinates
+    dict_loglik: Dict[np.ndarray]
+        trait -> list of log-likelihoods
+    ci: Union[float, List[float]]
+        ci to plot, can be 1 float or two float
+    colors:
+        ["darkred"] + ["darkblue"] * (len(est) - 1)
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    assert len(ci) == 2, "Currently must plot 2 CIs"
+    assert ci[0] < ci[1], "Smaller CI should come first"
+    assert np.all([len(xs) == len(dict_loglik[t]) for t in dict_loglik])
+
+    trait_list = list(dict_loglik.keys())[::-1]
+    if isinstance(colors, list):
+        colors = colors[::-1]
+    dict_mode = {trait: xs[dict_loglik[trait].argmax()] for trait in trait_list}
+
+    dict_ci_err: Dict[int, Dict] = {ci[0]: dict(), ci[1]: dict()}
+
+    for trait in trait_list:
+        mode = dict_mode[trait]
+        for each_ci in ci:
+            hdi = admix.data.hdi(xs, dict_loglik[trait], ci=each_ci)
+            assert not isinstance(
+                hdi, list
+            ), f"HPDI for {trait} contains multiple intervals {hdi}, indicating lack of data. Please rerun this function after remove this trait."
+            dict_ci_err[each_ci][trait] = [mode - hdi[0], hdi[1] - mode]
+
+    mode = np.array([dict_mode[trait] for trait in trait_list])
+    lw_list = [2.5, 1.0]
+    for i, each_ci in enumerate(ci):
+        ci_low = [dict_ci_err[each_ci][trait][0] for trait in trait_list]
+        ci_high = [dict_ci_err[each_ci][trait][1] for trait in trait_list]
+        ax.errorbar(
+            y=np.arange(len(mode)),
+            x=mode,
+            xerr=(ci_low, ci_high),
+            fmt=" ",
+            lw=lw_list[i],
+            ecolor=colors,
+        )
+        if i == 0:
+            ax.scatter(y=np.arange(len(mode)), x=mode, s=11, color=colors)
+
+    for y in np.arange(len(mode)):
+        ax.axhline(y=y, color="gray", ls="dotted", lw=0.5, alpha=0.8)
+
+    ax.set_xlim(0, 1.1)
+    ax.set_xlabel("Highest probability density of $r_{admix}$")
+    ax.set_yticks(np.arange(len(mode)))
+    ax.set_ylim(-0.5, len(mode) - 0.5)
+    ax.set_yticklabels(
+        trait_list,
+        fontsize=8,
+    )
+
+    # annotation
+    ax.tick_params(left=False, pad=-1)
+
+    ax.axvline(x=1.0, color="red", ls="--", lw=0.8, alpha=0.4)
+    ax.set_title("Estimated $r_{admix}$", fontsize=10, x=0.5)

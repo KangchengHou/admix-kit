@@ -1,4 +1,4 @@
-from ._plot import lanc, admixture, manhattan, qq, compare_pval, pca, susie
+from ._plot import lanc, admixture, manhattan, qq, compare_pval, pca, rg_posterior
 
 
 __all__ = ["lanc", "admixture", "manhattan", "qq", "susie"]
