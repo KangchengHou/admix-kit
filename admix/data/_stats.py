@@ -179,3 +179,58 @@ def deming_regression(
         odr = scipy.odr.ODR(scipy.odr.RealData(x, y, sx=sx, sy=sy), model)
         fit = odr.run()
         return fit.beta[0], fit.beta[1]
+
+
+def meta_analysis(
+    effects: np.ndarray, se: np.ndarray, method="random", weights: np.ndarray = None
+) -> float:
+    """Meta analysis of effects
+
+    Parameters
+    ----------
+    effects : np.ndarray
+        effects array
+    se : np.ndarray
+        effects array
+    method : str, optional
+        method for meta-analysis, by default "random"
+    weights : np.ndarray, optional
+        weight for different effects, by default None
+
+    Returns
+    -------
+    float
+        single number summarizing the meta-analysis results
+    """
+    # From Omer Weissbrod
+    assert method in ["fixed", "random"]
+    d = effects
+    variances = se ** 2
+
+    # compute random-effects variance tau2
+    vwts = 1.0 / variances
+    fixedsumm = vwts.dot(d) / vwts.sum()
+    Q = np.sum(((d - fixedsumm) ** 2) / variances)
+    df = len(d) - 1
+    tau2 = np.maximum(0, (Q - df) / (vwts.sum() - vwts.dot(vwts) / vwts.sum()))
+
+    # defing weights
+    if weights is None:
+        if method == "fixed":
+            wt = 1.0 / variances
+        else:
+            wt = 1.0 / (variances + tau2)
+    else:
+        wt = weights
+
+    # compute summtest
+    summ = wt.dot(d) / wt.sum()
+    if method == "fixed":
+        varsum = np.sum(wt * wt * variances) / (np.sum(wt) ** 2)
+    else:
+        varsum = np.sum(wt * wt * (variances + tau2)) / (np.sum(wt) ** 2)
+
+    summary = summ
+    se_summary = np.sqrt(varsum)
+
+    return summary, se_summary

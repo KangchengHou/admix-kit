@@ -17,6 +17,7 @@ from ._stats import (
     zsc2pval,
     hdi,
     deming_regression,
+    meta_analysis,
 )
 from ._lanc import Lanc, concat_lancs, lanc_impute_single_chrom, haplo2diplo
 from ._utils import (
