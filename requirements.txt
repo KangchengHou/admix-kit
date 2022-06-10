@@ -13,8 +13,6 @@ xarray
 statsmodels
 structlog
 fire
-# TODO: remove this dependency
-pandas_plink
 git+https://github.com/bogdanlab/lamp-ld.git#egg=pylampld
 git+https://github.com/bogdanlab/tinygwas.git#egg=tinygwas
 git+https://github.com/KangchengHou/dask-pgen.git#egg=dask-pgen

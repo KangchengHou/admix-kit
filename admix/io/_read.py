@@ -124,44 +124,6 @@ def read_dataset(
     return dset
 
 
-def read_plink(path: str):
-    """read plink1 file and form xarray.Dataset
-
-    Parameters
-    ----------
-    path : str
-        path to plink file prefix without .bed/.bim/.fam
-    """
-    import xarray as xr
-    import pandas_plink
-
-    # count number of a0 as dosage, (A1 in usual PLINK bim file)
-    plink = pandas_plink.read_plink1_bin(
-        f"{path}.bed",
-        chunk=pandas_plink.Chunk(nsamples=None, nvariants=1024),
-        verbose=False,
-        ref="a0",
-    )
-
-    dset = xr.Dataset(
-        {
-            "geno": xr.DataArray(
-                data=plink.data,
-                coords={
-                    "indiv": (plink["fid"] + "_" + plink["iid"]).values.astype(str),
-                    "snp": plink["snp"].values.astype(str),
-                    "CHROM": ("snp", plink["chrom"].values.astype(int)),
-                    "POS": ("snp", plink["pos"].values.astype(int)),
-                    "REF": ("snp", plink["a1"].values.astype(str)),
-                    "ALT": ("snp", plink["a0"].values.astype(str)),
-                },
-                dims=["indiv", "snp"],
-            )
-        }
-    )
-
-    return dset
-
 
 def read_vcf(
     path: str, region: str = None, samples: List[str] = None
