@@ -29,8 +29,7 @@ dependencies:
   - scikit-learn>=0.23.1
   - scipy
   - sparse
-  - sphinx
-  - sphinx_rtd_theme
+  - sphinx==4.5
   - sphinx-gallery
   - tornado
   - toolz
@@ -38,7 +37,6 @@ dependencies:
   - pip
   - pip:
     - sphinx-copybutton
-    - pydata-sphinx-theme
     - furo
     - myst-parser
     - sphinx-inline-tabs

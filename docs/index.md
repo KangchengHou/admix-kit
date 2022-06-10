@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-## admix-kit: Toolkit for analyzing genetic data of admixed populations
+# admix-kit: Toolkit for analyzing genetic data of admixed populations
 `admix-kit` is a Python library to facilitate analyses and methods development of genetics 
 data from admixed populations.
 
@@ -23,9 +23,8 @@ pip install -r requirements.txt; pip install -e .
 
 Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](quickstart-cli.md).
 
-<!-- `admix-kit` has been used in the following projects:
-1. On powerful GWAS in admixed populations. [Nature Genetics (2021)](https://www.nature.com/articles/s41588-021-00953-5).
-2.  -->
+`admix-kit` has been used in the following projects:
+1. [On powerful GWAS in admixed populations](https://www.nature.com/articles/s41588-021-00953-5). Nature Genetics (2021).
 
 
 ```{toctree}

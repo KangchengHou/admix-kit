@@ -50,6 +50,8 @@ napoleon_google_docstring = False
 # autosummary options
 autosummary_generate = True
 
+myst_enable_extensions = ["dollarmath", "amsmath"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
