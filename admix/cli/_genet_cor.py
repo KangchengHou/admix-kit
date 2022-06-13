@@ -129,7 +129,7 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     Parameters
     ----------
     prefix : str
-        Prefix of the GRM files, any files with the pattern of <prefix>.<suffix>.K1.grm.bin
+        Prefix of the GRM files, any files with the pattern of <prefix>.*
         will be merged
     out_prefix : str
         Prefix of the output file
