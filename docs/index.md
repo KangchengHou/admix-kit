@@ -29,6 +29,7 @@ Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](qui
 
 ```{toctree}
 :hidden:
+install
 quickstart-cli
 notebooks/quickstart
 cli/index
