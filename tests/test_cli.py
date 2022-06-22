@@ -15,8 +15,6 @@ def test_assoc_quant():
     admix assoc \
         --pfile toy-admix \
         --pheno toy-admix.indiv_info \
-        --pheno-col PHENO \
-        --covar toy-admix.indiv_info \
         --method ATT,TRACTOR \
         --out toy-admix.assoc
 
@@ -30,14 +28,14 @@ def test_assoc_quant():
     ).values
     dset = dset[test_eq_idx]
     data_dir = admix.dataset.get_test_data_dir()
-
+    df_pheno = pd.read_csv(f"{data_dir}/toy-admix.indiv_info", sep="\t", index_col=0)
     with tempfile.TemporaryDirectory() as tmp_dir:
         with cd(tmp_dir):
+            df_pheno[["PHENO"]].to_csv("pheno.txt", sep="\t", na_rep="NA")
             cmds = [
                 "admix assoc",
                 f"--pfile {data_dir}/toy-admix",
-                f"--pheno {data_dir}/toy-admix.indiv_info",
-                "--pheno-col PHENO",
+                f"--pheno pheno.txt",
                 "--method ATT,TRACTOR",
                 "--out toy-admix",
                 "--family quant",
@@ -53,13 +51,11 @@ def test_assoc_quant():
     # check that after including covariates, the results are not the same
     with tempfile.TemporaryDirectory() as tmp_dir:
         with cd(tmp_dir):
-            dset.indiv[["PC1", "PC2"]].to_csv("toy-admix.covar", sep="\t")
+            df_pheno[["PHENO", "PC1", "PC2"]].to_csv("pheno.txt", sep="\t", na_rep="NA")
             cmds = [
                 "admix assoc",
                 f"--pfile {data_dir}/toy-admix",
-                f"--pheno {data_dir}/toy-admix.indiv_info",
-                "--pheno-col PHENO",
-                f"--covar toy-admix.covar",
+                f"--pheno pheno.txt",
                 "--method ATT,TRACTOR",
                 "--out toy-admix",
                 "--family quant",

@@ -76,7 +76,6 @@ def read_dataset(
             lanc_file = pfile + ".lanc"
     if lanc_file is not None:
         lanc = admix.io.read_lanc(lanc_file).dask(snp_chunk=snp_chunk)
-        admix.logger.info(f"admix.Dataset: read local ancestry from {lanc_file}")
     else:
         lanc = None
 
@@ -122,7 +121,6 @@ def read_dataset(
             right_index=True,
         )
     return dset
-
 
 
 def read_vcf(
