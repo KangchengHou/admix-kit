@@ -26,9 +26,10 @@ def assoc(
     pheno : str
         Path to the phenotype file. The text file should be space delimited with header 
         and one individual per row. 1st column: individual ID. 2nd column: phenotype 
-        values. NaN should be encoded as "NA" and these individuals will be removed in 
-        the analysis. Binary phenotype should be encoded as 0 and 1, and 
-        :code:`--family binary` should be used. 3nd - nth columns: covariates. All 
+        values. 3rd - nth columns: covariates. NaN should be encoded as "NA" and these 
+        individuals will be removed in the analysis. 
+        Binary phenotype should be encoded as 0 and 1, and 
+        :code:`--family binary` should be used.  All 
         columns will be used for the analysis. NaN should be encoded as "NA" and NaN 
         will be imputed with the mean of each covariate. Categorical covariates will be 
         converted to one hot encodings internally.
@@ -41,7 +42,9 @@ def assoc(
         Family to use for association analysis (default quant). One of :code:`quant` or 
         :code:`binary`.
     quantile_normalize : bool
-        Whether to quantile normalize the phenotype and every covariate.
+        Whether to quantile normalize the phenotype and every covariate. When 
+        :code:`--family binary` is used, quantile normalization will only be applied
+        to covariates.
     snp_list : str
         Path to the SNP list file. Each line should be a SNP ID. Only SNPs in the
         list will be used for the analysis.
@@ -117,7 +120,8 @@ def assoc(
         covar_values = None
 
     if quantile_normalize:
-        pheno_values = admix.data.quantile_normalize(pheno_values)
+        if family == "quant":
+            pheno_values = admix.data.quantile_normalize(pheno_values)
         if covar_values is not None:
             for i in range(covar_values.shape[1]):
                 covar_values[:, i] = admix.data.quantile_normalize(covar_values[:, i])
