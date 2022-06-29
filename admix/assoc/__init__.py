@@ -302,8 +302,8 @@ def marginal(
         phenotype (n_snp, )
     n_anc : int
         number of ancestral populations, if not specified, inferred from lanc
-    cov : List[str], optional
-        Covariate matrix, by default None
+    cov : np.ndarray, optional
+        Covariate matrix, by default None. Do NOT include `1` intercept
     method : str, optional
         methods used for association testing, by default "ATT"
     family : str, optional
@@ -437,6 +437,7 @@ def marginal(
         var_size = n_anc
         var_names = [f"G{i + 1}" for i in range(n_anc)]
         test_vars = [i for i in range(n_anc)]
+
     elif method == "ADM":
         # test local ancestry
         var = da.empty((n_indiv, n_snp * (n_anc - 1)))
@@ -445,6 +446,7 @@ def marginal(
         var_size = n_anc - 1
         var_names = [f"L{i + 1}" for i in range(n_anc - 1)]
         test_vars = [i for i in range(n_anc - 1)]
+
     elif method == "HET":
         allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
             0, 1
@@ -457,6 +459,7 @@ def marginal(
         var_size = n_anc
         var_names = [f"G{i + 1}" for i in range(n_anc)]
         test_vars = [i for i in range(n_anc)]
+
     else:
         raise NotImplementedError
 
