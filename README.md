@@ -11,7 +11,4 @@
 - [Quick start (Python)](https://kangchenghou.github.io/admix-kit/notebooks/quickstart.html)
 - [Quick start (CLI)](https://kangchenghou.github.io/admix-kit/quickstart-cli.html)
 - [Introduction of `admix.Dataset`](https://kangchenghou.github.io/admix-kit/notebooks/dataset.html)
-- [Full documentation](https://kangchenghou.github.io/admix-kit/index.html) 
-
-
-
+- [Full documentation](https://kangchenghou.github.io/admix-kit/index.html)
