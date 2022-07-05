@@ -1,6 +1,5 @@
 import numpy as np
 from typing import List
-from pylampld import LampLD
 import admix
 
 """
@@ -29,6 +28,7 @@ def lanc_single_chrom(
         number of prototypes used in lampld, by default 6
     window_size : int, optional
     """
+    from pylampld import LampLD
 
     assert method in ["lampld"]
     assert len(sample_dset.snp.CHROM.unique()), "Datasets are not of single chromosome"
