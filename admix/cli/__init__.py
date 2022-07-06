@@ -19,10 +19,11 @@ from ._plot import plot_pca
 from ._genet_cor import (
     admix_grm,
     admix_grm_merge,
+    genet_cor,
     admix_grm_rho,
     estimate_genetic_cor,
-    summarize_genetic_cor,
-    meta_analyze_genetic_cor,
+    summarize_genet_cor,
+    meta_analyze_genet_cor,
 )
 
 

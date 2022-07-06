@@ -223,8 +223,269 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     )
 
 
+def genet_cor(
+    pheno: str,
+    grm_prefix: str,
+    out_dir: str,
+    rg_grid=np.linspace(0, 1.0, 21),
+    quantile_normalize: bool = True,
+    n_thread: int = 2,
+):
+    """Estimate genetic correlation
+
+    Parameters
+    ----------
+    pheno : str
+        phenotype file, the 1st column contains ID, 2nd column contains phenotype, and
+        the rest of columns are covariates.
+    grm_prefix : str
+        folder containing GRM files
+    out_dir : str
+        folder to store the output files
+    rg_grid : list, optional
+        List of rg values to grid search, by default np.linspace(0, 1.0, 21)
+    quantile_normalize: bool
+        whether to perform quantile normalization for both phenotype and each column of covariates
+    n_thread : int, optional
+        number of threads, by default 2
+    """
+    log_params("genet-cor", locals())
+
+    ## compile phenotype and covariates
+    df_pheno = pd.read_csv(pheno, sep="\t", index_col=0)
+    df_pheno.index = df_pheno.index.astype(str)
+
+    # subset for individuals with non-nan value in df_trait
+    trait_col = df_pheno.columns[0]
+    covar_cols = df_pheno.columns[1:]
+
+    # filter out individuals with missing phenotype
+    df_pheno = df_pheno[df_pheno[trait_col].notna()]
+
+    df_trait = df_pheno[[trait_col]].copy()
+    df_covar = df_pheno[covar_cols].copy()
+    df_covar = admix.data.convert_dummy(df_covar)
+    if quantile_normalize:
+        # perform quantile normalization
+        for col in df_trait.columns:
+            df_trait[col] = admix.data.quantile_normalize(df_trait[col])
+
+        for col in df_covar.columns:
+            df_covar[col] = admix.data.quantile_normalize(df_covar[col])
+
+    # fill na with column mean
+    df_covar.fillna(df_covar.mean(), inplace=True)
+
+    df_id = pd.DataFrame(
+        {"FID": df_trait.index.values, "IID": df_trait.index.values},
+        index=df_trait.index.values,
+    )
+    df_trait = pd.merge(df_id, df_trait, left_index=True, right_index=True)
+    df_covar = pd.merge(df_id, df_covar, left_index=True, right_index=True)
+
+    ## load grm
+    K1, df_id1, n_snps1 = admix.tools.gcta.read_grm(grm_prefix + ".K1")
+    K2, df_id2, n_snps2 = admix.tools.gcta.read_grm(grm_prefix + ".K2")
+    assert df_id1.equals(df_id2)
+    assert np.allclose(n_snps1, n_snps2)
+    df_id = df_id1
+    n_snps = n_snps1
+
+    os.makedirs(out_dir, exist_ok=True)
+    for rg in tqdm(rg_grid):
+        K = K1 + K2 * rg
+
+        grm = os.path.join(out_dir, f"rg{int(rg * 100)}")
+        admix.tools.gcta.write_grm(
+            grm,
+            K=K,
+            df_id=df_id,
+            n_snps=n_snps,
+        )
+        admix.tools.gcta.reml(
+            grm_path=grm,
+            df_pheno=df_trait,
+            df_covar=df_covar,
+            out_prefix=os.path.join(out_dir, f"rg{int(rg * 100)}"),
+            n_thread=n_thread,
+            est_fix=True,
+        )
+
+
+def summarize_genet_cor(
+    est_dir: str,
+    out_prefix: str,
+    weight_file: str = None,
+    freq_file: str = None,
+    scale_factor: float = None,
+    freq_col: str = "FREQ",
+    index_col: str = "snp",
+):
+    """Summarize the results of genetic correlation analysis.
+
+    Parameters
+    ----------
+    est_dir : str
+        Estimation directory, containing rho<rho>.hsq, rho<rho>.log
+    out_prefix : str
+        output prefix
+    weight_file: str
+        weight_file specifying the prior variance file (<grm_prefix>.weight.tsv),
+    freq_file: str
+        frequency file (dataset *.snp_info files)
+    scale_factor: float
+        rather calculating the scale factor from `weight_file` and `freq_file` from
+        scratch, specify the scale factor. This scale factor be pre-computed from
+        admix.tools.gcta.calculate_hsq_scale
+    freq_col: str
+        column name for frequency in freq_file
+    index_col: str
+        column name for index in freq_file
+
+    Returns
+    -------
+    Log-likelihood curve for different rho: <out_prefix>.loglkl.txt
+    Summarization file: <out_prefix>.summary.json. This file contains
+        - poterior mode
+        - highest posterior density interval (50% / 95%)
+        - heritability (if grm_prefix is provided)
+
+    Notes
+    -----
+    If `weight_file` and `freq_file` are provided, heritability at rg = 1
+    (using rho100.hsq) will be estimated.
+    """
+
+    log_params("summarize-genet-cor", locals())
+
+    rg_list = np.array(
+        sorted(
+            [
+                int(os.path.basename(p).split(".")[0][2:])
+                for p in glob.glob(os.path.join(est_dir, "rg*.hsq"))
+            ]
+        )
+    )
+    admix.logger.info(f"rg={rg_list}")
+    # read log-likelihood curve
+    n_indiv = None
+    loglkl_list = []
+    for rg in rg_list:
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rg{rg}"))
+        if n_indiv is None:
+            n_indiv = dict_reml["n"]
+        else:
+            assert (
+                n_indiv == dict_reml["n"]
+            ), f"n_indiv={dict_reml['n']} from r={rg} different from previous one {n_indiv}"
+        loglkl_list.append(dict_reml["loglik"])
+
+    # interpolate
+    rg_list = rg_list / 100
+
+    # write raw estimation file
+    pd.DataFrame({"rg": rg_list, "loglkl": loglkl_list}).to_csv(
+        out_prefix + ".loglkl.txt", sep="\t", index=False
+    )
+    admix.logger.info(f"Log-likehood curves written to {out_prefix}.loglkl.txt")
+
+    # summarize results
+    assert rg_list[-1] == 1, "r=1 (r.hsq) should be included"
+    dense_rg_list = np.linspace(min(rg_list), max(rg_list), 1001)
+    dense_loglkl_list = CubicSpline(rg_list, loglkl_list)(dense_rg_list)
+
+    dict_summary = {
+        "n": n_indiv,
+        "rg_mode": dense_rg_list[dense_loglkl_list.argmax()],
+        "rg_hpdi(50%)": admix.data.hdi(dense_rg_list, dense_loglkl_list, ci=0.5),
+        "rg_hpdi(95%)": admix.data.hdi(dense_rg_list, dense_loglkl_list, ci=0.95),
+        "rg=1_pval": stats.chi2.sf(
+            (dense_loglkl_list.max() - dense_loglkl_list[-1]) * 2, df=1
+        ),
+    }
+
+    assert (weight_file is None) == (
+        freq_file is None
+    ), "weight_file and freq_file should be provided together"
+
+    if (weight_file is not None) and (freq_file is not None):
+        scale_factor = admix.tools.gcta.calculate_hsq_scale(
+            weight_file=weight_file,
+            freq_file=freq_file,
+            freq_col=freq_col,
+            index_col=index_col,
+        )
+        admix.logger.info(f"Computed hsq scale factor = {scale_factor:.3g}")
+
+    if scale_factor is not None:
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rg100"))
+        est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
+            dict_reml, scale_factor=scale_factor
+        )
+        est_hsq_stderr = np.sqrt(est_hsq_var)
+        dict_summary["hsq_est"] = est_hsq
+        dict_summary["hsq_stderr"] = est_hsq_stderr
+
+    # write summary
+    with open(out_prefix + ".summary.json", "w") as f:
+        json.dump(dict_summary, f, indent=4)
+    admix.logger.info(f"Summary written to {out_prefix}.summary.json")
+
+
+def meta_analyze_genet_cor(loglkl_files):
+    """Meta-analyze the results of genetic correlation analysis.
+
+    Parameters
+    ----------
+    loglkl_files : str
+        file patterns of log-likelihood curve files
+    """
+
+    loglkl_files = glob.glob(loglkl_files)
+
+    rg_list = None
+    total_dense_loglik: np.ndarray = 0
+
+    for f in loglkl_files:
+        df_loglkl = pd.read_csv(f, sep="\t")
+        if rg_list is None:
+            rg_list = df_loglkl["rg"].values
+            dense_rg_list = np.linspace(min(rg_list), max(rg_list), 1001)
+        else:
+            assert np.all(rg_list == df_loglkl["rg"].values)
+
+        total_dense_loglik += CubicSpline(rg_list, df_loglkl["loglkl"].values)(
+            dense_rg_list
+        )
+
+    rg_mode = dense_rg_list[total_dense_loglik.argmax()]
+
+    pval_rg_1 = stats.chi2.sf(
+        (total_dense_loglik.max() - total_dense_loglik[-1]) * 2, df=1
+    )
+
+    print(f"Meta-analysis results across {len(loglkl_files)} files")
+    print("-" * 37)
+    print(f"rg mode  = {rg_mode:4g}")
+    for ci in [0.5, 0.95]:
+        rg_hpdi = admix.data.hdi(dense_rg_list, total_dense_loglik, ci=ci)
+        if isinstance(rg_hpdi, List):
+            intervals = [f"[{i[0]:.4g}, {i[1]:.4g}]" for i in rg_hpdi]
+            admix.logger.warning(
+                f"Multiple intervals for ci={ci}, indicating some issues of model fit."
+                " Please inspect log-liklihood curves for each trait."
+            )
+            print(f"{ci * 100:g}% HPDI = {' '.join(intervals)}")
+        else:
+            assert len(rg_hpdi) == 2
+            print(f"{ci * 100:g}% HPDI = [{rg_hpdi[0]:.4g}, {rg_hpdi[1]:.4g}]")
+    print(f"Null (rg = 1) p-value: {pval_rg_1:.4g}")
+
+
 def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -> None:
     """
+    DEPRECATED. Will be removed in future versions.
+
     Build the GRM for a given rho list
 
     Parameters
@@ -267,6 +528,7 @@ def estimate_genetic_cor(
     n_thread: int = 2,
 ):
     """
+    DEPRECATED. Will be removed in future versions.
     Estimate genetic correlation from a set of GRM files (with different rho values)
 
     Parameters
@@ -348,173 +610,3 @@ def estimate_genetic_cor(
                 n_thread=n_thread,
                 est_fix=True,
             )
-
-
-def summarize_genetic_cor(
-    est_dir: str,
-    out_prefix: str,
-    weight_file: str = None,
-    freq_file: str = None,
-    scale_factor: float = None,
-    freq_col: str = "FREQ",
-    index_col: str = "snp",
-):
-    """Summarize the results of genetic correlation analysis.
-
-    Parameters
-    ----------
-    est_dir : str
-        Estimation directory, containing rho<rho>.hsq, rho<rho>.log
-    out_prefix : str
-        output prefix
-    weight_file: str
-        weight_file specifying the prior variance file (<grm_prefix>.weight.tsv),
-    freq_file: str
-        frequency file (dataset *.snp_info files)
-    scale_factor: float
-        rather calculating the scale factor from `weight_file` and `freq_file` from
-        scratch, specify the scale factor. This scale factor be pre-computed from
-        admix.tools.gcta.calculate_hsq_scale
-    freq_col: str
-        column name for frequency in freq_file
-    index_col: str
-        column name for index in freq_file
-
-    Returns
-    -------
-    Log-likelihood curve for different rho: <out_prefix>.loglkl.txt
-    Summarization file: <out_prefix>.summary.json. This file contains
-        - poterior mode
-        - highest posterior density interval (50% / 95%)
-        - heritability (if grm_prefix is provided)
-
-    Notes
-    -----
-    If `weight_file` and `freq_file` are provided, heritability at rho = 1
-    (using rho100.hsq) will be estimated.
-    """
-
-    log_params("summarize-genetic-cor", locals())
-
-    rho_list = np.array(
-        sorted(
-            [
-                int(os.path.basename(p).split(".")[0][3:])
-                for p in glob.glob(os.path.join(est_dir, "rho*.hsq"))
-            ]
-        )
-    )
-
-    # read log-likelihood curve
-    n_indiv = None
-    loglkl_list = []
-    for rho in rho_list:
-        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho{rho}"))
-        if n_indiv is None:
-            n_indiv = dict_reml["n"]
-        else:
-            assert (
-                n_indiv == dict_reml["n"]
-            ), f"n_indiv={dict_reml['n']} from rho={rho} different from previous one {n_indiv}"
-        loglkl_list.append(dict_reml["loglik"])
-
-    # interpolate
-    rho_list = rho_list / 100
-
-    # write raw estimation file
-    pd.DataFrame({"rg": rho_list, "loglkl": loglkl_list}).to_csv(
-        out_prefix + ".loglkl.txt", sep="\t", index=False
-    )
-    admix.logger.info(f"Log-likehood curves written to {out_prefix}.loglkl.txt")
-
-    # summarize results
-    assert rho_list[-1] == 1, "rho=1 (rho100.hsq) should be included"
-    dense_rho_list = np.linspace(min(rho_list), max(rho_list), 1001)
-    dense_loglkl_list = CubicSpline(rho_list, loglkl_list)(dense_rho_list)
-
-    dict_summary = {
-        "n": n_indiv,
-        "rg_mode": dense_rho_list[dense_loglkl_list.argmax()],
-        "rg_hpdi(50%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.5),
-        "rg_hpdi(95%)": admix.data.hdi(dense_rho_list, dense_loglkl_list, ci=0.95),
-        "rg=1_pval": stats.chi2.sf(
-            (dense_loglkl_list.max() - dense_loglkl_list[-1]) * 2, df=1
-        ),
-    }
-
-    assert (weight_file is None) == (
-        freq_file is None
-    ), "weight_file and freq_file should be provided together"
-
-    if (weight_file is not None) and (freq_file is not None):
-        scale_factor = admix.tools.gcta.calculate_hsq_scale(
-            weight_file=weight_file,
-            freq_file=freq_file,
-            freq_col=freq_col,
-            index_col=index_col,
-        )
-        admix.logger.info(f"Computed hsq scale factor = {scale_factor:.3g}")
-
-    if scale_factor is not None:
-        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rho100"))
-        est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
-            dict_reml, scale_factor=scale_factor
-        )
-        est_hsq_stderr = np.sqrt(est_hsq_var)
-        dict_summary["hsq_est"] = est_hsq
-        dict_summary["hsq_stderr"] = est_hsq_stderr
-
-    # write summary
-    with open(out_prefix + ".summary.json", "w") as f:
-        json.dump(dict_summary, f, indent=4)
-    admix.logger.info(f"Summary written to {out_prefix}.summary.json")
-
-
-def meta_analyze_genetic_cor(loglkl_files):
-    """Meta-analyze the results of genetic correlation analysis.
-
-    Parameters
-    ----------
-    loglkl_files : str
-        file patterns of log-likelihood curve files
-    """
-
-    loglkl_files = glob.glob(loglkl_files)
-
-    rg_list = None
-    total_dense_loglik: np.ndarray = 0
-
-    for f in loglkl_files:
-        df_loglkl = pd.read_csv(f, sep="\t")
-        if rg_list is None:
-            rg_list = df_loglkl["rg"].values
-            dense_rg_list = np.linspace(min(rg_list), max(rg_list), 1001)
-        else:
-            assert np.all(rg_list == df_loglkl["rg"].values)
-
-        total_dense_loglik += CubicSpline(rg_list, df_loglkl["loglkl"].values)(
-            dense_rg_list
-        )
-
-    rg_mode = dense_rg_list[total_dense_loglik.argmax()]
-
-    pval_rg_1 = stats.chi2.sf(
-        (total_dense_loglik.max() - total_dense_loglik[-1]) * 2, df=1
-    )
-
-    print(f"Meta-analysis results across {len(loglkl_files)} files")
-    print("-" * 37)
-    print(f"rg mode  = {rg_mode:4g}")
-    for ci in [0.5, 0.95]:
-        rg_hpdi = admix.data.hdi(dense_rg_list, total_dense_loglik, ci=ci)
-        if isinstance(rg_hpdi, List):
-            intervals = [f"[{i[0]:.4g}, {i[1]:.4g}]" for i in rg_hpdi]
-            admix.logger.warning(
-                f"Multiple intervals for ci={ci}, indicating some issues of model fit."
-                " Please inspect log-liklihood curves for each trait."
-            )
-            print(f"{ci * 100:g}% HPDI = {' '.join(intervals)}")
-        else:
-            assert len(rg_hpdi) == 2
-            print(f"{ci * 100:g}% HPDI = [{rg_hpdi[0]:.4g}, {rg_hpdi[1]:.4g}]")
-    print(f"Null (rg = 1) p-value: {pval_rg_1:.4g}")
