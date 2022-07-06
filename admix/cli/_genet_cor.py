@@ -61,6 +61,7 @@ def admix_grm(
     her_model="mafukb",
     freq_cols=["LANC_FREQ1", "LANC_FREQ2"],
     snp_chunk_size: int = 256,
+    snp_list: str = None,
 ) -> None:
     """
     Calculate the admix GRM for a given pfile
@@ -82,6 +83,9 @@ def admix_grm(
     snp_chunk_size : int, optional
         Number of SNPs to read at a time, by default 256
         This can be tuned to reduce memory usage
+    snp_list : str, optional
+        Path to a file containing a list of SNPs to use. Each line should be a SNP ID.
+        Only SNPs in the list will be used for the analysis. By default None
 
     Returns
     -------
@@ -94,12 +98,25 @@ def admix_grm(
     dset = admix.io.read_dataset(pfile=pfile, snp_chunk=snp_chunk_size)
     assert dset.n_anc == 2, "Currently only 2-way admixture is supported"
 
+    # filter for SNPs
+    if snp_list is not None:
+        with open(snp_list, "r") as f:
+            filter_snp_list = [line.strip() for line in f]
+        n_filter_snp = len(filter_snp_list)
+        filter_snp_list = dset.snp.index[dset.snp.index.isin(filter_snp_list)]
+        if len(filter_snp_list) < n_filter_snp:
+            admix.logger.warning(
+                f"{n_filter_snp - len(filter_snp_list)} SNPs in {snp_list} are not in the dataset"
+            )
+        dset = dset[filter_snp_list]
+
     snp_subset = np.where(
         dset.snp[freq_cols[0]].between(maf_cutoff, 1 - maf_cutoff)
         & dset.snp[freq_cols[1]].between(maf_cutoff, 1 - maf_cutoff)
     )[0]
 
     dset = dset[snp_subset]
+
     dset.snp["PRIOR_VAR"] = admix.data.calc_snp_prior_var(dset.snp, her_model=her_model)
 
     G1, G2, G12 = admix.data.admix_grm(
