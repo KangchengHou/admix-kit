@@ -79,22 +79,13 @@ admix admix-grm-merge \
 ```
 This step will generate `${out_dir}/admix-grm/merged.[grm.bin|grm.id|grm.n|weight.tsv]` files.
 
-## Step 3: calculating the GRM ($\mathbf{K}_1 + r_\text{admix} \mathbf{K}_2)$ at different $r_\text{admix}$ values
+## Step 3: calculating the GRM ($\mathbf{K}_1 + r_\text{admix} \mathbf{K}_2)$ at different $r_\text{admix}$ values and estimating log-likelihood at different $r_\text{admix}$ values
 
 ```bash
-admix admix-grm-rho \
-    --prefix ${out_dir}/admix-grm/merged \
-    --out-folder ${out_dir}/admix-grm/rgrid
-```
-
-## Step 4: estimating log-likelihood at different $r_\text{admix}$ values
-
-```bash
-mkdir -p ${out_dir}/estimate/${trait}
-admix estimate-genetic-cor \
-    --pheno ${trait}.txt \
-    --out-dir ${out_dir}/estimate/${trait} \
-    --grm-dir ${out_dir}/admix-grm/rgrid
+admix genet-cor \
+    --pheno ${trait}.txt
+    --grm-prefix ${out_dir}/admix-grm/merged \
+    --out-dir ${out_dir}/estimate/${trait}
 ```
 
 ## Reference
@@ -102,6 +93,5 @@ admix estimate-genetic-cor \
 ```{eval-rst}
 .. autofunction:: admix.cli.admix_grm
 .. autofunction:: admix.cli.admix_grm_merge
-.. autofunction:: admix.cli.admix_grm_rho
-.. autofunction:: admix.cli.estimate_genetic_cor
+.. autofunction:: admix.cli.genet_cor
 ```
