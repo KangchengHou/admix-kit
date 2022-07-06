@@ -36,6 +36,10 @@ OUT_DIR=/path/to/imputed
 zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > \
     ${OUT_DIR}/chr${chrom}.snplist
 
+# NOTE: if you don't have a .info.gz file
+# you can replace the '--extract ' command with
+# --extract-if-info "R2>0.8" in calling plink2
+
 # convert to PLINK2 format
 plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
     --extract ${OUT_DIR}/chr${chrom}.snplist \
@@ -51,7 +55,8 @@ plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
 plink2 --vcf ${vcf} --make-pgen --out ${out_plink}
 ```
 
-PLINK2 is also versatile for converting other formats into .pgen format. See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-genomics.org/plink/2.0/input#pgen).
+PLINK2 is also versatile for converting other formats into .pgen format. 
+See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-genomics.org/plink/2.0/input#pgen).
 
 ### Step 1.2 (optional): select HM3 SNPs
 Most genetic analysis (e.g., local ancestry inference) can be made more efficient by subsetting the data to HapMap3 SNPs.
@@ -61,6 +66,16 @@ admix subset-hapmap3 --pfile ${imputed_pfile} --out ${hm3_pfile} --build hg38
 
 ```{note}
 Make sure your source data is phased because it is essential for many analyses with admix-kit. Use `plink2 --pfile <pfile> --pgen-info` for basic check. If there is a line "Explicitly phased hardcalls present", that means phasing data is present.
+```
+
+### Step 1.3 (optional): merge all chromosomes into one file
+```bash
+(for i in {1..22}; do echo $"chr${i}"; done) > chr_list.txt
+plink2 \
+    --pmerge-list chr_list.txt \
+    --pmerge-list-dir ${pfile_dir} \
+    --make-pgen \
+    --out ${merged_pfile} 
 ```
 
 ## Step 2: Local ancestry inference
