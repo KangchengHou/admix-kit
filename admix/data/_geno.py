@@ -77,7 +77,7 @@ def geno_mult_mat(
     mat_dim: str = "snp",
     return_snp_var: bool = False,
 ) -> np.ndarray:
-    """Multiply genotype matrix with a matrix
+    """Multiply genotype matrix with another matrix
 
     Chunk of genotype matrix will be read sequentially along the SNP dimension,
     and multiplied with the `mat`.
@@ -93,7 +93,8 @@ def geno_mult_mat(
         Genotype matrix with shape (n_snp, n_indiv)
         geno.chunk contains the chunk of genotype matrix to be multiplied
     mat : np.ndarray
-        Matrix to be multiplied with the genotype matrix
+        Matrix to be multiplied with the genotype matrix. If the passed variable
+        is a vector, it will be transformed to be a 1-column matrix.
     impute_geno : bool
         Whether to impute missing values with the mean of the genotype matrix
     mat_dim : str
@@ -110,6 +111,8 @@ def geno_mult_mat(
     """
     assert mat_dim in ["snp", "indiv"], "mat_dim should be `snp` or `indiv`"
 
+    if mat.ndim == 1:
+        mat = mat[:, np.newaxis]
     # chunks over SNPs
     chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(chunks), 0, 0)
