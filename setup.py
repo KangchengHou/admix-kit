@@ -10,7 +10,7 @@ setup(
     name="admix-kit",
     version="0.1",
     description="Tool kits for analyzing genetics data of admixed population",
-    url="https://github.com/kangchenghou/admix-tools",
+    url="https://github.com/kangchenghou/admix-kit",
     author="Kangcheng Hou",
     author_email="kangchenghou@gmail.com",
     packages=["admix"],
