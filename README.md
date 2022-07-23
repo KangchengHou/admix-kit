@@ -4,7 +4,7 @@
 
 `admix-kit` is a Python library to facilitate analyses and methods development of genetics data from admixed populations.
 
-> `admix-kit` is currently in beta version and frequently updating, we welcome any [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues).   
+> `admix-kit` is currently in beta version and frequently updating. We welcome any [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues).   
 
 ## Installation
 ```bash
