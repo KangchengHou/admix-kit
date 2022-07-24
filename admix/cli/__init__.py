@@ -3,7 +3,7 @@
 import fire
 from ._assoc import assoc
 from ._geno import append_snp_info
-from ._utils import log_params, get_1kg_ref
+from ._utils import log_params, get_1kg_ref, select_admix_indiv
 from ._simulate import simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_count
 from ._ext import (
@@ -15,7 +15,7 @@ from ._ext import (
     pfile_merge_indiv,
     pfile_freq_within,
 )
-from ._plot import plot_pca
+from ._plot import plot_joint_pca
 from ._genet_cor import (
     admix_grm,
     admix_grm_merge,

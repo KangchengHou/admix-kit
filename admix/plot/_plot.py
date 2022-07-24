@@ -90,6 +90,56 @@ def pca(
         lh.set_sizes([30])
 
 
+def joint_pca(
+    df_pc, eigenval, x="PC1", y="PC2", sample_alpha=0.1, axes=None, figsize=(8.5, 4)
+):
+    """Joint PCA plot
+
+    Parameters
+    ----------
+    df_pc : pd.DataFrame
+        dataframe with PCA components
+    eigenval : np.ndarray
+        eigenvalues
+    """
+    new_axes = axes is None
+    if new_axes:
+        fig, axes = plt.subplots(figsize=figsize, dpi=150, ncols=2)
+
+    varexp = eigenval / eigenval.sum()
+
+    admix.plot.pca(
+        df_pc[df_pc.SUPERPOP != "SAMPLE"],
+        x=x,
+        y=y,
+        label_col="SUPERPOP",
+        ax=axes[0],
+    )
+    assert set([x, y]).issubset(
+        df_pc.columns
+    ), f"{x} and {y} must be in the columns of df_pc"
+
+    x_pos, y_pos = df_pc.columns.get_loc(x), df_pc.columns.get_loc(y)
+    xlabel = f"{x} ({varexp[x_pos] * 100:.2g}%)"
+    ylabel = f"{y} ({varexp[y_pos] * 100:.2g}%)"
+    axes[0].set_xlabel(xlabel)
+    axes[0].set_ylabel(ylabel)
+
+    admix.plot.pca(
+        df_pc,
+        x=x,
+        y=y,
+        label_col="SUPERPOP",
+        alpha={"SAMPLE": sample_alpha},
+        ax=axes[1],
+    )
+    axes[1].set_xlabel(xlabel)
+    axes[1].set_ylabel(ylabel)
+
+    if new_axes:
+        return fig, axes
+
+
 def qq(pval, label=None, ax=None, bootstrap_ci=False):
     """qq plot of p-values
 

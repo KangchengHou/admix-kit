@@ -1,10 +1,11 @@
 import admix
 import os
-from admix.utils import cd
 import subprocess
 import glob
 import shutil
 import pandas as pd
+import numpy as np
+from typing import Tuple
 
 
 def log_params(name, params):
@@ -73,7 +74,7 @@ def _process_genetic_map(root_dir, build):
         )
         raw_map = raw_map[[0, 3, 2]]
         raw_map.to_csv(
-            f"{root_dir}/metadata/genetic_map/{build}.chr{chrom}.tsv",
+            f"{root_dir}/metadata/genetic_map/chr{chrom}.tsv",
             sep="\t",
             index=False,
             header=False,
@@ -190,3 +191,87 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
 
     _process_sample_map(root_dir=dir)
     _process_genetic_map(root_dir=dir, build=build)
+
+
+def select_admix_indiv(
+    ref_pfile: str,
+    pca_prefix: str,
+    superpop1: str,
+    superpop2: str,
+    out: str,
+    exclude_pop1: str = None,
+    exclude_pop2: str = None,
+    n_pc: int = 4,
+    sample_t_range: Tuple[float, float] = (0.05, 0.95),
+    sample_dist_max: float = 1.5,
+):
+    """Select admixed individuals based on joint PCA analysis results of
+    (1) reference dataset (2) sample dataset
+
+    Parameters
+    ----------
+    ref_pfile : str
+        reference panel pfile prefix
+    pca_prefix : str
+        joint pca results prefix. {pca_prefix}.eigenvec, {pca_prefix}.eigenval
+        will be read
+    out : str
+        output prefix
+    superpop1 : str
+        superpopulation 1
+    superpop2 : str
+        superpopulation 2
+    exclude_pop1 : str, optional
+        exclude individuals from superpopulation 1, by default None
+    exclude_pop2 : str, optional
+        exclude individuals from superpopulation 2, by default None
+    """
+    log_params("select-admixed-indiv", locals())
+
+    df_pc, eigenval = admix.io.read_joint_pca(
+        ref_pfile=ref_pfile, pca_prefix=pca_prefix
+    )
+    pc_cols = [f"PC{i}" for i in range(1, n_pc + 1)]
+    pc_col_pos = [df_pc.columns.get_loc(col) for col in pc_cols]
+    pc_eigenval = eigenval[pc_col_pos]
+
+    df_sample_pc = df_pc[df_pc.SUPERPOP == "SAMPLE"]
+    df_anc1_pc = df_pc[df_pc.SUPERPOP == superpop1]
+    df_anc2_pc = df_pc[df_pc.SUPERPOP == superpop2]
+
+    if exclude_pop1 is not None:
+        df_anc1_pc = df_anc1_pc[~df_anc1_pc.POP.isin(exclude_pop1)]
+    if exclude_pop2 is not None:
+        df_anc2_pc = df_anc2_pc[~df_anc2_pc.POP.isin(exclude_pop2)]
+
+    df_sample_pc, df_anc1_pc, df_anc2_pc = (
+        df_sample_pc[pc_cols],
+        df_anc1_pc[pc_cols],
+        df_anc2_pc[pc_cols],
+    )
+
+    # prepare sample_pc, anc1_pc, anc2_pc
+    sample_dist, sample_t = admix.data.distance_to_refpop(
+        df_sample_pc, df_anc1_pc, df_anc2_pc, weight=np.sqrt(pc_eigenval)
+    )
+
+    selected_mask = (
+        (sample_t_range[0] < sample_t)
+        & (sample_t < sample_t_range[1])
+        & (sample_dist < sample_dist_max)
+    )
+    selected_indiv = df_sample_pc.index[selected_mask]
+    admix.logger.info(
+        f"{len(selected_indiv)}/{len(df_sample_pc)} selected to be admixed individuals."
+    )
+
+    df_plot = pd.concat([df_pc[df_pc.SUPERPOP != "SAMPLE"], df_pc.loc[selected_indiv]])
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(figsize=(8.5, 4), dpi=150, ncols=2)
+    admix.plot.joint_pca(df_pc=df_plot, eigenval=eigenval, axes=axes)
+    fig.tight_layout()
+    fig.savefig(f"{out}.png", bbox_inches="tight")
+    np.savetxt(f"{out}.indiv", selected_indiv, fmt="%s")
+    admix.logger.info(f"PCA plots saved to {out}.png.")
+    admix.logger.info(f"Selected individuals saved to {out}.indiv.")
