@@ -346,3 +346,43 @@ def read_rfmix(
         value_list.append(indiv_values.tolist())
 
     return admix.data.Lanc(breaks=break_list, values=value_list)
+
+
+def read_joint_pca(pca_prefix: str, ref_pfile: str):
+    """
+    Read joint PCA results.
+
+    Parameters
+    ----------
+    ref_pfile : str
+        reference panel pfile prefix
+    pca_prefix : str
+        joint pca results prefix. {pca_prefix}.eigenvec, {pca_prefix}.eigenval
+        will be read
+
+    Returns
+    -------
+    df_pca : pd.DataFrame
+        PCA results
+    eigenval : np.ndarray
+        eigenvalues
+    """
+    df_pca = (
+        pd.read_csv(f"{pca_prefix}.eigenvec", delim_whitespace=True)
+        .set_index("IID")
+        .drop(columns=["#FID"])
+    )
+
+    with open(f"{pca_prefix}.eigenval") as f:
+        eigenval = np.array([float(l.strip()) for l in f.readlines()])
+
+    df_pop = pd.read_csv(ref_pfile + ".psam", delim_whitespace=True, index_col=0)
+
+    df_pca["SUPERPOP"] = df_pop["SuperPop"].reindex(df_pca.index)
+    df_pca["POP"] = df_pop["Population"].reindex(df_pca.index)
+    df_pca["SUPERPOP"] = df_pca["SUPERPOP"].fillna("SAMPLE")
+    df_pca["POP"] = df_pca["POP"].fillna("SAMPLE")
+
+    # reorder SAMPLE to the bottom of the data frame
+    df_pca = pd.concat([df_pca[df_pca.POP != "SAMPLE"], df_pca[df_pca.POP == "SAMPLE"]])
+    return df_pca, eigenval

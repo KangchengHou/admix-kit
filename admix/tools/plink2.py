@@ -357,10 +357,7 @@ def subset(
     indiv_list: List = None,
 ):
 
-    cmds = [
-        f"--pfile {pfile}",
-        f"--make-pgen --out {out_prefix}",
-    ]
+    cmds = [f"--pfile {pfile}", f"--make-pgen --out {out_prefix}", "--memory 16000"]
 
     if snp_list is not None:
         snplist_path = out_prefix + ".admix-plink2-subset.snplist"

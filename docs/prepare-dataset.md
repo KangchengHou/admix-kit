@@ -32,17 +32,9 @@ Often we start with the imputed genotype from imputation server. We can filter b
 IN_DIR=/path/to/vcf
 OUT_DIR=/path/to/imputed
 
-# filter well-imputed SNPs
-zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > \
-    ${OUT_DIR}/chr${chrom}.snplist
-
-# NOTE: if you don't have a .info.gz file
-# you can replace the '--extract ' command with
-# --extract-if-info "R2>0.8" in calling plink2
-
 # convert to PLINK2 format
-plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
-    --extract ${OUT_DIR}/chr${chrom}.snplist \
+plink2 --vcf ${IN_DIR}/chr${chrom}.vcf.gz \
+    --extract-if-info "R2>0.8" \
     --rm-dup exclude-all \
     --snps-only \
     --maf 0.005 \
@@ -51,8 +43,14 @@ plink2 --vcf ${IN_DIR}/chr${chrom}.dose.vcf.gz \
     --memory 16000 \
     --out ${OUT_DIR}/chr${chrom}
 
-# (alternative) if your vcf file is already processed, use the following
-plink2 --vcf ${vcf} --make-pgen --out ${out_plink}
+# NOTE: -extract-if-info "R2>0.8" is to retain well-imputed SNPs
+# alternatively, if you R2 information in a .info.gz file
+# you can replace the '--extract-if-info' with
+# $ zcat ${IN_DIR}/chr${chrom}.info.gz | awk 'NR>1 {if($5>0.005 && $7>0.8) print $1}' > ${OUT_DIR}/chr${chrom}.snplist
+# and use plink2 --extract ${OUT_DIR}/chr${chrom}.snplist
+
+# if your vcf file is already processed, use the following
+# $ plink2 --vcf ${vcf} --make-pgen --out ${out_plink}
 ```
 
 PLINK2 is also versatile for converting other formats into .pgen format. 
@@ -75,8 +73,25 @@ plink2 \
     --pmerge-list chr_list.txt \
     --pmerge-list-dir ${pfile_dir} \
     --make-pgen \
-    --out ${merged_pfile} 
+    --out ${merged_pfile}
 ```
+
+### Step 1.4 (optional): perform joint PCA with 1kg reference panel and select admixed individuals based on PC
+```bash
+admix pfile-merge-indiv \
+    --pfile1 ${REF_DIR}/all_chr \
+    --pfile2 ${SAMPLE_HM3_DIR}/all_chr \
+    --out ${OUT_DIR}/merged
+
+plink2 --pfile ${OUT_DIR}/merged \
+    --pca approx \
+    --out ${OUT_DIR}/merged_pca
+```
+
+```{note}
+There are many 
+```
+
 
 ## Step 2: Local ancestry inference
 
