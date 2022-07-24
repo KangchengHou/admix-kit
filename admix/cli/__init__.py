@@ -3,7 +3,7 @@
 import fire
 from ._assoc import assoc
 from ._geno import append_snp_info
-from ._utils import log_params
+from ._utils import log_params, get_1kg_ref
 from ._simulate import simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_count
 from ._ext import (
