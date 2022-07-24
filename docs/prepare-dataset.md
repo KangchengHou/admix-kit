@@ -81,9 +81,11 @@ plink2 \
 ## Step 2: Local ancestry inference
 
 ```{note}
-We assume you already know which individuals corresponds to the admixed individuals that you want to perform local ancestry inference. If not, we recommend running a [SCOPE ADMIXTURE analysis](scope.md).
+There are many tools for local ancestry inference. 
+If you have not performed the local ancestry inference, we prepare a guideline to use RFmix for local ancestry inference ([see RFmix guideline](rfmix.md)).
+Otherwise, you can use the tool you like.
 ```
-There are many choices for local ancestry inference. We assume that you have performed the local ancestry. If you have not done so, we prepare a guideline to use RFmix for local ancestry inference ([see RFmix guideline](rfmix.md)).
+
 
 We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry. To convert the RFmix local ancestry into .lanc format, use the following command. This command can be applied to both imputed and hm3 data.
 
