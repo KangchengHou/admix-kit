@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 import dask.array as da
 import admix
@@ -433,92 +434,51 @@ def allele_per_anc(
     return res
 
 
-# def pca(
-#     dset: admix.Dataset,
-#     method: str = "grm",
-#     n_components: int = 10,
-#     n_power_iter: int = 4,
-#     inplace: bool = True,
-# ):
-#     """
-#     Calculate PCA of dataset
+def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
+    """Calculate PGS for each individual
 
-#     Parameters
-#     ----------
-#     dset: admix.Dataset
-#         Dataset to get PCA
-#     method: str
-#         Method to calculate PCA, "grm" or "randomized"
-#     n_components: int
-#         Number of components to keep
-#     n_power_iter: int
-#         Number of power iterations to use for randomized PCA
-#     inplace: bool
-#         whether to return a new dataset or modify the input dataset
-#     """
+    Parameters
+    ----------
+    dset: admix.Dataset
+        dataset object
+    df_weights: pd.DataFrame
+        weights for each individual
+    method: str
+        method to calculate PGS. Options are:
+        - "total": vanilla PGS
+        - "partial": partial PGS, calculate partial PGS for each local ancestry
 
-#     assert method in ["grm", "randomized"], "`method` should be 'grm' or 'randomized'"
-#     if method == "grm":
-#         if "grm" not in dset.data_vars:
-#             # calculate grm
-#             if inplace:
-#                 grm(dset, inplace=True)
-#                 grm_ = dset.data_vars["grm"]
-#             else:
-#                 grm_ = grm(dset, inplace=False)
-#         else:
-#             grm_ = dset.data_vars["grm"]
-#         # calculate pca
-#         u, s, v = da.linalg.svd(grm_)
-#         u, s, v = dask.compute(u, s, v)
-#         exp_var = (s ** 2) / n_indiv
-#         full_var = exp_var.sum()
-#         exp_var_ratio = exp_var / full_var
+    Returns
+    -------
+    np.ndarray
+        PGS for each individual
+        - method = "total": (n_indiv, )
+        - method = "partial": (n_indiv, n_anc)
+    """
+    assert method in [
+        "total",
+        "partial",
+    ], "method should be either 'total' or 'partial'"
+    assert np.all(
+        dset.snp.index == df_weights.index
+    ), "`dset` and `df_weights` should have exactly the same index"
 
-#         coords = u[:, :n_components] * s[:n_components]
-#         # TODO: unit test with gcta64
-#     elif method == "randomized":
-#         # n_indiv, n_snp = gn.shape
-#         # if copy:
-#         #     gn = gn.copy()
+    assert len(df_weights.columns) == 1, "`df_weights` should have only one column"
 
-#         # mean_ = gn.mean(axis=0)
-#         # std_ = gn.std(axis=0)
-#         # gn -= mean_
-#         # gn /= std_
-#         u, s, v = da.linalg.svd_compressed(
-#             dset, n_components=n_components, n_power_iter=n_power_iter
-#         )
+    if method == "total":
+        pgs = admix.data.geno_mult_mat(
+            dset.geno.sum(axis=2), df_weights.values
+        ).flatten()
+    elif method == "partial":
+        n_anc = dset.n_anc
+        pgs = np.zeros((dset.n_indiv, n_anc))
+        apa = dset.allele_per_anc()
+        for i_anc in range(n_anc):
+            pgs[:, i_anc] = admix.data.geno_mult_mat(
+                apa[:, :, i_anc], df_weights.values
+            ).flatten()
 
-#         # # calculate explained variance
-#         # exp_var = (s ** 2) / n_indiv
-#         # full_var = exp_var.sum()
-#         # exp_var_ratio = exp_var / full_var
+    else:
+        raise ValueError("method should be either 'total' or 'partial'")
 
-#         # coords = u[:, :n_components] * s[:n_components]
-
-#     # return coords
-
-
-# def pca(gn, n_components=10, copy=True):
-#     # standardize to mean 0 and variance 1
-#     # check inputs
-#         copy = copy if copy is not None else self.copy
-#         gn = asarray_ndim(gn, 2, copy=copy)
-#         if not gn.dtype.kind == 'f':
-#             gn = gn.astype('f2')
-
-#         # center
-#         gn -= self.mean_
-
-#         # scale
-#         gn /= self.std_
-
-#     u, s, v = da.linalg.svd_compressed(dset.geno.sum(axis=2).data, k=10, seed=1234)
-#     # calculate explained variance
-#     self.explained_variance_ = exp_var = (s ** 2) / n_samples
-#     full_var = np.var(x, axis=0).sum()
-#     self.explained_variance_ratio_ = exp_var / full_var
-#             # store components
-#     self.components_ = v
-#     return u, s, v
+    return pgs

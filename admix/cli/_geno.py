@@ -1,9 +1,10 @@
 import os
-from typing import List
+from typing import List, Dict
 import admix
 import pandas as pd
 import dapgen
 import numpy as np
+import dask.array as da
 from ._utils import log_params
 
 
@@ -108,3 +109,96 @@ def append_snp_info(
         out = pfile + ".snp_info"
 
     _append_to_file(out, df_info)
+
+
+def da_sum(mat: da.Array):
+    """Summation over a dask array to get individual-level sum
+
+    Parameters
+    ----------
+    mat : da.Array
+        dask array to sum over
+    """
+    chunks = mat.chunks[0]
+    indices = np.insert(np.cumsum(chunks), 0, 0)
+    mat_sum = np.zeros(mat.shape[1])
+    for i in range(len(indices) - 1):
+        start, stop = indices[i], indices[i + 1]
+        mat_sum += mat[start:stop, :].sum(axis=0).compute()
+    return mat_sum
+
+
+def calc_pgs(
+    plink_path: str,
+    weights_path: str,
+    out: str,
+    weight_col: str = "WEIGHT",
+):
+    """Calculate PGS from a weight file and a PLINK file.
+
+    Parameters
+    ----------
+    plink_path : str
+        Path to plink files. Format examples:
+          * /path/to/chr21.pgen
+          * /path/to/genotype/directory
+          * /path/to/file_list.txt # file_list.txt contains rows of file names
+    weights_path : str
+        path to PGS weights, containing CHROM, SNP, REF, ALT, WEIGHT columns
+    out : str
+        prefix of the output files.
+    weight_col : str, optional
+        column in 'weights_path' representing the weight, by default "WEIGHT"
+    """
+    log_params("calc-pgs", locals())
+    df_weights = pd.read_csv(weights_path, sep="\t")
+    pgen_files = dapgen.parse_plink_path(plink_path)
+    if not isinstance(pgen_files, list):
+        pgen_files = [pgen_files]
+    plink_prefix_list = [pgen.rsplit(".", 1)[0] for pgen in pgen_files]
+
+    df_snp_info: Dict = {"PLINK_SNP": [], "WEIGHTS_SNP": [], "WEIGHTS": []}
+    all_partial_pgs = 0.0
+    all_lanc = 0.0
+    indiv_list = None
+    all_n_snp = 0
+    for plink_prefix in plink_prefix_list:
+        dset = admix.io.read_dataset(plink_prefix)
+        assert dset.n_anc == 2, "Only 2-way admixture is currently supported"
+        if indiv_list is None:
+            indiv_list = dset.indiv.index
+        else:
+            assert indiv_list.equals(
+                dset.indiv.index
+            ), f"Indiv list in {plink_prefix} does not match with previous ones."
+        dset_idx, wgt_idx, flip = dapgen.align_snp(
+            df1=dset.snp[["CHROM", "POS", "REF", "ALT"]], df2=df_weights
+        )
+        dset_subset = dset[dset_idx]
+        admix.logger.info(f"# matched SNPs={len(wgt_idx)} for dset={plink_prefix}.")
+        tmp_df_weights = df_weights[[weight_col]].loc[wgt_idx, :] * flip.reshape(-1, 1)
+        tmp_df_weights.index = dset_idx
+
+        partial_pgs = admix.data.calc_pgs(
+            dset=dset_subset, df_weights=tmp_df_weights, method="partial"
+        )
+
+        df_snp_info["PLINK_SNP"].extend(dset_idx)
+        df_snp_info["WEIGHTS_SNP"].extend(wgt_idx)
+        df_snp_info["WEIGHTS"].extend(df_weights.loc[wgt_idx, weight_col].values * flip)
+        all_partial_pgs += partial_pgs
+        all_lanc += da_sum(dset_subset.lanc.sum(axis=2))
+        all_n_snp += dset_subset.n_snp
+
+    pd.DataFrame(df_snp_info).to_csv(out + ".snp_info.tsv", sep="\t", index=False)
+    pd.DataFrame(
+        {
+            "indiv": dset.indiv.index,
+            "PGS1": all_partial_pgs[:, 0],
+            "PGS2": all_partial_pgs[:, 1],
+            "PROP1": 1 - all_lanc / (all_n_snp * 2),
+            "PROP2": all_lanc / (all_n_snp * 2),
+        }
+    ).to_csv(out + ".pgs.tsv", sep="\t", index=False)
+    admix.logger.info(f"SNP information saved to {out}.snp_info.tsv")
+    admix.logger.info(f"PGS saved to {out}.pgs.tsv")

@@ -75,7 +75,9 @@ class Dataset(object):
                     if idx.step is not None:
                         assert idx.step > 0, f"Slice `{idx}` is not ordered."
                 elif isinstance(idx, np.ndarray):
-                    assert np.all(idx == np.sort(idx))
+                    assert np.all(
+                        idx == np.sort(idx)
+                    ), f"idx=`{idx}` is not ordered according to dset.snp.index"
                 else:
                     raise ValueError(
                         f"`{name}_idx` must be a slice or a numpy array of sorted integers."

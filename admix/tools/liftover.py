@@ -30,6 +30,9 @@ def run(df_chrom_pos: pd.DataFrame, chain: str, verbose: bool = False):
     index of df_chrom_pos and the corresponding positions
     SNP positions after the liftOver, unmapped SNPs are returned as -1
     """
+
+    df_chrom_pos = df_chrom_pos.copy()
+    df_chrom_pos.columns = ["CHROM", "POS"]
     bin_path = get_dependency("liftOver")
 
     assert chain in [
