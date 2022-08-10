@@ -435,7 +435,7 @@ def allele_per_anc(
     return res
 
 
-def calc_pgs_old(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
+def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
     """Calculate PGS for each individual
 
     Parameters
@@ -537,27 +537,30 @@ def calc_partial_pgs(
     ref_pgs = [[] for pop in ref_pops]
     # iterate over each individuals
     for indiv_i in tqdm(range(dset.n_indiv)):
-
+        indiv_ref_pgs = [0, 0]
         # pgs for sample individuals
         for haplo_i in range(2):
             geno = dset_geno[:, indiv_i, haplo_i]
             lanc = dset_lanc[:, indiv_i, haplo_i]
             for lanc_i in range(dset.n_anc):
-                sample_pgs[indiv_i, lanc_i] += (
-                    geno[lanc == lanc_i] * weights[lanc == lanc_i]
-                ).sum()
+                sample_pgs[indiv_i, lanc_i] += np.dot(
+                    geno[lanc == lanc_i], weights[lanc == lanc_i]
+                )
 
-        # pgs for reference individuals
+                # pgs for reference individuals
+                ref_geno = ref_geno_list[lanc_i][lanc == lanc_i, :, :]
+                if ref_geno.shape[0] > 0:
+                    ref_geno = ref_geno.reshape(ref_geno.shape[0], -1)
+                    s = np.dot(ref_weights[lanc == lanc_i], ref_geno)
+                else:
+                    s = np.zeros(ref_geno.shape[1] * 2)
+                indiv_ref_pgs[lanc_i] += s
+
         for lanc_i in range(dset.n_anc):
-            ref_geno = ref_geno_list[lanc_i][lanc == lanc_i, :, :]
-            if ref_geno.shape[0] > 0:
-                ref_geno = ref_geno.reshape(ref_geno.shape[0], -1)
-                s = np.dot(ref_weights[lanc == lanc_i], ref_geno)
-            else:
-                s = np.zeros(ref_geno.shape[1] * 2)
-            ref_pgs[lanc_i].append(s)
+            ref_pgs[lanc_i].append(indiv_ref_pgs[lanc_i])
 
-    # format ref_pgs
+    # format ref_pgs: for each ancestry, we have n_indiv x (n_ref_indiv x 2)
+    # each reference has 2 haplotypes
     ref_pgs = [
         pd.DataFrame(
             data=np.vstack(ref_pgs[i]),
