@@ -4,7 +4,8 @@ from tqdm import tqdm
 import dask.array as da
 import admix
 import dask
-from typing import Union, Tuple
+from typing import Union, Tuple, List
+import dapgen
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -434,7 +435,7 @@ def allele_per_anc(
     return res
 
 
-def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
+def calc_pgs_old(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
     """Calculate PGS for each individual
 
     Parameters
@@ -482,3 +483,94 @@ def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
         raise ValueError("method should be either 'total' or 'partial'")
 
     return pgs
+
+
+def calc_partial_pgs(
+    dset: admix.Dataset,
+    df_weights: pd.DataFrame,
+    dset_ref: admix.Dataset,
+    ref_pops: List[List[str]],
+    weight_col="WEIGHT",
+) -> pd.DataFrame:
+    """Calculate PGS for each individual
+
+    Parameters
+    ----------
+    dset: admix.Dataset
+        dataset object
+    df_weights: pd.DataFrame
+        weights for each individual
+    dset_ref: admix.Dataset
+        reference dataset object, use `dapgen.align_snp` to align the SNPs between
+        `dset` and `dset_ref`. `CHROM` and `POS` must match, with potential flips of
+        `REF` and `ALT` allele coding.
+    ref_pop: List[List[str]]
+        list of reference individual ID in `dset_ref`
+
+    Returns
+    -------
+    pd.DataFrame
+        PGS for each individual
+        - (n_indiv, n_anc)
+    """
+    CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
+    ## check input
+    assert np.all(
+        dset.snp[CHECK_COLS].values == df_weights[CHECK_COLS].values
+    ), f"`dset` and `df_weights` should have the same set of {','.join(CHECK_COLS)}"
+
+    idx1, idx2, flip = dapgen.align_snp(
+        df1=dset.snp[CHECK_COLS], df2=dset_ref.snp[CHECK_COLS]
+    )
+    assert np.all(idx1 == dset.snp.index) & np.all(
+        idx2 == dset_ref.snp.index
+    ), "`dset` and `dset_ref` should align, with potential allele flip"
+
+    weights = df_weights[weight_col].values
+    ref_weights = weights * flip
+    assert len(ref_pops) == dset.n_anc, "`len(ref_pops)` should match with `dset.n_anc`"
+
+    ## scoring
+    ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pops]
+    dset_geno, dset_lanc = dset.geno.compute(), dset.lanc.compute()
+    sample_pgs = np.zeros((dset.n_indiv, dset.n_anc))
+    ref_pgs = [[] for pop in ref_pops]
+    # iterate over each individuals
+    for indiv_i in tqdm(range(dset.n_indiv)):
+
+        # pgs for sample individuals
+        for haplo_i in range(2):
+            geno = dset_geno[:, indiv_i, haplo_i]
+            lanc = dset_lanc[:, indiv_i, haplo_i]
+            for lanc_i in range(dset.n_anc):
+                sample_pgs[indiv_i, lanc_i] += (
+                    geno[lanc == lanc_i] * weights[lanc == lanc_i]
+                ).sum()
+
+        # pgs for reference individuals
+        for lanc_i in range(dset.n_anc):
+            ref_geno = ref_geno_list[lanc_i][lanc == lanc_i, :, :]
+            if ref_geno.shape[0] > 0:
+                ref_geno = ref_geno.reshape(ref_geno.shape[0], -1)
+                s = np.dot(ref_weights[lanc == lanc_i], ref_geno)
+            else:
+                s = np.zeros(ref_geno.shape[1] * 2)
+            ref_pgs[lanc_i].append(s)
+
+    # format ref_pgs
+    ref_pgs = [
+        pd.DataFrame(
+            data=np.vstack(ref_pgs[i]),
+            index=dset.indiv.index,
+            columns=np.concatenate(
+                [[str(i) + "_1", str(i) + "_2"] for i in ref_pops[i]]
+            ),
+        )
+        for i in range(dset.n_anc)
+    ]
+    sample_pgs = pd.DataFrame(
+        data=sample_pgs,
+        index=dset.indiv.index,
+        columns=[f"ANC{i}" for i in range(1, dset.n_anc + 1)],
+    )
+    return sample_pgs, ref_pgs
