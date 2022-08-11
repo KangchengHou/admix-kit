@@ -2,7 +2,7 @@
 
 import fire
 from ._assoc import assoc
-from ._geno import append_snp_info, calc_pgs
+from ._geno import append_snp_info, calc_pgs, calc_partial_pgs
 from ._utils import log_params, get_1kg_ref, select_admix_indiv
 from ._simulate import simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_count

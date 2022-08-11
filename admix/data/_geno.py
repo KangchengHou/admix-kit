@@ -489,7 +489,7 @@ def calc_partial_pgs(
     dset: admix.Dataset,
     df_weights: pd.DataFrame,
     dset_ref: admix.Dataset,
-    ref_pops: List[List[str]],
+    ref_pop_indiv: List[List[str]],
     weight_col="WEIGHT",
 ) -> pd.DataFrame:
     """Calculate PGS for each individual
@@ -515,11 +515,15 @@ def calc_partial_pgs(
     """
     CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
     ## check input
-    assert np.all(
-        dset.snp[CHECK_COLS].values == df_weights[CHECK_COLS].values
-    ), f"`dset` and `df_weights` should have the same set of {','.join(CHECK_COLS)}"
+    idx1, idx2, sample_wgt_flip = dapgen.align_snp(
+        df1=dset.snp[CHECK_COLS], df2=df_weights[CHECK_COLS]
+    )
 
-    idx1, idx2, flip = dapgen.align_snp(
+    assert np.all(idx1 == dset.snp.index) & np.all(
+        idx2 == df_weights.index
+    ), "`dset` and `df_weights` should align, with potential allele flip"
+
+    idx1, idx2, ref_wgt_flip = dapgen.align_snp(
         df1=dset.snp[CHECK_COLS], df2=dset_ref.snp[CHECK_COLS]
     )
     assert np.all(idx1 == dset.snp.index) & np.all(
@@ -527,14 +531,15 @@ def calc_partial_pgs(
     ), "`dset` and `dset_ref` should align, with potential allele flip"
 
     weights = df_weights[weight_col].values
-    ref_weights = weights * flip
-    assert len(ref_pops) == dset.n_anc, "`len(ref_pops)` should match with `dset.n_anc`"
+    sample_weights = weights * sample_wgt_flip
+    ref_weights = weights * ref_wgt_flip
+    assert len(ref_pop_indiv) == dset.n_anc, "`len(ref_pops)` should match with `dset.n_anc`"
 
     ## scoring
-    ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pops]
+    ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pop_indiv]
     dset_geno, dset_lanc = dset.geno.compute(), dset.lanc.compute()
     sample_pgs = np.zeros((dset.n_indiv, dset.n_anc))
-    ref_pgs = [[] for pop in ref_pops]
+    ref_pgs = [[] for pop in ref_pop_indiv]
     # iterate over each individuals
     for indiv_i in tqdm(range(dset.n_indiv)):
         indiv_ref_pgs = [0, 0]
@@ -544,7 +549,7 @@ def calc_partial_pgs(
             lanc = dset_lanc[:, indiv_i, haplo_i]
             for lanc_i in range(dset.n_anc):
                 sample_pgs[indiv_i, lanc_i] += np.dot(
-                    geno[lanc == lanc_i], weights[lanc == lanc_i]
+                    geno[lanc == lanc_i], sample_weights[lanc == lanc_i]
                 )
 
                 # pgs for reference individuals
@@ -566,7 +571,7 @@ def calc_partial_pgs(
             data=np.vstack(ref_pgs[i]),
             index=dset.indiv.index,
             columns=np.concatenate(
-                [[str(i) + "_1", str(i) + "_2"] for i in ref_pops[i]]
+                [[str(i) + "_1", str(i) + "_2"] for i in ref_pop_indiv[i]]
             ),
         )
         for i in range(dset.n_anc)

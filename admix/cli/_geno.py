@@ -5,6 +5,7 @@ import pandas as pd
 import dapgen
 import numpy as np
 import dask.array as da
+from tqdm import tqdm
 from ._utils import log_params
 
 
@@ -202,3 +203,91 @@ def calc_pgs(
     ).to_csv(out + ".pgs.tsv", sep="\t", index=False)
     admix.logger.info(f"SNP information saved to {out}.snp_info.tsv")
     admix.logger.info(f"PGS saved to {out}.pgs.tsv")
+
+
+def calc_partial_pgs(
+    plink_path: str,
+    weights_path: str,
+    ref_plink_path: str,
+    ref_pops: List[str],
+    out: str,
+    weight_col: str = "WEIGHT",
+    ref_pop_col: str = "Population",
+):
+    """Calculate PGS from a weight file and a PLINK file.
+
+    Parameters
+    ----------
+    plink_path : str
+        Path to plink files. Format examples:
+          * /path/to/chr21.pgen
+          * /path/to/genotype/directory
+          * /path/to/file_list.txt # file_list.txt contains rows of file names
+    weights_path : str
+        path to PGS weights, containing CHROM, SNP, REF, ALT, WEIGHT columns
+    ref_plink_path : str
+        path to reference plink files.
+    ref_pops: list of str
+        list of populations in reference plink files.
+    out : str
+        prefix of the output files.
+    weight_col : str, optional
+        column in 'weights_path' representing the weight, by default "WEIGHT"
+    """
+    # TODO: more hints for the user
+    log_params("calc-partial-pgs", locals())
+
+    CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
+
+    # read input data & basic checks
+    pgen_files = dapgen.parse_plink_path(plink_path)
+    if not isinstance(pgen_files, list):
+        pgen_files = [pgen_files]
+    plink_prefix_list = [pgen.rsplit(".", 1)[0] for pgen in pgen_files]
+
+    # scoring weights
+    df_weights = pd.read_csv(weights_path, sep="\t")
+    df_weights = df_weights[CHECK_COLS + [weight_col]].copy()
+
+    # reference data
+    dset_ref = admix.io.read_dataset(ref_plink_path)
+    ref_pop_indiv = {
+        pop: dset_ref.indiv.index[dset_ref.indiv[ref_pop_col] == pop].values
+        for pop in ref_pops
+    }
+
+    total_sample_pgs = 0
+    total_ref_pgs = 0
+    # iterate through each plink file
+    for plink_prefix in tqdm(plink_prefix_list):
+        _dset = admix.io.read_dataset(plink_prefix)
+        assert _dset.n_anc == 2, "Only 2-way admixture is currently supported"
+        # align sample dset and weights
+        idx1, idx2, flip = dapgen.align_snp(
+            df1=_dset.snp[CHECK_COLS], df2=df_weights[CHECK_COLS]
+        )
+        _dset = _dset[idx1]
+        _df_weights = df_weights.loc[idx2, :].copy()
+        _df_weights.index = idx1
+
+        # align sample dset and reference dset
+        idx1, idx2, flip = dapgen.align_snp(
+            df1=_dset.snp[CHECK_COLS],
+            df2=dset_ref.snp[CHECK_COLS],
+        )
+        _dset = _dset[idx1]
+        _df_weights = _df_weights.loc[idx1, :]
+        _dset_ref = dset_ref[idx2]
+        sample_pgs, ref_pgs = admix.data.calc_partial_pgs(
+            dset=_dset,
+            df_weights=_df_weights,
+            dset_ref=_dset_ref,
+            ref_pops=ref_pop_indiv,
+        )
+        total_sample_pgs += sample_pgs
+        total_ref_pgs += ref_pgs
+
+    total_sample_pgs.to_csv(out + ".sample_pgs.tsv", sep="\t")
+    total_ref_pgs.to_csv(out + ".ref_pgs.tsv", sep="\t")
+    admix.logger.info(f"Sample PGS saved to {out}.sample_pgs.tsv")
+    admix.logger.info(f"Reference PGS saved to {out}.ref_pgs.tsv")
