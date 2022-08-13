@@ -240,7 +240,6 @@ def calc_partial_pgs(
     weights_build: str, optional
         build transform for the weights, by default None
     """
-    # TODO: more hints for the user
     log_params("calc-partial-pgs", locals())
 
     CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
@@ -273,8 +272,8 @@ def calc_partial_pgs(
         )
     )
 
-    total_sample_pgs = 0
-    total_ref_pgs = {pop: 0 for pop in ref_pops}
+    total_sample_pgs: pd.DataFrame = 0
+    total_ref_pgs: Dict[str, pd.DataFrame] = {pop: 0 for pop in ref_pops}
     # iterate through each plink file
     for i, plink_prefix in enumerate(plink_prefix_list):
         admix.logger.info(
@@ -302,8 +301,15 @@ def calc_partial_pgs(
         )
         _dset = _dset[idx1]
         _df_weights = _df_weights.loc[idx1, :]
-        _dset_ref = dset_ref[idx2]
-        admix.logger.info(f"matched SNPs={_dset.n_snp}/{_n_total_snp}")
+        # original code: _dset_ref = dset_ref[idx2]
+        # directly call admix.Dataset for potential unsorted scenarios:
+        _dset_ref = admix.Dataset(
+            dset_ref=dset_ref,
+            snp_idx=dset_ref.snp.index.get_indexer(idx2),
+            indiv_idx=slice(None),
+            enforce_order=False,
+        )
+        admix.logger.info(f"matched #SNPs={_dset.n_snp}/{_n_total_snp}")
 
         sample_pgs, ref_pgs = admix.data.calc_partial_pgs(
             dset=_dset,
@@ -317,6 +323,6 @@ def calc_partial_pgs(
 
     total_sample_pgs.to_csv(out + ".sample_pgs.tsv", sep="\t")
     for pop in ref_pops:
-        total_ref_pgs[pop].to_csv(out + f".ref_pgs.{pop}.tsv", sep="\t")
+        total_ref_pgs[pop].to_csv(out + f".ref_pgs_{pop}.tsv", sep="\t")
         admix.logger.info(f"Reference PGS saved to {out}.ref_pgs_{pop}.tsv")
     admix.logger.info(f"Sample PGS saved to {out}.sample_pgs.tsv")

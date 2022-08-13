@@ -533,7 +533,6 @@ def calc_partial_pgs(
     weights = df_weights[weight_col].values
     sample_weights = weights * sample_wgt_flip
     ref_weights = weights * ref_wgt_flip * sample_wgt_flip
-    print(ref_weights)
     assert (
         len(ref_pop_indiv) == dset.n_anc
     ), "`len(ref_pops)` should match with `dset.n_anc`"

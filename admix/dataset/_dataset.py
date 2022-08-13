@@ -49,6 +49,7 @@ class Dataset(object):
         dset_ref=None,
         snp_idx: Union[slice, int, np.ndarray] = None,
         indiv_idx: Union[slice, int, np.ndarray] = None,
+        enforce_order: bool = True,
     ):
         if dset_ref is not None:
             # initialize from reference data set
@@ -75,12 +76,13 @@ class Dataset(object):
                     if idx.step is not None:
                         assert idx.step > 0, f"Slice `{idx}` is not ordered."
                 elif isinstance(idx, np.ndarray):
-                    assert np.all(
-                        idx == np.sort(idx)
-                    ), f"idx=`{idx}` is not ordered according to dset.snp.index"
+                    if enforce_order:
+                        assert np.all(
+                            idx == np.sort(idx)
+                        ), f"idx=`{idx}` is not ordered according to dset.snp.index"
                 else:
                     raise ValueError(
-                        f"`{name}_idx` must be a slice or a numpy array of sorted integers."
+                        f"`{name}_idx` must be a slice or a numpy array of integers."
                     )
                 if name == "snp":
                     df_subset = dset_ref.snp.iloc[idx, :].copy()
@@ -93,15 +95,6 @@ class Dataset(object):
 
             with dask.config.set(**{"array.slicing.split_large_chunks": False}):
                 self._xr = dset_ref.xr.isel(snp=snp_idx, indiv=indiv_idx)
-
-            # make sure `snp_idx` and `indiv_idx` are in sorted order according to the
-            # original index
-            # assert np.all(
-            #     dset_ref.indiv.index[
-            #         dset_ref.indiv.index.isin(subset_indiv.index.values)
-            #     ]
-            #     == subset_indiv.index.values
-            # ), "the index provided must be in the same order as in the original order"
 
         else:
             # initialize from actual data set
