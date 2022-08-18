@@ -1,13 +1,23 @@
-# Simulate individual-level genotypes for admixed populations
-This pipeline is designed to simulate genotypes of admixed individuals using reference ancestral populations (such as those in 1,000 Genomes project).
+# Simulate admixed genotypes
+We describe the pipeline to simulate genotypes of admixed individuals using reference ancestral populations (such as those in 1,000 Genomes project).
+```{note}
+`admix-kit` is required to run the pipeline. Refer to [this page](install.md) to install `admix-kit`.
+```
 
 ## Overview
-1. Download 1,000 Genomes project reference.
-2. Decide choices of SNP set because you may want to save some time to simulate only HapMap3 SNPs. Currently our pipeline only supports simulation one chromosome at a time. To extend simulations to the whole genome, users can repeat the following run repeatedly for 22 chromosomes (X chromosome is not supported yet).
-3. Determine the proportion of ancestral populations, number of generations, and number of admixed individuals to simulate. If you want to simulate N admixed individuals, you need to simulate N individuals using HAPGEN2 for each ancestral populations.
+In the following, we go through each part of the pipeline using an example of simulating individuals with African-European genetic ancestries using CEU, YRI as reference populations. In details, we will
+1. download 1,000 Genomes project reference.
+2. decide choices of SNP set because you may want to save time/memory to simulate only HapMap3 SNPs. Currently our pipeline only supports simulating one chromosome at a time. To extend simulations to the whole genome, users can repeat runs for 22 chromosomes (X chromosome is not supported yet).
+3. determine the proportion of ancestral populations, number of generations, and number of admixed individuals to simulate. (If you want to simulate N admixed individuals, you need to simulate N individuals using HAPGEN2 for each ancestral populations.)
 
+```{note}
+Run in Linux environment (because HAPGEN2 can only be run in Linux). 
+```
 ## Step 1: prepare ancestral reference population data
-In step 1, we (a) download 1,000 Genomes reference data (b) subset HapMap3 SNPs from chromosome 22 (c) subset CEU, YRI as ancestral populations in order to simulate admixed individuals with 20% European and 80% African ancestries (similar to African African individuals).
+We go through the following steps:
+1. download 1,000 Genomes reference data 
+2. subset HapMap3 SNPs from chromosome 22 
+3. subset CEU, YRI as ancestral populations in order to simulate admixed individuals with 20% European and 80% African ancestries (similar to African African individuals).
 
 ```bash
 # genome build to use
@@ -21,12 +31,16 @@ N_GEN=8
 ```
 
 ```bash
-# download 1,000 Genomes reference panel (this step will take 2-3 hours)
-admix get-1kg-ref --dir data/1kg-ref --build ${BUILD}
+# download 1,000 Genomes reference panel (this step will take 2-3 hours, but has to be done only once)
+# this 1,000 Genomes reference panel is downloaded from plink2 website (https://www.cog-genomics.org/plink/2.0/resources)
+# you can use your own reference data (but you need to format them into plink2 pgen format)
+# see https://www.cog-genomics.org/plink/2.0/input
+
+admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
 # subset hapmap3 SNPs
 admix subset-hapmap3 \
-    --pfile data/1kg-ref/pgen/all_chr \
+    --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
     --build ${BUILD} \
     --chrom ${CHROM} \
     --out data/ancestry/hm3_chrom${CHROM}.snp
@@ -34,14 +48,14 @@ admix subset-hapmap3 \
 # subset individuals
 for pop in CEU YRI; do
     admix subset-pop-indiv \
-        --pfile data/1kg-ref/pgen/all_chr \
+        --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
         --pop ${pop} \
         --out data/ancestry/${pop}.indiv
 done
 
 # subset plink2
 for pop in CEU YRI; do
-    plink2 --pfile data/1kg-ref/pgen/all_chr \
+    plink2 --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
         --keep data/ancestry/${pop}.indiv \
         --extract data/ancestry/hm3_chrom${CHROM}.snp \
         --make-pgen \
@@ -50,7 +64,7 @@ done
 ```
 
 ## Step 2: Extend ancestral populations using HAPGEN2
-In step 2, we use HAPGEN2 to extend the ancestral populations. We aim to simulate 1000 admixed individuals, therefore we simulate 1,000 individuals for each ancestral population.
+Next, we use HAPGEN2 to extend the ancestral populations. As aim to simulate 1000 admixed individuals, we simulate 1,000 individuals in each ancestral population.
 
 ```bash
 for pop in CEU YRI; do
@@ -64,15 +78,17 @@ done
 ```
 
 ## Step 3: Simulate admixture process using admix-simu
-`admix-simu` can be downloaded from https://github.com/williamslab/admix-simu
+We use [`admix-simu`](https://github.com/williamslab/admix-simu) to simulate the admixture process of ancestral populations.
+We simulate 8 generations, with admixture proportion of 20% / 80%.
 
+### Installing `admix-simu`
 ```bash
 # download and compile admix-simu
 git clone https://github.com/williamslab/admix-simu.git
 cd admix-simu && make && cd ..
-
 ```
 
+### Simulation
 ```bash
 # ADMIX_SIMU_DIR is the path to the admix-simu directory (that is git cloned above)
 ADMIX_SIMU_DIR=./admix-simu
@@ -82,6 +98,15 @@ admix admix-simu \
     --n-indiv ${N_INDIV} \
     --n-gen ${N_GEN} \
     --build ${BUILD} \
-    --out data/simu/admix \
+    --out data/admix \
     --admix-simu-dir ${ADMIX_SIMU_DIR}
+
+# you will obtain 
+# (1) phased genotype data/admix.phgeno
+# (2) local ancestry data/admix.hanc
+```
+
+```{note}
+We are still working on converting data/admix.phgeno back to plink2 file (so many common analyses can be performed using `admix-kit` / `PLINK2`). 
+Please check back at this page later.
 ```

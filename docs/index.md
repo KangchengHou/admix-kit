@@ -40,10 +40,12 @@ api
 :caption: Example usage
 :hidden:
 prepare-dataset
+simulate-admix-genotype
 notebooks/assoc
 notebooks/dataset
 marginal-het
-notebooks/simulate-genotype
 notebooks/select-admixed
 notebooks/admix-ld
 ```
+
+<!-- notebooks/simulate-genotype -->
