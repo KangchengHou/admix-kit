@@ -216,7 +216,7 @@ def admix_simu(
         )
         # convert haps to phgeno by removing all spaces
         subprocess.check_output(
-            f"cat {tmp_dir}/{pfile}.haps | tr -d '[:space:]' > {tmp_dir}/{pfile}.phgeno",
+            f"cat {tmp_dir}/{pfile}.haps | tr -d ' ' > {tmp_dir}/{pfile}.phgeno",
             shell=True,
         )
         # check all legend files are the same
@@ -258,6 +258,8 @@ def admix_simu(
     with open(dat_file, "w") as f:
         f.writelines("\n".join(admix_dat))
 
+    # cat dat_file
+    print("\n".join(admix_dat))
     df_snp_info.insert(1, "chrom", chrom)
     df_snp_info.insert(
         2,
