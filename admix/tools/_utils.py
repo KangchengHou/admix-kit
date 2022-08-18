@@ -5,6 +5,7 @@ from ..utils import get_cache_dir, cd
 import urllib.request
 import shutil
 import os
+import admix
 
 
 def get_dependency(name, download=True):
@@ -192,20 +193,30 @@ def get_cache_data(name: str, **kwargs) -> str:
             "https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/"
             + file_name
         )
-        if not os.path.exists(cache_path):
-            urllib.request.urlretrieve(
-                url,
-                cache_path,
-            )
     elif name == "hapmap3_snps":
         file_name = "hapmap3_snps.rds"
         cache_path = join(cache_dir, file_name)
         url = "https://ndownloader.figshare.com/files/25503788"
-        if not os.path.exists(cache_path):
+    else:
+        raise ValueError(f"Unsupported data {name}")
+
+    if not os.path.exists(cache_path):
+        admix.logger.info(f"{name} not found at {cache_path}.")
+        admix.logger.info(f"Downloading {name} from {url}.")
+        admix.logger.info(
+            f"If this gets stuck or fails, manually download {url} to {cache_path}."
+        )
+
+        try:
             urllib.request.urlretrieve(
                 url,
                 cache_path,
             )
+        except Exception as e:
+            admix.logger.info(
+                f"Download failed. Please manually download {url} to {cache_path}."
+            )
+            raise e
     else:
-        raise ValueError(f"Unsupported data {name}")
+        admix.logger.info(f"{name} found at {cache_path}.")
     return cache_path

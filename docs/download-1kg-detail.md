@@ -153,43 +153,31 @@ def process_sample_map(build):
     print(unrelated_sample_map["Population"].value_counts())
 
 
-def process_genetic_map(build):
+def _process_genetic_map(root_dir, build):
     """
     Download and format genetic map
     1. call bash script to download genetic map to out/metadata/genetic_map/raw
     2. process the genetic map and save to out/metadata/genetic_map
     """
 
-    if build == "hg38":
-        name = "GRCh38"
-    elif build == "hg19":
-        name = "GRCh37"
-    else:
-        raise ValueError("build should be hg38 or hg19")
+    assert build in ["hg19", "hg38"], "build should be hg38 or hg19"
+    raw_map_path = admix.tools.get_cache_data("genetic_map", build=build)
 
-    cmds = f"""
-        mkdir -p {ROOT_DIR}/metadata/genetic_map/raw && cd {ROOT_DIR}/metadata/genetic_map/raw
-        wget https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.{name}.map.zip
-        unzip plink.{name}.map.zip
-    """
+    raw_map = pd.read_csv(
+        raw_map_path,
+        delim_whitespace=True,
+    )
 
-    subprocess.check_output(cmds, shell=True)
-
+    os.makedirs(f"{root_dir}/metadata/genetic_map", exist_ok=True)
     for chrom in range(1, 23):
-        raw_map = pd.read_csv(
-            f"{ROOT_DIR}/metadata/genetic_map/raw/plink.chr{chrom}.{name}.map",
-            delim_whitespace=True,
-            header=None,
-        )
-        raw_map = raw_map[[0, 3, 2]]
-        raw_map.to_csv(
-            f"{ROOT_DIR}/metadata/genetic_map/{build}.chr{chrom}.tsv",
+        chrom_map = raw_map[raw_map["chr"] == chrom].iloc[:, [0, 1, 3]]
+        chrom_map.to_csv(
+            f"{root_dir}/metadata/genetic_map/chr{chrom}.tsv",
             sep="\t",
             index=False,
             header=False,
         )
-    # clean up
-    shutil.rmtree(f"{ROOT_DIR}/metadata/genetic_map/raw")
+
 
 if __name__ == "__main__":
     build = sys.argv[1]

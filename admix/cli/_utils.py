@@ -51,36 +51,23 @@ def _process_genetic_map(root_dir, build):
     2. process the genetic map and save to out/metadata/genetic_map
     """
 
-    if build == "hg38":
-        name = "GRCh38"
-    elif build == "hg19":
-        name = "GRCh37"
-    else:
-        raise ValueError("build should be hg38 or hg19")
+    assert build in ["hg19", "hg38"], "build should be hg38 or hg19"
+    raw_map_path = admix.tools.get_cache_data("genetic_map", build=build)
 
-    cmds = f"""
-        mkdir -p {root_dir}/metadata/genetic_map/raw && cd {root_dir}/metadata/genetic_map/raw
-        wget https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.{name}.map.zip
-        unzip plink.{name}.map.zip
-    """
+    raw_map = pd.read_csv(
+        raw_map_path,
+        delim_whitespace=True,
+    )
 
-    subprocess.check_output(cmds, shell=True)
-
+    os.makedirs(f"{root_dir}/metadata/genetic_map", exist_ok=True)
     for chrom in range(1, 23):
-        raw_map = pd.read_csv(
-            f"{root_dir}/metadata/genetic_map/raw/plink.chr{chrom}.{name}.map",
-            delim_whitespace=True,
-            header=None,
-        )
-        raw_map = raw_map[[0, 3, 2]]
-        raw_map.to_csv(
+        chrom_map = raw_map[raw_map["chr"] == chrom].iloc[:, [0, 1, 3]]
+        chrom_map.to_csv(
             f"{root_dir}/metadata/genetic_map/chr{chrom}.tsv",
             sep="\t",
             index=False,
             header=False,
         )
-    # clean up
-    shutil.rmtree(f"{root_dir}/metadata/genetic_map/raw")
 
 
 def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int = None):
@@ -121,6 +108,13 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
 
     # assert dir not exist
     assert not os.path.exists(dir), f"dir='{dir}' already exists"
+
+    # step0: download metadata
+    os.makedirs(os.path.join(dir, "metadata"))
+    admix.logger.info("Downloading meta data...")
+
+    _process_sample_map(root_dir=dir)
+    _process_genetic_map(root_dir=dir, build=build)
 
     # step1: download pgen
     os.makedirs(os.path.join(dir, "pgen"))
@@ -184,13 +178,6 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
             f"--out {dir}/vcf/chr{chrom} && tabix -p vcf {dir}/vcf/chr{chrom}.vcf.gz",
         ]
         call_helper(" ".join(cmds))
-
-    # step3: download metadata
-    os.makedirs(os.path.join(dir, "metadata"))
-    admix.logger.info("Downloading meta data...")
-
-    _process_sample_map(root_dir=dir)
-    _process_genetic_map(root_dir=dir, build=build)
 
 
 def select_admix_indiv(
