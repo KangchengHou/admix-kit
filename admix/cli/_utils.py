@@ -70,7 +70,13 @@ def _process_genetic_map(root_dir, build):
         )
 
 
-def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int = None):
+def get_1kg_ref(
+    dir: str,
+    build: str = "hg38",
+    verbose: bool = False,
+    export_vcf: bool = True,
+    step: int = None,
+):
     """
     Get the 1,000 reference genome in plink2 format.
 
@@ -166,17 +172,18 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
         os.remove(f)
 
     # step2: convert plink2 to vcf
-    os.makedirs(os.path.join(dir, "vcf"))
-    admix.logger.info("Converting plink2 to vcf...")
+    if export_vcf:
+        os.makedirs(os.path.join(dir, "vcf"))
+        admix.logger.info("Converting plink2 to vcf...")
 
-    for chrom in range(1, 23):
-        cmds = [
-            f"plink2 --pfile {dir}/pgen/all_chr",
-            "--export vcf bgz",
-            f"--chr {chrom}",
-            f"--out {dir}/vcf/chr{chrom} && tabix -p vcf {dir}/vcf/chr{chrom}.vcf.gz",
-        ]
-        call_helper(" ".join(cmds))
+        for chrom in range(1, 23):
+            cmds = [
+                f"plink2 --pfile {dir}/pgen/all_chr",
+                "--export vcf bgz",
+                f"--chr {chrom}",
+                f"--out {dir}/vcf/chr{chrom} && tabix -p vcf {dir}/vcf/chr{chrom}.vcf.gz",
+            ]
+            call_helper(" ".join(cmds))
 
     _process_sample_map(root_dir=dir)
 

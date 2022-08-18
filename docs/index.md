@@ -25,6 +25,7 @@ Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](qui
 
 `admix-kit` has been used in the following projects:
 1. [On powerful GWAS in admixed populations](https://www.nature.com/articles/s41588-021-00953-5). Nature Genetics (2021).
+2. [Causal effects on complex traits are similar across segments of different continental ancestries within admixed individuals](https://www.medrxiv.org/content/10.1101/2022.08.16.22278868v1). medRxiv (2022).
 
 
 ```{toctree}
@@ -40,10 +41,12 @@ api
 :caption: Example usage
 :hidden:
 prepare-dataset
+simulate-admix-genotype
 notebooks/assoc
 notebooks/dataset
 marginal-het
-notebooks/simulate-genotype
 notebooks/select-admixed
 notebooks/admix-ld
 ```
+
+<!-- notebooks/simulate-genotype -->
