@@ -532,8 +532,10 @@ def calc_partial_pgs(
 
     weights = df_weights[weight_col].values
     sample_weights = weights * sample_wgt_flip
-    ref_weights = weights * ref_wgt_flip
-    assert len(ref_pop_indiv) == dset.n_anc, "`len(ref_pops)` should match with `dset.n_anc`"
+    ref_weights = weights * ref_wgt_flip * sample_wgt_flip
+    assert (
+        len(ref_pop_indiv) == dset.n_anc
+    ), "`len(ref_pops)` should match with `dset.n_anc`"
 
     ## scoring
     ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pop_indiv]
@@ -541,7 +543,7 @@ def calc_partial_pgs(
     sample_pgs = np.zeros((dset.n_indiv, dset.n_anc))
     ref_pgs = [[] for pop in ref_pop_indiv]
     # iterate over each individuals
-    for indiv_i in tqdm(range(dset.n_indiv)):
+    for indiv_i in tqdm(range(dset.n_indiv), desc="admix.data.calc_partial_pgs"):
         indiv_ref_pgs = [0, 0]
         # pgs for sample individuals
         for haplo_i in range(2):

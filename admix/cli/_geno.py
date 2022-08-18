@@ -213,6 +213,8 @@ def calc_partial_pgs(
     out: str,
     weight_col: str = "WEIGHT",
     ref_pop_col: str = "Population",
+    dset_build: str = None,
+    weights_build: str = None,
 ):
     """Calculate PGS from a weight file and a PLINK file.
 
@@ -233,12 +235,14 @@ def calc_partial_pgs(
         prefix of the output files.
     weight_col : str, optional
         column in 'weights_path' representing the weight, by default "WEIGHT"
+    dset_build: str, optional
+        build transform for the dataset, by default None
+    weights_build: str, optional
+        build transform for the weights, by default None
     """
-    # TODO: more hints for the user
     log_params("calc-partial-pgs", locals())
 
     CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
-
     # read input data & basic checks
     pgen_files = dapgen.parse_plink_path(plink_path)
     if not isinstance(pgen_files, list):
@@ -248,19 +252,39 @@ def calc_partial_pgs(
     # scoring weights
     df_weights = pd.read_csv(weights_path, sep="\t")
     df_weights = df_weights[CHECK_COLS + [weight_col]].copy()
+    if weights_build is not None:
+        df_weights["POS"] = admix.tools.liftover.run(
+            df_weights[["CHROM", "POS"]], chain=weights_build
+        )
+        df_weights = df_weights[df_weights.POS != -1].copy()
 
     # reference data
     dset_ref = admix.io.read_dataset(ref_plink_path)
-    ref_pop_indiv = {
+    ref_pop_indiv: Dict = {
         pop: dset_ref.indiv.index[dset_ref.indiv[ref_pop_col] == pop].values
         for pop in ref_pops
     }
 
-    total_sample_pgs = 0
-    total_ref_pgs = 0
+    admix.logger.info(
+        f"Reading reference data with "
+        + ", ".join(
+            [f"{pop} #indiv={len(ref_pop_indiv[pop])}" for pop in ref_pop_indiv]
+        )
+    )
+
+    total_sample_pgs: pd.DataFrame = 0
+    total_ref_pgs: Dict[str, pd.DataFrame] = {pop: 0 for pop in ref_pops}
     # iterate through each plink file
-    for plink_prefix in tqdm(plink_prefix_list):
+    for i, plink_prefix in enumerate(plink_prefix_list):
+        admix.logger.info(
+            f"Scoring for dataset {i + 1}/{len(plink_prefix_list)}: {plink_prefix}"
+        )
         _dset = admix.io.read_dataset(plink_prefix)
+        if dset_build is not None:
+            _dset.snp["POS"] = admix.tools.liftover.run(
+                _dset.snp[["CHROM", "POS"]], chain=dset_build
+            )
+        _n_total_snp = _dset.n_snp
         assert _dset.n_anc == 2, "Only 2-way admixture is currently supported"
         # align sample dset and weights
         idx1, idx2, flip = dapgen.align_snp(
@@ -277,17 +301,28 @@ def calc_partial_pgs(
         )
         _dset = _dset[idx1]
         _df_weights = _df_weights.loc[idx1, :]
-        _dset_ref = dset_ref[idx2]
+        # original code: _dset_ref = dset_ref[idx2]
+        # directly call admix.Dataset for potential unsorted scenarios:
+        _dset_ref = admix.Dataset(
+            dset_ref=dset_ref,
+            snp_idx=dset_ref.snp.index.get_indexer(idx2),
+            indiv_idx=slice(None),
+            enforce_order=False,
+        )
+        admix.logger.info(f"matched #SNPs={_dset.n_snp}/{_n_total_snp}")
+
         sample_pgs, ref_pgs = admix.data.calc_partial_pgs(
             dset=_dset,
             df_weights=_df_weights,
             dset_ref=_dset_ref,
-            ref_pops=ref_pop_indiv,
+            ref_pop_indiv=[ref_pop_indiv[pop] for pop in ref_pops],
         )
         total_sample_pgs += sample_pgs
-        total_ref_pgs += ref_pgs
+        for i, pop in enumerate(ref_pops):
+            total_ref_pgs[pop] += ref_pgs[i]
 
     total_sample_pgs.to_csv(out + ".sample_pgs.tsv", sep="\t")
-    total_ref_pgs.to_csv(out + ".ref_pgs.tsv", sep="\t")
+    for pop in ref_pops:
+        total_ref_pgs[pop].to_csv(out + f".ref_pgs_{pop}.tsv", sep="\t")
+        admix.logger.info(f"Reference PGS saved to {out}.ref_pgs_{pop}.tsv")
     admix.logger.info(f"Sample PGS saved to {out}.sample_pgs.tsv")
-    admix.logger.info(f"Reference PGS saved to {out}.ref_pgs.tsv")

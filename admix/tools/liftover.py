@@ -69,7 +69,7 @@ def run(df_chrom_pos: pd.DataFrame, chain: str, verbose: bool = False):
     ).drop_duplicates(subset=["ID"], keep=False)
     # count number of lines starting with a #
     n_unmapped = sum(1 for line in open(unmapped_file) if line.startswith("#"))
-    print(f"{n_unmapped} variants were not mapped")
+    print(f"{n_unmapped} un-mapped variants")
 
     tmp_dir.cleanup()
 
