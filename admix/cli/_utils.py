@@ -113,7 +113,6 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
     os.makedirs(os.path.join(dir, "metadata"))
     admix.logger.info("Downloading meta data...")
 
-    _process_sample_map(root_dir=dir)
     _process_genetic_map(root_dir=dir, build=build)
 
     # step1: download pgen
@@ -178,6 +177,8 @@ def get_1kg_ref(dir: str, build: str = "hg38", verbose: bool = False, step: int 
             f"--out {dir}/vcf/chr{chrom} && tabix -p vcf {dir}/vcf/chr{chrom}.vcf.gz",
         ]
         call_helper(" ".join(cmds))
+
+    _process_sample_map(root_dir=dir)
 
 
 def select_admix_indiv(
