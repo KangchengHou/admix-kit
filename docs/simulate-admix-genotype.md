@@ -4,6 +4,10 @@ We describe the pipeline to simulate genotypes of admixed individuals using refe
 `admix-kit` is required to run the pipeline. Refer to [this page](install.md) to install `admix-kit`.
 ```
 
+```{note}
+Currently only two-way admixture is supported. Other admixture (e.g., three-way admixture) will be added very soon.
+```
+
 ## Overview
 In the following, we go through each part of the pipeline using an example of simulating individuals with African-European genetic ancestries using CEU, YRI as reference populations. In details, we will
 1. download 1,000 Genomes project reference.
@@ -36,7 +40,8 @@ N_GEN=8
 # you can use your own reference data (but you need to format them into plink2 pgen format)
 # see https://www.cog-genomics.org/plink/2.0/input
 
-admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
+# if you want to save more time, set `--export-vcf False`
+admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD} --export-vcf True
 
 # subset hapmap3 SNPs
 admix subset-hapmap3 \
