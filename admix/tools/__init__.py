@@ -9,7 +9,7 @@ import xarray as xr
 import dask.array as da
 from ._utils import get_dependency, get_cache_data
 from . import gcta, plink2, liftover, plink
-from ._standalone import hapgen2
+from ._standalone import hapgen2, admix_simu
 
 
 __all__ = [

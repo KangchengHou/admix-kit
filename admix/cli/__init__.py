@@ -10,10 +10,13 @@ from ._ext import (
     prune,
     pca,
     liftover,
-    subset_hapmap3,
     pfile_align_snp,
     pfile_merge_indiv,
     pfile_freq_within,
+    subset_hapmap3,
+    subset_pop_indiv,
+    hapgen2,
+    admix_simu
 )
 from ._plot import plot_joint_pca
 from ._genet_cor import (

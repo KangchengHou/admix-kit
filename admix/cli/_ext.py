@@ -153,6 +153,93 @@ def pfile_freq_within(
         os.remove(f)
 
 
-def subset_hapmap3(pfile: str, out: str, build: str):
+def subset_hapmap3(
+    pfile: str, build: str, chrom: int = None, out_pfile: str = None, out: str = None
+):
     log_params("subset-hapmap3", locals())
-    admix.tools.plink2.subset_hapmap3(pfile, out_prefix=out, build=build)
+    assert (out_pfile is None) + (
+        out is None
+    ) == 1, "only one of out_prefix and out can be specified"
+
+    if out_pfile is not None:
+        admix.tools.plink2.subset_hapmap3(
+            pfile, build=build, chrom=chrom, out_prefix=out_pfile
+        )
+
+    if out is not None:
+        snp_list = admix.tools.plink2.subset_hapmap3(pfile, chrom=chrom, build=build)
+        np.savetxt(out, snp_list, fmt="%s", delimiter="\n")
+
+
+def subset_pop_indiv(
+    pfile: str,
+    out: str,
+    superpop: str = None,
+    exclude_pop: List[str] = None,
+    pop: List[str] = None,
+):
+    log_params("subset-pop-indiv", locals())
+    df_psam = dapgen.read_psam(pfile + ".psam")
+
+    assert (superpop is None) + (
+        pop is None
+    ) == 1, "only one of superpop and pop can be specified"
+
+    if superpop is not None:
+        assert pop is None
+        mask = df_psam["SuperPop"] == superpop
+        if exclude_pop is not None:
+            if isinstance(exclude_pop, str):
+                exclude_pop = (exclude_pop,)
+            assert isinstance(exclude_pop, tuple)
+
+            mask &= ~df_psam["SuperPop"].isin(exclude_pop)
+
+    if pop is not None:
+        assert (superpop is None) and (exclude_pop is None)
+        if isinstance(pop, str):
+            pop = (pop,)
+        assert isinstance(pop, tuple)
+        mask = df_psam["Population"].isin(pop)
+
+    indiv = df_psam.loc[mask, :].index.values
+    admix.logger.info(f"{len(indiv)}/{len(df_psam)} individuals are retained")
+
+    np.savetxt(out, indiv, fmt="%s", delimiter="\n")
+
+
+def hapgen2(pfile: str, chrom: int, n_indiv: int, out: str, build: str = "hg38"):
+    """Run HAPGEN2 to expand population using a PLINK file."""
+    log_params("hapgen2", locals())
+    admix.tools.hapgen2(
+        pfile=pfile,
+        chrom=chrom,
+        n_indiv=n_indiv,
+        out_prefix=out,
+        genetic_map=build,
+    )
+
+
+def admix_simu(
+    pfile_list: List[str],
+    admix_prop: List[float],
+    n_gen: int,
+    n_indiv: int,
+    build: str,
+    out: str,
+    admix_simu_dir: str = None,
+):
+    """Run admix-simu to expand population using a PLINK file."""
+    log_params("admix-simu", locals())
+    assert isinstance(pfile_list, list)
+    assert isinstance(admix_prop, list)
+    admix_prop = [float(p) for p in admix_prop]
+    admix.tools.admix_simu(
+        pfile_list=pfile_list,
+        admix_prop=admix_prop,
+        n_gen=n_gen,
+        n_indiv=n_indiv,
+        build=build,
+        out_prefix=out,
+        admix_simu_dir=admix_simu_dir,
+    )

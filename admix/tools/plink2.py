@@ -508,17 +508,23 @@ def pca(pfile: str, out_prefix: str, approx: bool = False, **kwargs):
     run(" ".join(cmd), **kwargs)
 
 
-def subset_hapmap3(pfile: str, out_prefix: str, build: str):
+def subset_hapmap3(pfile: str, build: str, out_prefix: str = None, chrom: int = None):
     """Overlap a pfile with HapMap3 SNPs
 
     Parameters
     ----------
     pfile : str
         input pfile
-    out_prefix: str
-        output pfile prefix
     build: str
         hg19 or hg38
+    out_prefix: str
+        output pfile prefix
+
+    Returns
+    -------
+    <out_prefix>.{pgen|pvar|psam} will be written to disk if out_prefix is specified
+    otherwise, snp_list will be returned
+
     """
     assert build in ["hg19", "hg38"], "build must be hg19 or hg38"
     try:
@@ -537,9 +543,15 @@ def subset_hapmap3(pfile: str, out_prefix: str, build: str):
     else:
         raise NotImplementedError
 
+    TOTAL_HM3_SNPS = hm3_snps.shape[0]
+    if chrom is not None:
+        hm3_snps = hm3_snps[hm3_snps.CHROM == chrom]
+
     df_snp = dapgen.read_pvar(pfile + ".pvar")
     snp_list = df_snp.reset_index().merge(hm3_snps, on=["CHROM", "POS"])["snp"].values
 
-    admix.logger.info(f"{len(snp_list)}/{len(hm3_snps)} SNPs are retained")
-
-    subset(pfile, out_prefix, snp_list=snp_list)
+    admix.logger.info(f"{len(snp_list)}/{TOTAL_HM3_SNPS} SNPs are retained")
+    if out_prefix is None:
+        return snp_list
+    else:
+        subset(pfile, out_prefix, snp_list=snp_list)
