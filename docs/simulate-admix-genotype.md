@@ -35,8 +35,10 @@ N_GEN=8
 ```
 
 ```bash
-# download 1,000 Genomes reference panel (this step will take 2-3 hours, but has to be done only once)
-# this 1,000 Genomes reference panel is downloaded from plink2 website (https://www.cog-genomics.org/plink/2.0/resources)
+# download 1,000 Genomes reference panel 
+# (this step will take 2-3 hours, but has to be done only once)
+# this 1,000 Genomes reference panel is downloaded from plink2 website 
+# (https://www.cog-genomics.org/plink/2.0/resources)
 # you can use your own reference data (but you need to format them into plink2 pgen format)
 # see https://www.cog-genomics.org/plink/2.0/input
 
@@ -82,8 +84,8 @@ for pop in CEU YRI; do
 done
 ```
 
-## Step 3: Simulate admixture process using admix-simu
-We use [`admix-simu`](https://github.com/williamslab/admix-simu) to simulate the admixture process of ancestral populations.
+## Step 3: Simulate admixture process using `admix-simu`
+We use [admix-simu](https://github.com/williamslab/admix-simu) to simulate the admixture process of ancestral populations.
 We simulate 8 generations, with admixture proportion of 20% / 80%.
 
 ### Installing `admix-simu`
