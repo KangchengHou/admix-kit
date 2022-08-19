@@ -261,14 +261,15 @@ def admix_simu(
     # cat dat_file
     print("\n".join(admix_dat))
     df_snp_info.insert(1, "chrom", chrom)
+    # insert Morgan genetic position (cM / 100)
     df_snp_info.insert(
         2,
         "M",
         interpolate_genetic_position(
             chrom=chrom, pos=df_snp_info["position"], build=build
-        ),
+        )
+        / 100,
     )
-    print(df_snp_info.head())
     snp_file = os.path.join(tmp_dir, "snp_info.txt")
     df_snp_info.to_csv(snp_file, sep="\t", index=False, header=False)
 
