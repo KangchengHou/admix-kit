@@ -1,6 +1,8 @@
-from distutils.version import LooseVersion
-import setuptools
+# flake8: noqa
 from setuptools import setup
+from pathlib import Path
+
+long_description = (Path(__file__).parent / "README.md").read_text()
 
 exec(open("admix/version.py").read())
 
@@ -36,4 +38,6 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Intended Audience :: Science/Research",
     ],
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 )
