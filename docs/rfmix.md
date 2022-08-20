@@ -10,7 +10,8 @@ update this guideline to adapt to your data.
 ## Step 1: download and process reference data
 
 ```bash
-admix get-1kg-ref --dir=/path/to/1kg
+admix get-1kg-ref --dir=/path/to/1kg --build hg38
+# or --build hg19
 ```
 
 ```{note}
