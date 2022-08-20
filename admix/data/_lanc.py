@@ -306,6 +306,37 @@ def find_closest_index(a, x, tie="left"):
     return idx
 
 
+def read_bp_lanc(path: str):
+    """
+    read .bp file (breakpoints file) and convert to lanc object.
+    The format is specified at
+    https://github.com/williamslab/admix-simu#output-breakpoints-file-out_prefixbp
+
+    Parameters
+    ----------
+    path : str
+        path to .bp file
+
+    Returns
+    -------
+    admix.data.Lanc
+        the converted local ancestry
+
+    """
+    assert path.endswith(".bp")
+    with open(path, "r") as f:
+        bp_data = [line.strip().split() for line in f.readlines()][1:]
+    hap_breaks = [[int(l.split(":")[1]) + 1 for l in line] for line in bp_data]
+    hap_values = [[l.split(":")[0] for l in line] for line in bp_data]
+
+    dip_breaks, dip_values = clean_lanc(
+        *admix.data.haplo2diplo(breaks=hap_breaks, values=hap_values),
+        remove_repeated_val=True,
+    )
+    lanc = admix.data.Lanc(breaks=dip_breaks, values=dip_values)
+    return lanc
+
+
 def concat_lancs(lanc_list: List[Lanc], dim="snp") -> Lanc:
     """Concatenate local ancestry files
     For example (1:01, 15: 00) and (3:01, 12:01) will be merged to (1:01, 15:00, 18:01, 27:01)
@@ -390,7 +421,9 @@ def check_lanc_format(breaks: List[List[int]], values: List[List[str]]):
     return n_snp, n_indiv
 
 
-def clean_lanc(breaks: List[List[int]], values: List[List[str]]):
+def clean_lanc(
+    breaks: List[List[int]], values: List[List[str]], remove_repeated_val: bool = False
+):
     """Clean up local ancestry file
 
     Parameters
@@ -399,21 +432,50 @@ def clean_lanc(breaks: List[List[int]], values: List[List[str]]):
         break points
     values : List[List[str]]
         values
+    remove_same_val : bool
+        Remove segments with same values (default: False)
+        For example, 50:01 100:01 300:00 -> 100:01 300:00
+        For example, 50:01 100:01 100:10 300:00 300:01 -> 100:01 300:00
+
     """
     new_breaks = []
     new_values = []
 
-    for br, vl in zip(breaks, values):
-        # remove duplicated break points, only preserve the first one
-        d = dict()
-        for b, v in zip(br, vl):
-            if b not in d:
-                d[b] = v
+    if not remove_repeated_val:
+        for br, vl in zip(breaks, values):
+            # remove duplicated break positions, only preserve the first one
+            d = dict()
+            for b, v in zip(br, vl):
+                if b not in d:
+                    d[b] = v
 
-        # d = dict(zip(br, vl))
-        d.pop(0, None)
-        new_breaks.append(list(d.keys()))
-        new_values.append(list(d.values()))
+            d.pop(0, None)
+            new_breaks.append(list(d.keys()))
+            new_values.append(list(d.values()))
+    else:
+        for br, vl in zip(breaks, values):
+            # remove duplicated break positions, only preserve the first one
+            last_break = None
+            last_value = None
+            d = dict()
+            for b, v in zip(br, vl):
+                if (last_value is not None) and (v != last_value):
+                    # this value is different from the last one
+                    # record last one as break points
+                    if last_break not in d:
+                        d[last_break] = last_value
+                # either: last_value is None
+                # or: this value is the same as the last one, extend
+                last_break, last_value = b, v
+
+            # record finel one
+            assert last_break is not None
+            if last_break not in d:
+                d[last_break] = last_value
+
+            d.pop(0, None)
+            new_breaks.append(list(d.keys()))
+            new_values.append(list(d.values()))
     return new_breaks, new_values
 
 

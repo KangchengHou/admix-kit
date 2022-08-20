@@ -36,7 +36,7 @@ def get_dependency(name, download=True):
     cache_dir = join(get_cache_dir(), "bin")
     os.makedirs(cache_dir, exist_ok=True)
     cache_bin_path = join(cache_dir, name)
-    if shutil.which(cache_bin_path):
+    if os.path.exists(cache_bin_path):
         return cache_bin_path
     else:
         # download
@@ -104,6 +104,7 @@ def get_dependency(name, download=True):
                             f"mv dir/{platform_wildcard}/gcta64 {cache_bin_path}",
                             shell=True,
                         )
+
             elif name == "liftOver":
                 if platform == "darwin":
                     url = "http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/liftOver"
@@ -126,6 +127,7 @@ def get_dependency(name, download=True):
                         subprocess.check_call(
                             f"mv liftOver {cache_bin_path}", shell=True
                         )
+
             elif name == "hapgen2":
                 if platform == "linux":
                     url = (
@@ -144,6 +146,27 @@ def get_dependency(name, download=True):
 
                         subprocess.check_call(
                             f"mv hapgen2 {cache_bin_path}",
+                            shell=True,
+                        )
+
+            elif name == "admix-simu":
+                if platform == "linux":
+                    url = "https://github.com/williamslab/admix-simu/archive/refs/heads/master.zip"
+                else:
+                    raise ValueError(f"Unsupported platform {platform}")
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    with cd(tmp_dir):
+                        urllib.request.urlretrieve(
+                            url,
+                            "master.zip",
+                        )
+                        subprocess.check_call(f"unzip master.zip -d dir", shell=True)
+                        # make
+                        subprocess.check_call(
+                            f"cd dir/admix-simu-master && make", shell=True
+                        )
+                        subprocess.check_call(
+                            f"mv dir/admix-simu-master/ {cache_bin_path}",
                             shell=True,
                         )
             else:

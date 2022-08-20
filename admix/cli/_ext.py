@@ -227,7 +227,6 @@ def admix_simu(
     n_indiv: int,
     build: str,
     out: str,
-    admix_simu_dir: str = None,
 ):
     """Run admix-simu to expand population using a PLINK file."""
     log_params("admix-simu", locals())
@@ -241,5 +240,4 @@ def admix_simu(
         n_indiv=n_indiv,
         build=build,
         out_prefix=out,
-        admix_simu_dir=admix_simu_dir,
     )

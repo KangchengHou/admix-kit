@@ -20,7 +20,14 @@ from ._stats import (
     deming_regression,
     meta_analysis,
 )
-from ._lanc import Lanc, concat_lancs, lanc_impute_single_chrom, haplo2diplo
+from ._lanc import (
+    Lanc,
+    concat_lancs,
+    lanc_impute_single_chrom,
+    haplo2diplo,
+    clean_lanc,
+    read_bp_lanc,
+)
 from ._utils import (
     index_over_chunks,
     make_dataset,

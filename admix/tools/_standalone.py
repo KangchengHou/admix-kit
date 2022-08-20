@@ -151,7 +151,6 @@ def admix_simu(
     n_indiv: int,
     build: str,
     out_prefix: str,
-    admix_simu_dir: str = None,
 ):
     """
     Wrapper for https://github.com/williamslab/admix-simu
@@ -198,9 +197,10 @@ def admix_simu(
     ), "`pfile_list`, `admix_prop` should have the same length"
     n_pop = len(pfile_list)
 
-    # TODO: support arbitrary number of populations
-    assert n_pop == 2, "Currently we only support two-way admixture"
+    for i, pfile in enumerate(pfile_list):
+        admix.logger.info(f"POP{i}={pfile}")
 
+    admix_simu_dir = admix.tools.get_dependency("admix-simu")
     ##################################
     # format input
     ##################################
@@ -210,7 +210,6 @@ def admix_simu(
     chrom = None
     for pfile_path in pfile_list:
         pfile = os.path.basename(pfile_path)
-        print(pfile)
         admix.tools.plink2.run(
             f"--pfile {pfile_path} --export hapslegend --out {tmp_dir}/{pfile}"
         )
@@ -300,6 +299,26 @@ def admix_simu(
     # post-processing
     ##################################
 
+    ## convert phgeno to pgen
+    df_snp_info[["id", "position", "a0", "a1"]].to_csv(
+        os.path.join(tmp_dir, "admix.legend"), sep=" ", index=False
+    )
+    subprocess.check_output(
+        f"cat {tmp_dir}/admix.phgeno | sed 's/./& /g' > {tmp_dir}/admix.haps",
+        shell=True,
+    )
+    admix.tools.plink2.run(
+        f"--haps {tmp_dir}/admix.haps --legend {tmp_dir}/admix.legend {chrom} "
+        + f"--make-pgen --out {tmp_dir}/admix",
+    )
+    for suffix in ["pgen", "pvar", "psam", "log"]:
+        shutil.move(os.path.join(tmp_dir, f"admix.{suffix}"), f"{out_prefix}.{suffix}")
+
+    ## convert local ancestry
+    lanc = admix.data.read_bp_lanc(os.path.join(tmp_dir, "admix.bp"))
+    lanc.write(f"{out_prefix}.lanc")
     shutil.move(os.path.join(tmp_dir, "admix.hanc"), f"{out_prefix}.hanc")
-    shutil.move(os.path.join(tmp_dir, "admix.phgeno"), f"{out_prefix}.phgeno")
+    shutil.move(os.path.join(tmp_dir, "admix.bp"), f"{out_prefix}.bp")
+
+    # clean up
     tmp.cleanup()
