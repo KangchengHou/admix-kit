@@ -5,6 +5,7 @@ import glob
 import shutil
 import pandas as pd
 import numpy as np
+import dapgen
 from typing import Tuple
 
 
@@ -74,8 +75,6 @@ def get_1kg_ref(
     dir: str,
     build: str = "hg38",
     verbose: bool = False,
-    export_vcf: bool = True,
-    step: int = None,
 ):
     """
     Get the 1,000 reference genome in plink2 format.
@@ -108,9 +107,8 @@ def get_1kg_ref(
                 stderr=subprocess.STDOUT,
             )
 
-    # make sure plink2 / tabix is in path
+    # make sure plink2 is in path
     assert shutil.which("plink2") is not None, "plink2 is not in $PATH"
-    assert shutil.which("tabix") is not None, "tabix is not in $PATH"
 
     # assert dir not exist
     assert not os.path.exists(dir), f"dir='{dir}' already exists"
@@ -162,6 +160,20 @@ def get_1kg_ref(
         "--snps-only",
         "--chr 1-22",
         "--set-all-var-ids @:#:\$r:\$a",
+        f"--make-pgen --out {dir}/pgen/raw2",
+    ]
+    call_helper(" ".join(cmds))
+
+    ## remove SNPs duplicated by position
+    df_pvar = dapgen.read_pvar(f"{dir}/pgen/raw2.pvar")
+    dup_snps = df_pvar.index[df_pvar.duplicated(subset=["CHROM", "POS"])]
+    admix.logger.info(
+        f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions."
+    )
+    np.savetxt(f"{dir}/pgen/raw2.snplist", dup_snps, fmt="%s")
+    cmds = [
+        f"plink2 --pfile {dir}/pgen/raw2",
+        f"--exclude {dir}/pgen/raw2.snplist",
         f"--make-pgen --out {dir}/pgen/all_chr",
     ]
     call_helper(" ".join(cmds))
@@ -170,20 +182,6 @@ def get_1kg_ref(
     # remove raw*
     for f in glob.glob(f"{dir}/pgen/raw*"):
         os.remove(f)
-
-    # step2: convert plink2 to vcf
-    if export_vcf:
-        os.makedirs(os.path.join(dir, "vcf"))
-        admix.logger.info("Converting plink2 to vcf...")
-
-        for chrom in range(1, 23):
-            cmds = [
-                f"plink2 --pfile {dir}/pgen/all_chr",
-                "--export vcf bgz",
-                f"--chr {chrom}",
-                f"--out {dir}/vcf/chr{chrom} && tabix -p vcf {dir}/vcf/chr{chrom}.vcf.gz",
-            ]
-            call_helper(" ".join(cmds))
 
     _process_sample_map(root_dir=dir)
 

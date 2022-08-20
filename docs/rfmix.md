@@ -19,6 +19,21 @@ basic QCs (3) download metadata of sample map and genetic maps. This will take a
 You can also [read more details](download-1kg-detail.md) behind the scene.
 ```
 
+As RFmix takes reference dataset in vcf format, we convert pgen format to vcf format
+
+```bash
+# convert plink2 to vcf
+root_dir=/path/to/1kg/
+mkdir -p ${root_dir}/1kg/
+for chrom in {1..22}; do
+    plink2 \
+    --pfile ${root_dir}/pgen/all_chr \
+    --export vcf bgz \
+    --chr ${chrom} \
+    --out ${root_dir}/vcf/chr${chrom} && tabix -p vcf ${root_dir}/vcf/chr${chrom}.vcf.gz
+done
+```
+
 ## Step 1.5 (optional) subset admixed individuals using joint PCA with 1KG reference
 
 We first merge the 1kg data and sample data into a single file and perform a joint PCA.

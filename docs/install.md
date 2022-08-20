@@ -6,9 +6,6 @@ git clone https://github.com/KangchengHou/admix-kit
 cd admix-kit
 pip install -r requirements.txt; pip install -e .
 ```
-```{note}
-Installation requires cmake version > 3.12. Use `cmake --version` to check your cmake version. Use `pip install cmake` to install the latest version.
-```
 
 ### Update to latest (admix-kit only)
 ```
