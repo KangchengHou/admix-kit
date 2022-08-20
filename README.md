@@ -10,8 +10,7 @@
 ```bash
 # Install admix-kit with Python 3.7, 3.8, 3.9
 git clone https://github.com/KangchengHou/admix-kit
-cd admix-kit
-pip install -r requirements.txt; pip install -e .
+cd admix-kit && pip install -e .
 ```
 
 ## Get started
