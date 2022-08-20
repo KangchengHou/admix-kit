@@ -4,10 +4,6 @@ We describe the pipeline to simulate genotypes of admixed individuals using refe
 `admix-kit` is required to run the pipeline. Refer to [this page](install.md) to install `admix-kit`.
 ```
 
-```{note}
-Currently only two-way admixture is supported. Other admixture (e.g., three-way admixture) will be added very soon.
-```
-
 ## Overview
 In the following, we go through each part of the pipeline using an example of simulating individuals with African-European genetic ancestries using CEU, YRI as reference populations. In details, we will
 1. download 1,000 Genomes project reference.
@@ -25,7 +21,7 @@ We go through the following steps:
 
 ```bash
 # genome build to use
-BUILD=hg19
+BUILD=hg38
 # number of admixed individuals to simulate
 N_INDIV=1000
 # chromosome 
@@ -53,7 +49,7 @@ admix subset-hapmap3 \
     --out data/ancestry/hm3_chrom${CHROM}.snp
 
 # subset individuals
-for pop in CEU YRI; do
+for pop in CEU YRI PEL; do
     admix subset-pop-indiv \
         --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
         --pop ${pop} \
@@ -61,7 +57,7 @@ for pop in CEU YRI; do
 done
 
 # subset plink2
-for pop in CEU YRI; do
+for pop in CEU YRI PEL; do
     plink2 --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
         --keep data/ancestry/${pop}.indiv \
         --extract data/ancestry/hm3_chrom${CHROM}.snp \
@@ -74,7 +70,7 @@ done
 Next, we use HAPGEN2 to extend the ancestral populations. As aim to simulate 1000 admixed individuals, we simulate 1,000 individuals in each ancestral population.
 
 ```bash
-for pop in CEU YRI; do
+for pop in CEU YRI PEL; do
     admix hapgen2 \
         --pfile data/ancestry/${pop} \
         --chrom ${CHROM} \
@@ -100,8 +96,8 @@ cd admix-simu && make && cd ..
 # ADMIX_SIMU_DIR is the path to the admix-simu directory (that is git cloned above)
 ADMIX_SIMU_DIR=./admix-simu
 admix admix-simu \
-    --pfile-list "['data/ancestry/CEU.hapgen2','data/ancestry/YRI.hapgen2']" \
-    --admix-prop "[0.2,0.8]" \
+    --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2', 'data/ancestry/PEL.hapgen2']" \
+    --admix-prop "[0.4,0.1,0.5]" \
     --n-indiv ${N_INDIV} \
     --n-gen ${N_GEN} \
     --build ${BUILD} \
@@ -109,11 +105,8 @@ admix admix-simu \
     --admix-simu-dir ${ADMIX_SIMU_DIR}
 
 # you will obtain 
-# (1) phased genotype data/admix.phgeno
-# (2) local ancestry data/admix.hanc
+# (1) plink2 phased genotype: data/admix.{pgen,pvar,psam}
+# (2) local ancestry: data/admix.lanc
 ```
 
-```{note}
-We are still working on converting data/admix.phgeno back to plink2 file (so many common analyses can be performed using `admix-kit` / `PLINK2`). 
-Please check back at this page later.
-```
+<!-- TODO: To perform basic check on the simulated data. We performed some basic analyses below. -->
