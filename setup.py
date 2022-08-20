@@ -24,6 +24,7 @@ setup(
         "matplotlib",
         "dask[array]>=2021.11.2",
         "tqdm",
+        "zarr",
         "xarray",
         "statsmodels",
         "structlog",
