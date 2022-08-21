@@ -9,7 +9,8 @@
 ## Installation
 ```bash
 # Install admix-kit with Python 3.7, 3.8, 3.9
-pip install git+https://github.com/kangchenghou/admix-kit
+git clone https://github.com/KangchengHou/admix-kit
+cd admix-kit && pip install -e .
 ```
 
 ## Get started
