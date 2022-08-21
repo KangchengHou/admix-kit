@@ -3,7 +3,6 @@ import xarray as xr
 import numpy as np
 import dask.array as da
 from xarray.core.dataset import DataVariables
-import admix
 import dask
 from typing import (
     Hashable,
@@ -228,6 +227,8 @@ class Dataset(object):
         force : bool
             If True, force re-computation of the matrix.
         """
+        import admix
+
         if ("af_per_anc" not in self._xr) or force:
             res = admix.data.af_per_anc(
                 geno=self.geno,
@@ -251,6 +252,8 @@ class Dataset(object):
         force : bool
             If True, force re-computation of the matrix.
         """
+        import admix
+
         if ("nhaplo_per_anc" not in self._xr) or force:
             res = admix.data.af_per_anc(
                 geno=self.geno,
@@ -292,6 +295,8 @@ class Dataset(object):
         force_update : bool
             If True, update the indiv information even if it already exists.
         """
+        import admix
+
         if len(set(df_info.index) - set(self.indiv.index)) > 0:
             admix.logger.warn(
                 "admix.dataset.append_indiv_info: "
