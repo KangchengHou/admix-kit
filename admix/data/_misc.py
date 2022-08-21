@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List
-import admix
 import numpy as np
+from .._logging import logger
 
 
 def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
@@ -34,7 +34,7 @@ def convert_dummy(df: pd.DataFrame, cols: List[str] = None) -> pd.DataFrame:
         df = pd.concat([df, dummies], axis=1)
         df = df.drop(columns=[col])
     if len(added_cols) > 0:
-        admix.logger.info(
+        logger.info(
             f"Detected categorical columns: {','.join(cols)}, "
             f"and dded dummy variables: {','.join(added_cols)}"
         )

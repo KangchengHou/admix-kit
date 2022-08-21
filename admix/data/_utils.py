@@ -5,7 +5,7 @@ import xarray as xr
 import warnings
 from pandas.api.types import is_string_dtype
 from typing import List, Tuple
-import admix
+from .._dataset import Dataset
 
 
 def index_over_chunks(chunks: List[int]):
@@ -32,8 +32,8 @@ def index_over_chunks(chunks: List[int]):
 
 
 def match_prs_weights(
-    dset: admix.Dataset, df_weight: pd.DataFrame, weight_cols: List[str]
-) -> Tuple[admix.Dataset, pd.DataFrame]:
+    dset: Dataset, df_weight: pd.DataFrame, weight_cols: List[str]
+) -> Tuple[Dataset, pd.DataFrame]:
     # TODO: implement this with dapgen.align_snp
     """
     align the dataset and PRS weights with the following 3 steps:
@@ -94,7 +94,7 @@ def match_prs_weights(
     return rls_dset, rls_df_weight
 
 
-def impute_lanc_old(dset: admix.Dataset, dset_ref: admix.Dataset):
+def impute_lanc_old(dset: Dataset, dset_ref: Dataset):
     """
     Impute local ancestry using a reference dataset. The two data sets are assumed to
     have the same haplotype order, etc. Typically they are just a subset of each other.

@@ -6,6 +6,8 @@ from dask.array import concatenate, from_delayed
 from dask.delayed import delayed
 from bisect import bisect_left, bisect_right
 import dask
+from .._dataset import Dataset
+
 
 is_sorted = lambda a: np.all(a[:-1] <= a[1:])
 
@@ -203,7 +205,7 @@ class Lanc(object):
             f.writelines("\n".join(lines))
 
 
-def assign_lanc(dset: admix.Dataset, lanc_file: str, format: str = "rfmix"):
+def assign_lanc(dset: Dataset, lanc_file: str, format: str = "rfmix"):
     """
     Assign local ancestry to a dataset. Currently we assume that the rfmix file contains
     2-way admixture information.
@@ -329,10 +331,10 @@ def read_bp_lanc(path: str):
     hap_values = [[l.split(":")[0] for l in line] for line in bp_data]
 
     dip_breaks, dip_values = clean_lanc(
-        *admix.data.haplo2diplo(breaks=hap_breaks, values=hap_values),
+        *haplo2diplo(breaks=hap_breaks, values=hap_values),
         remove_repeated_val=True,
     )
-    lanc = admix.data.Lanc(breaks=dip_breaks, values=dip_values)
+    lanc = Lanc(breaks=dip_breaks, values=dip_values)
     return lanc
 
 
