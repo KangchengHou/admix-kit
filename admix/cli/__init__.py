@@ -16,7 +16,7 @@ from ._ext import (
     subset_hapmap3,
     subset_pop_indiv,
     hapgen2,
-    admix_simu
+    admix_simu,
 )
 from ._plot import plot_joint_pca
 from ._genet_cor import (

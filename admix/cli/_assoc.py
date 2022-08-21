@@ -1,7 +1,5 @@
-import admix
 import pandas as pd
-from typing import Union, List, Optional
-from admix import logger
+from typing import Union, List
 from ._utils import log_params
 
 
@@ -65,6 +63,8 @@ def assoc(
             --out toy-admix
     """
     log_params("assoc", locals())
+    import admix
+
     assert family in ["quant", "binary"], "family must be either quant or binary"
 
     # TODO: infer block size using memory use in dask-pgen read
@@ -141,4 +141,4 @@ def assoc(
         dict_rls[m].to_csv(
             f"{out}.{m}.assoc", sep="\t", float_format="%.6g", na_rep="NA"
         )
-        logger.info(f"Output written to {out}.{m}.assoc")
+        admix.logger.info(f"Output written to {out}.{m}.assoc")
