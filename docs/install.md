@@ -1,22 +1,24 @@
 # Installation
 
+## Install latest version
+```bash
+# Install admix-kit with Python 3.7, 3.8, 3.9
+pip install git+https://github.com/kangchenghou/admix-kit
+```
+
+## Hacking on `admix-kit`
+
 ```bash
 # Install admix-kit with Python 3.7, 3.8, 3.9
 git clone https://github.com/KangchengHou/admix-kit
 cd admix-kit && pip install -e .
 ```
 
-### Update to latest (admix-kit only)
-```
-# go to the path of admix-kit
-cd /path/to/admix-kit
-git pull
-pip install -e .
-```
 
 ### Update to latest (admix-kit and other dependencies)
+
 ```{note}
-Try update "admix-kit only" described above first before updating other dependencies.
+The following will be rarely used.
 ```
 
 ```bash
