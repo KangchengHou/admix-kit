@@ -7,7 +7,7 @@ def test_consistent():
     """
     Test the consistency of the association between the precomputed file and new file
     """
-    dset = admix.dataset.load_toy_admix()
+    dset = admix.load_toy_admix()
 
     # how two implementations cope with zero-freq SNPs are a bit different for now.
     # subset the dataset to avoid this for now
@@ -41,7 +41,7 @@ def test_linear_nan():
     Test the consistency of the linear association between the precomputed file and new file
     in the presence of NaNs
     """
-    dset = admix.dataset.load_toy_admix()
+    dset = admix.load_toy_admix()
 
     # how two implementations cope with zero-freq SNPs are a bit different for now.
     # subset the dataset to avoid this for now

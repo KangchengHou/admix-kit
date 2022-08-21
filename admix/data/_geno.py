@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import dask.array as da
-import admix
 import dask
 from typing import Union, Tuple, List
 import dapgen
+from .._dataset import Dataset
 
 
 def calc_snp_prior_var(df_snp_info, her_model):
@@ -164,7 +164,7 @@ def geno_mult_mat(
         return ret
 
 
-def grm(dset: admix.Dataset, method="gcta", inplace=True):
+def grm(dset: Dataset, method="gcta", inplace=True):
     """Calculate the GRM matrix
     The GRM matrix is calculated treating the genotypes as from one ancestry population,
     the same as GCTA.
@@ -239,7 +239,7 @@ def admix_grm(
     assert n_anc == 2, "only two-way admixture is implemented"
     assert np.all(geno.shape == lanc.shape)
 
-    apa = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc)
+    apa = allele_per_anc(geno, lanc, n_anc=n_anc)
     n_snp, n_indiv = apa.shape[0:2]
 
     if snp_prior_var is None:
@@ -267,7 +267,7 @@ def admix_grm(
     return G1, G2, G12
 
 
-def admix_ld(dset: admix.Dataset, cov: np.ndarray = None):
+def admix_ld(dset: Dataset, cov: np.ndarray = None):
     """Calculate ancestry specific LD matrices
 
     Parameters
@@ -435,7 +435,7 @@ def allele_per_anc(
     return res
 
 
-def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
+def calc_pgs(dset: Dataset, df_weights: pd.DataFrame, method: str):
     """Calculate PGS for each individual
 
     Parameters
@@ -467,17 +467,13 @@ def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
     assert len(df_weights.columns) == 1, "`df_weights` should have only one column"
 
     if method == "total":
-        pgs = admix.data.geno_mult_mat(
-            dset.geno.sum(axis=2), df_weights.values
-        ).flatten()
+        pgs = geno_mult_mat(dset.geno.sum(axis=2), df_weights.values).flatten()
     elif method == "partial":
         n_anc = dset.n_anc
         pgs = np.zeros((dset.n_indiv, n_anc))
         apa = dset.allele_per_anc()
         for i_anc in range(n_anc):
-            pgs[:, i_anc] = admix.data.geno_mult_mat(
-                apa[:, :, i_anc], df_weights.values
-            ).flatten()
+            pgs[:, i_anc] = geno_mult_mat(apa[:, :, i_anc], df_weights.values).flatten()
 
     else:
         raise ValueError("method should be either 'total' or 'partial'")
@@ -486,9 +482,9 @@ def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
 
 
 def calc_partial_pgs(
-    dset: admix.Dataset,
+    dset: Dataset,
     df_weights: pd.DataFrame,
-    dset_ref: admix.Dataset,
+    dset_ref: Dataset,
     ref_pop_indiv: List[List[str]],
     weight_col="WEIGHT",
 ) -> pd.DataFrame:

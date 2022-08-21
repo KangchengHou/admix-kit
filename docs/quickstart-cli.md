@@ -8,7 +8,7 @@ We go through the basic function of `admix-kit` using the toy data we prepared.
 # copy test data
 # the test data is built from ASW, CEU and YRI individuals 1,000 Genome projects 
 # see tests/test-data/make-toy.sh for scripts to build the toy data
-test_data_dir=$(python -c "import admix; print(admix.dataset.get_test_data_dir())")
+test_data_dir=$(python -c "import admix; print(admix.get_test_data_dir())")
 cp ${test_data_dir}/toy-* ./
 
 # rename the provided .lanc as we are to compute this now

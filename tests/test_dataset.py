@@ -4,7 +4,7 @@ import admix
 
 
 def test_dataset():
-    dset = admix.dataset.load_toy_admix()
+    dset = admix.load_toy_admix()
     lanc = dset.lanc
     geno = dset.geno
     pos = dset.snp.POS

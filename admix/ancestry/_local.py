@@ -29,12 +29,11 @@ def lanc_single_chrom(
     window_size : int, optional
     """
     from pylampld import LampLD
+    from .._dataset import is_aligned
 
     assert method in ["lampld"]
     assert len(sample_dset.snp.CHROM.unique()), "Datasets are not of single chromosome"
-    assert admix.dataset.is_aligned(
-        [sample_dset, *ref_dsets]
-    ), "Datasets are not aligned"
+    assert is_aligned([sample_dset, *ref_dsets]), "Datasets are not aligned"
 
     n_anc = len(ref_dsets)
     n_snp = sample_dset.n_snp

@@ -59,7 +59,7 @@ def test_utils():
 
 def test_assoc():
     np.random.seed(1234)
-    dset_admix = admix.dataset.load_toy_admix()
+    dset_admix = admix.load_toy_admix()
     sim = admix.simulate.quant_pheno(dset_admix, hsq=0.5, cor=1.0)
     i_sim = 0
     sim_beta = sim["beta"][:, :, i_sim]
@@ -122,7 +122,7 @@ def test_consistent():
     from os.path import dirname, join
 
     np.random.seed(1234)
-    dset_admix, _, _ = admix.dataset.load_toy()
+    dset_admix, _, _ = admix.load_toy()
     dset_admix = dset_admix[0:100]
 
     af = dset_admix.af_per_anc()

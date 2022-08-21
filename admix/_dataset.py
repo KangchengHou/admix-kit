@@ -1,6 +1,7 @@
+import os
 import pandas as pd
-import xarray as xr
 import numpy as np
+import xarray as xr
 import dask.array as da
 from xarray.core.dataset import DataVariables
 import dask
@@ -12,9 +13,14 @@ from typing import (
     Dict,
     Union,
     MutableMapping,
+    Sequence,
+    Tuple,
 )
-from ._index import normalize_indices
+
 import warnings
+from ._logging import logger
+
+REQUIRED_SNP_COLUMNS = ["CHROM", "POS", "REF", "ALT"]
 
 
 class Dataset(object):
@@ -213,6 +219,8 @@ class Dataset(object):
 
     def allele_per_anc(self) -> da.Array:
         """Return the allele-per-ancestry raw count matrix"""
+        import admix
+
         return admix.data.allele_per_anc(
             geno=self.geno, lanc=self.lanc, n_anc=self.n_anc, center=False
         )
@@ -227,9 +235,10 @@ class Dataset(object):
         force : bool
             If True, force re-computation of the matrix.
         """
-        import admix
 
         if ("af_per_anc" not in self._xr) or force:
+            import admix
+
             res = admix.data.af_per_anc(
                 geno=self.geno,
                 lanc=self.lanc,
@@ -252,9 +261,10 @@ class Dataset(object):
         force : bool
             If True, force re-computation of the matrix.
         """
-        import admix
 
         if ("nhaplo_per_anc" not in self._xr) or force:
+            import admix
+
             res = admix.data.af_per_anc(
                 geno=self.geno,
                 lanc=self.lanc,
@@ -295,18 +305,17 @@ class Dataset(object):
         force_update : bool
             If True, update the indiv information even if it already exists.
         """
-        import admix
 
         if len(set(df_info.index) - set(self.indiv.index)) > 0:
-            admix.logger.warn(
-                "admix.dataset.append_indiv_info: "
+            logger.warn(
+                "admix.Dataset.append_indiv_info: "
                 f"{len(set(df_info.index) - set(self.indiv.index))}/{len(set(df_info.index))}"
                 " individuals in the new dataframe not in the dataset;"
                 " These individuals will be ignored."
             )
         if len(set(self.indiv.index) - set(df_info.index)) > 0:
-            admix.logger.warn(
-                "admix.dataset.append_indiv_info: "
+            logger.warn(
+                "admix.Dataset.append_indiv_info: "
                 f"{len(set(self.indiv.index) - set(df_info.index))}/{len(set(self.indiv.index))}"
                 " individuals in the dataset are missing in the provided data frame."
                 " These individuals will be filled with NaN."
@@ -321,15 +330,15 @@ class Dataset(object):
                 is_allclose = np.allclose(self.indiv[col], df_info[col], equal_nan=True)
                 if not is_allclose:
                     if force_update:
-                        admix.logger.info(
-                            f"admix.dataset.append_indiv_info: "
+                        logger.info(
+                            f"admix.Dataset.append_indiv_info: "
                             f"{col} is updated from {self.indiv[col].values[0:5]} ..."
                             f"to {df_info[col].values[0:5]} ..."
                         )
                         self._indiv[col] = df_info[col]
                     else:
                         raise ValueError(
-                            "admix.dataset.append_indiv_info: "
+                            "admix.Dataset.append_indiv_info: "
                             f"The column '{col}' in the provided data frame is not consistent "
                             "with the dataset."
                         )
@@ -393,3 +402,318 @@ def is_aligned(dset_list: List[Dataset], dim="snp"):
         )
     else:
         raise ValueError("dim must be either 'snp' or 'indiv'")
+
+
+##################################################################################
+################################ index function ##################################
+##################################################################################
+
+
+def normalize_indices(
+    index, snp_names: pd.Index, indiv_names: pd.Index
+) -> Tuple[Union[slice, int, np.ndarray], Union[slice, int, np.ndarray]]:
+    """Normalize the indices to return the snp slices, and individual slices
+
+    Parameters
+    ----------
+    index : [type]
+        [description]
+    snp_names : pd.index
+        [description]
+    indiv_names : pd.index
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ValueError
+        [description]
+    """
+    # deal with tuples of length 1
+    if isinstance(index, tuple) and len(index) == 1:
+        index = index[0]
+
+    if isinstance(index, tuple):
+        if len(index) > 2:
+            raise ValueError(
+                "data can only be sliced in SNPs (first dim) and individuals (second dim)"
+            )
+
+    snp_ax, indiv_ax = unpack_index(index)
+    snp_ax = _normalize_index(snp_ax, snp_names)
+    indiv_ax = _normalize_index(indiv_ax, indiv_names)
+    return snp_ax, indiv_ax
+
+
+# convert the indexer (integer, slice, string, array) to the actual positions
+# reference: https://github.com/theislab/anndata/blob/566f8fe56f0dce52b7b3d0c96b51d22ea7498156/anndata/_core/index.py#L16
+def _normalize_index(
+    indexer: Union[
+        slice,
+        int,
+        str,
+        np.ndarray,
+    ],
+    index: pd.Index,
+) -> Union[slice, int, np.ndarray]:  # ndarray of int
+    """Convert the indexed (integer, slice, string, array) to the actual positions
+
+    Parameters
+    ----------
+    indexer : Union[ slice, int, str, np.ndarray, ]
+        [description]
+    index : pd.Index
+        [description]
+
+    Returns
+    -------
+    Union[slice, int, np.ndarray]
+        [description]
+
+    """
+    if not isinstance(index, pd.RangeIndex):
+        assert (
+            index.dtype != float and index.dtype != int
+        ), "Don't call _normalize_index with non-categorical/string names"
+
+    # the following is insanely slow for sequences,
+    # we replaced it using pandas below
+    def name_idx(i):
+        if isinstance(i, str):
+            i = index.get_loc(i)
+        return i
+
+    if isinstance(indexer, slice):
+        start = name_idx(indexer.start)
+        stop = name_idx(indexer.stop)
+        # string slices can only be inclusive, so +1 in that case
+        if isinstance(indexer.stop, str):
+            stop = None if stop is None else stop + 1
+        step = indexer.step
+        return slice(start, stop, step)
+    elif isinstance(indexer, (np.integer, int)):
+        return indexer
+    elif isinstance(indexer, str):
+        return index.get_loc(indexer)  # int
+    elif isinstance(indexer, (Sequence, np.ndarray, pd.Index, np.matrix)):
+        if hasattr(indexer, "shape") and (
+            (indexer.shape == (index.shape[0], 1))
+            or (indexer.shape == (1, index.shape[0]))
+        ):
+            indexer = np.ravel(indexer)
+        if not isinstance(indexer, (np.ndarray, pd.Index)):
+            indexer = np.array(indexer)
+        if issubclass(indexer.dtype.type, (np.integer, np.floating)):
+            return indexer  # Might not work for range indexes
+        elif issubclass(indexer.dtype.type, np.bool_):
+            if indexer.shape != index.shape:
+                raise IndexError(
+                    f"Boolean index does not match Dataset's shape along this "
+                    f"dimension. Boolean index has shape {indexer.shape} while "
+                    f"Dataset index has shape {index.shape}."
+                )
+            positions = np.where(indexer)[0]
+            return positions  # np.ndarray[int]
+        else:  # indexer should be string array
+            positions = index.get_indexer(indexer)
+            if np.any(positions < 0):
+                not_found = indexer[positions < 0]
+                raise KeyError(
+                    f"Values {list(not_found)}, from {list(indexer)}, "
+                    "are not valid obs/ var names or indices."
+                )
+            return positions  # np.ndarray[int]
+    else:
+        raise IndexError(f"Unknown indexer {indexer!r} of type {type(indexer)}")
+
+
+def unpack_index(index):
+    if not isinstance(index, tuple):
+        return index, slice(None)
+    elif len(index) == 2:
+        return index
+    elif len(index) == 1:
+        return index[0], slice(None)
+    else:
+        raise IndexError("invalid number of indices")
+
+
+def all_array_equal(array_list: List[np.ndarray]) -> bool:
+    """check whether all arrays in the list are equal
+
+    Parameters
+    ----------
+    List[np.ndarray]
+
+    Returns
+    -------
+    bool
+    """
+    return all([np.allclose(array_list[0], a) for a in array_list[1:]])
+
+
+def align_datasets(dsets: List[Dataset], dim: str) -> List[Dataset]:
+    """takes 2 or more datasets, return the aligned dataset
+
+    SNP alignment is based on index, CHROM, POS, REF, ALT
+    Individual alignment is based on index
+
+    TODO: refer to PLINK2 alignment page for preprocessing your data to align SNP attributes
+    before hand.
+
+    Parameters
+    ----------
+    dsets : List[Dataset]
+        List of datasets
+    dim : str
+        which dimension to check
+
+    Returns
+    -------
+    List[admix.Dataset]: list of aligned datasets
+    """
+    assert dim in ["snp", "indiv"]
+    if dim == "snp":
+        required_snp_columns = REQUIRED_SNP_COLUMNS
+        # TODO: find aligned snp index among datasets
+
+
+def check_align(dsets, dim: str) -> bool:
+    """takes 2 or more datasets, and check whether the common attributes among datasets
+    are properly aligned
+
+    Parameters
+    ----------
+    dsets : List[admix.Dataset]
+        List of datasets
+    dim : str
+        which dimension to check
+
+    Returns
+    -------
+    bool: whether the two datasets align in the given dimension
+    """
+    aligned = False
+    assert dim in ["snp", "indiv"], "dim must be either 'snp' or 'indiv'"
+    if dim == "snp":
+        required_snp_columns = REQUIRED_SNP_COLUMNS
+
+        # find common columns among datasets
+        common_cols = set.intersection(*[set(dset.snp.columns) for dset in dsets])
+
+        # common_cols must be a subset of required_snp_columns
+        assert set(required_snp_columns).issubset(
+            common_cols
+        ), "common_cols must be a subset of required_snp_columns"
+
+        inconsistent_cols = [
+            col
+            for col in common_cols
+            if not all_array_equal([dset.snp[col].values for dset in dsets])
+        ]
+        if not all_array_equal([dset.snp.index.values for dset in dsets]):
+            inconsistent_cols.append("index")
+        if len(inconsistent_cols) > 0:
+            print(f"inconsistent columns: {','.join(inconsistent_cols)} in snp")
+            aligned = False
+        else:
+            aligned = True
+
+    elif dim == "indiv":
+        # find common columns among datasets
+        common_cols = set.intersection(*[set(dset.indiv.columns) for dset in dsets])
+        # check whether all datasets have the same columns
+        inconsistent_cols = [
+            col
+            for col in common_cols
+            if not all_array_equal([dset.indiv[col].values for dset in dsets])
+        ]
+        if len(inconsistent_cols) > 0:
+            print(f"inconsistent columns: {','.join(inconsistent_cols)} in indiv")
+            aligned = False
+        else:
+            aligned = True
+    return aligned
+
+
+##################################################################################
+################################## toy data ######################################
+##################################################################################
+
+
+def get_test_data_dir() -> str:
+    """
+    Get toy dataset directory
+
+    Returns
+    -------
+    str
+        Toy dataset directory
+    """
+    test_data_path = os.path.join(os.path.dirname(__file__), "../tests/test-data")
+    return test_data_path
+
+
+def load_toy_admix() -> Dataset:
+    """
+    Load toy admixed data set with African and European ancestries
+
+    Returns
+    -------
+    Dataset
+    """
+    from .io import read_dataset
+
+    dset = read_dataset(os.path.join(get_test_data_dir(), "toy-admix"), n_anc=2)
+    return dset
+
+
+def load_toy() -> List[Dataset]:
+    """Load toy dataset
+
+    Load simulated
+    (1) 50 admixed individuals
+    (2) 50 EUR individuals
+    (3) 50 AFR individuals
+
+    5000 SNPs
+
+    Returns
+    -------
+    List[admix.Dataset]
+        [dset_admix, dset_eur, dset_afr]
+    """
+
+    # TODO: change the data format, use .pgen and .lanc
+    import xarray as xr
+
+    module_path = os.path.dirname(__file__)
+    test_data_path = os.path.join(module_path, "../tests/test-data")
+    dset_eur = xr.open_zarr(os.path.join(test_data_path, "eur.zip"))
+    dset_afr = xr.open_zarr(os.path.join(test_data_path, "afr.zip"))
+    dset_admix = xr.open_zarr(os.path.join(test_data_path, "admix.zip"))
+
+    dset_list = [
+        Dataset(
+            geno=np.swapaxes(dset_admix.geno.data, 0, 1),
+            lanc=np.swapaxes(dset_admix.lanc.data, 0, 1),
+            n_anc=2,
+            indiv=dset_admix.indiv.to_dataframe().drop(columns=["indiv"]),
+            snp=dset_admix.snp.to_dataframe().drop(columns=["snp"]),
+        )
+    ]
+    for dset in [dset_eur, dset_afr]:
+        dset_list.append(
+            Dataset(
+                geno=np.swapaxes(dset.geno.data, 0, 1),
+                n_anc=1,
+                indiv=dset.indiv.to_dataframe().drop(columns=["indiv"]),
+                snp=dset.snp.to_dataframe().drop(columns=["snp"]),
+            ),
+        )
+
+    return dset_list

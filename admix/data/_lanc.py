@@ -162,8 +162,7 @@ class Lanc(object):
                 raise ValueError(
                     "Lanc can only be sliced in SNPs (first dim) and individuals (second dim)"
                 )
-
-        from ..dataset._index import unpack_index
+        from .._dataset import unpack_index
 
         snp_idx, indiv_idx = unpack_index(index)
         # if indiv_idx is slice(None), use all individuals

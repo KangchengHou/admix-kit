@@ -19,7 +19,7 @@ def test_assoc_quant():
         --out toy-admix.assoc
 
     """
-    dset = admix.dataset.load_toy_admix()
+    dset = admix.load_toy_admix()
 
     # how two implementations cope with zero-freq SNPs are a bit different for now.
     # subset the dataset to avoid this for now
@@ -27,7 +27,7 @@ def test_assoc_quant():
         (dset.snp.FREQ1.between(0.01, 0.99)) & (dset.snp.FREQ2.between(0.01, 0.99))
     ).values
     dset = dset[test_eq_idx]
-    data_dir = admix.dataset.get_test_data_dir()
+    data_dir = admix.get_test_data_dir()
     df_pheno = pd.read_csv(f"{data_dir}/toy-admix.indiv_info", sep="\t", index_col=0)
     with tempfile.TemporaryDirectory() as tmp_dir:
         with cd(tmp_dir):
