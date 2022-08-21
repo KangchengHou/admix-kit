@@ -2,7 +2,6 @@ import numpy as np
 from scipy import linalg
 import xarray as xr
 from typing import List, Tuple
-import admix
 
 
 def admix_gen_cor(

@@ -1,10 +1,8 @@
 import numpy as np
 from scipy import linalg
 import pandas as pd
-import xarray as xr
 from typing import List, Union
-import admix
-import tempfile
+from .._dataset import Dataset
 from ..utils import cd
 
 
@@ -17,7 +15,7 @@ def trace_mul(a, b):
 
 
 def gen_cor(
-    dset: admix.Dataset,
+    dset: Dataset,
     grm: Union[str, List[str], dict],
     pheno: np.ndarray,
     cov_cols: List[str] = None,

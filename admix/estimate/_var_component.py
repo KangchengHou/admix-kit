@@ -1,16 +1,15 @@
 import numpy as np
 from scipy import linalg
 import pandas as pd
-import xarray as xr
 from typing import List, Union
-import admix
+from .._dataset import Dataset
 import tempfile
 from ..utils import cd
 import dask
 
 
 def variance_component(
-    dset: admix.Dataset,
+    dset: Dataset,
     grm: Union[str, List[str], dict],
     pheno: np.ndarray,
     cov_cols: List[str] = None,
@@ -136,6 +135,7 @@ def HE_reg(
         DataFrame with the regression coefficients.
 
     """
+    import admix
 
     quad_form = lambda x, A: np.dot(np.dot(x.T, A), x)
 
@@ -252,6 +252,8 @@ def REML(grm_list: List, pheno: np.ndarray, cov: np.ndarray):
     cov : array-like
         Covariates to be used. (n_indiv, n_cov)
     """
+    import admix
+
     # creating dummy individual IDs
     n_indiv = grm_list[0].shape[0]
     n_pheno = pheno.shape[1]

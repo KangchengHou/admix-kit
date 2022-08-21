@@ -14,19 +14,20 @@ import re
 import dask.array as da
 from typing import List, Optional
 import xarray as xr
-import admix
 import dapgen
 import os
 import pandas as pd
+from ..data import Lanc
+from .._dataset import Dataset
 
 
-def read_lanc(path: str) -> admix.data.Lanc:
+def read_lanc(path: str) -> Lanc:
     """Read local ancestry with .lanc format
 
     Parameters
     ----------
     """
-    lanc = admix.data.Lanc(path)
+    lanc = Lanc(path)
     return lanc
 
 
@@ -37,7 +38,7 @@ def read_dataset(
     indiv_info_file: str = None,
     n_anc: int = None,
     snp_chunk: int = 1024,
-) -> admix.Dataset:
+) -> Dataset:
     """
     TODO: support multiple pfile, such as data/chr*
     TODO: support only reading a subset of the individuals
@@ -69,6 +70,7 @@ def read_dataset(
     -------
     Dataset
     """
+    import admix
 
     # infer local ancestry file
     if lanc_file is None:
@@ -90,7 +92,7 @@ def read_dataset(
 
     geno, pvar, psam = dapgen.read_pfile(pfile, phase=True, snp_chunk=snp_chunk)
 
-    dset = admix.Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
+    dset = Dataset(geno=geno, lanc=lanc, snp=pvar, indiv=psam, n_anc=n_anc)
 
     if snp_info_file is not None:
         df_snp_info = pd.read_csv(snp_info_file, index_col=0, sep="\t")
@@ -264,7 +266,8 @@ def read_rfmix(
     lanc: da.Array
         Local ancestry array
     """
-
+    import admix
+    
     # assign local ancestry
     df_rfmix = pd.read_csv(path, sep="\t", skiprows=1)
     assert (

@@ -5,18 +5,19 @@ from numpy import (
 )
 import pandas as pd
 import dask.array as da
-import admix
+from ..data import Lanc
 from typing import Union
 import dapgen
 
 
 def write_dataset(
     geno: da.Array,
-    lanc: admix.data.Lanc,
+    lanc: Lanc,
     df_indiv: pd.DataFrame,
     df_snp: pd.DataFrame,
     out_prefix: str,
 ) -> None:
+    import admix
 
     n_snp, n_indiv = geno.shape[0:2]
     assert lanc.n_snp == n_snp
@@ -44,7 +45,7 @@ def write_dataset(
     df_snp.to_csv(f"{out_prefix}.pvar", sep="\t", index=False)
 
 
-def write_lanc(path: str, lanc: Union[np.ndarray, da.Array, admix.data.Lanc]) -> None:
+def write_lanc(path: str, lanc: Union[np.ndarray, da.Array, Lanc]) -> None:
     """
     Write local ancestry matrix to file.
 
@@ -56,10 +57,10 @@ def write_lanc(path: str, lanc: Union[np.ndarray, da.Array, admix.data.Lanc]) ->
         The local ancestry matrix.
     """
     if isinstance(lanc, np.ndarray) or isinstance(lanc, da.Array):
-        lanc = admix.data.Lanc(array=lanc)
+        lanc = Lanc(array=lanc)
 
     assert isinstance(
-        lanc, admix.data.Lanc
+        lanc, Lanc
     ), "lanc must be a numpy array or a dask array, or admix.data.Lanc"
     lanc.write(path)
 
