@@ -20,7 +20,7 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install flake8 pytest cython numpy
-        pip install git+https://github.com/kangchenghou/admix-kit
+        pip install -e .
 
     - name: Build docs
       shell: bash -l {0}
