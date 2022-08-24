@@ -86,7 +86,6 @@ We simulate 8 generations, with admixture proportion of 20% / 80%.
 ### Simulation
 ```bash
 # admix-simu should be automatically installed using this command
-ADMIX_SIMU_DIR=./admix-simu
 admix admix-simu \
     --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2', 'data/ancestry/PEL.hapgen2']" \
     --admix-prop "[0.4,0.1,0.5]" \
