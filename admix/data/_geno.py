@@ -488,8 +488,8 @@ def calc_pgs(dset: admix.Dataset, df_weights: pd.DataFrame, method: str):
 def calc_partial_pgs(
     dset: admix.Dataset,
     df_weights: pd.DataFrame,
-    dset_ref: admix.Dataset,
-    ref_pop_indiv: List[List[str]],
+    dset_ref: admix.Dataset = None,
+    ref_pop_indiv: List[List[str]] = None,
     weight_col="WEIGHT",
 ) -> pd.DataFrame:
     """Calculate PGS for each individual
@@ -513,6 +513,10 @@ def calc_partial_pgs(
         PGS for each individual
         - (n_indiv, n_anc)
     """
+    assert (dset_ref is None) == (
+        ref_pop_indiv is None
+    ), "both `dset_ref` and `ref_pop_indiv` should be None or not None"
+    CALC_REF = dset_ref is not None
     CHECK_COLS = ["CHROM", "POS", "REF", "ALT"]
     ## check input
     idx1, idx2, sample_wgt_flip = dapgen.align_snp(
@@ -523,25 +527,30 @@ def calc_partial_pgs(
         idx2 == df_weights.index
     ), "`dset` and `df_weights` should align, with potential allele flip"
 
-    idx1, idx2, ref_wgt_flip = dapgen.align_snp(
-        df1=dset.snp[CHECK_COLS], df2=dset_ref.snp[CHECK_COLS]
-    )
-    assert np.all(idx1 == dset.snp.index) & np.all(
-        idx2 == dset_ref.snp.index
-    ), "`dset` and `dset_ref` should align, with potential allele flip"
+    if CALC_REF:
+        idx1, idx2, ref_wgt_flip = dapgen.align_snp(
+            df1=dset.snp[CHECK_COLS], df2=dset_ref.snp[CHECK_COLS]
+        )
+        assert np.all(idx1 == dset.snp.index) & np.all(
+            idx2 == dset_ref.snp.index
+        ), "`dset` and `dset_ref` should align, with potential allele flip"
 
     weights = df_weights[weight_col].values
     sample_weights = weights * sample_wgt_flip
-    ref_weights = weights * ref_wgt_flip * sample_wgt_flip
+
+    if CALC_REF:
+        ref_weights = weights * ref_wgt_flip * sample_wgt_flip
+
     assert (
         len(ref_pop_indiv) == dset.n_anc
     ), "`len(ref_pops)` should match with `dset.n_anc`"
 
     ## scoring
-    ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pop_indiv]
     dset_geno, dset_lanc = dset.geno.compute(), dset.lanc.compute()
     sample_pgs = np.zeros((dset.n_indiv, dset.n_anc))
-    ref_pgs = [[] for pop in ref_pop_indiv]
+    if CALC_REF:
+        ref_geno_list = [dset_ref[:, pop].geno.compute() for pop in ref_pop_indiv]
+        ref_pgs = [[] for pop in ref_pop_indiv]
     # iterate over each individuals
     for indiv_i in tqdm(range(dset.n_indiv), desc="admix.data.calc_partial_pgs"):
         indiv_ref_pgs = [0, 0]
@@ -550,37 +559,43 @@ def calc_partial_pgs(
             geno = dset_geno[:, indiv_i, haplo_i]
             lanc = dset_lanc[:, indiv_i, haplo_i]
             for lanc_i in range(dset.n_anc):
+                # sample
                 sample_pgs[indiv_i, lanc_i] += np.dot(
                     geno[lanc == lanc_i], sample_weights[lanc == lanc_i]
                 )
 
                 # pgs for reference individuals
-                ref_geno = ref_geno_list[lanc_i][lanc == lanc_i, :, :]
-                if ref_geno.shape[0] > 0:
-                    ref_geno = ref_geno.reshape(ref_geno.shape[0], -1)
-                    s = np.dot(ref_weights[lanc == lanc_i], ref_geno)
-                else:
-                    s = np.zeros(ref_geno.shape[1] * 2)
-                indiv_ref_pgs[lanc_i] += s
-
-        for lanc_i in range(dset.n_anc):
-            ref_pgs[lanc_i].append(indiv_ref_pgs[lanc_i])
+                if CALC_REF:
+                    ref_geno = ref_geno_list[lanc_i][lanc == lanc_i, :, :]
+                    if ref_geno.shape[0] > 0:
+                        ref_geno = ref_geno.reshape(ref_geno.shape[0], -1)
+                        s = np.dot(ref_weights[lanc == lanc_i], ref_geno)
+                    else:
+                        s = np.zeros(ref_geno.shape[1] * 2)
+                    indiv_ref_pgs[lanc_i] += s
+        if CALC_REF:
+            for lanc_i in range(dset.n_anc):
+                ref_pgs[lanc_i].append(indiv_ref_pgs[lanc_i])
 
     # format ref_pgs: for each ancestry, we have n_indiv x (n_ref_indiv x 2)
     # each reference has 2 haplotypes
-    ref_pgs = [
-        pd.DataFrame(
-            data=np.vstack(ref_pgs[i]),
-            index=dset.indiv.index,
-            columns=np.concatenate(
-                [[str(i) + "_1", str(i) + "_2"] for i in ref_pop_indiv[i]]
-            ),
-        )
-        for i in range(dset.n_anc)
-    ]
+    if CALC_REF:
+        ref_pgs = [
+            pd.DataFrame(
+                data=np.vstack(ref_pgs[i]),
+                index=dset.indiv.index,
+                columns=np.concatenate(
+                    [[str(i) + "_1", str(i) + "_2"] for i in ref_pop_indiv[i]]
+                ),
+            )
+            for i in range(dset.n_anc)
+        ]
     sample_pgs = pd.DataFrame(
         data=sample_pgs,
         index=dset.indiv.index,
         columns=[f"ANC{i}" for i in range(1, dset.n_anc + 1)],
     )
-    return sample_pgs, ref_pgs
+    if CALC_REF:
+        return sample_pgs, ref_pgs
+    else:
+        return sample_pgs

@@ -7,6 +7,7 @@ We introduce the following main functions:
 
 assoc-test
 genet-cor
+pgs
 simulate-pheno
 utility
 misc

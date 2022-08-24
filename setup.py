@@ -1,5 +1,5 @@
 # flake8: noqa
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
 long_description = (Path(__file__).parent / "README.md").read_text()
@@ -13,7 +13,7 @@ setup(
     url="https://github.com/kangchenghou/admix-kit",
     author="Kangcheng Hou",
     author_email="kangchenghou@gmail.com",
-    packages=["admix"],
+    packages=find_packages(),
     setup_requires=["numpy>=1.10"],
     python_requires=">=3.7",
     install_requires=[

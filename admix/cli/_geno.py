@@ -208,9 +208,9 @@ def calc_pgs(
 def calc_partial_pgs(
     plink_path: str,
     weights_path: str,
-    ref_plink_path: str,
-    ref_pops: List[str],
     out: str,
+    ref_plink_path: str = None,
+    ref_pops: List[str] = None,
     weight_col: str = "WEIGHT",
     ref_pop_col: str = "Population",
     dset_build: str = None,
@@ -221,18 +221,21 @@ def calc_partial_pgs(
     Parameters
     ----------
     plink_path : str
-        Path to plink files. Format examples:
-          * /path/to/chr21.pgen
-          * /path/to/genotype/directory
-          * /path/to/file_list.txt # file_list.txt contains rows of file names
+        Path to plink files. Some examples are:
+          * :code:`/path/to/chr21.pgen`
+          * :code:`/path/to/genotype/directory`
+          * :code:`/path/to/file_list.txt` containing rows of file names
     weights_path : str
-        path to PGS weights, containing CHROM, SNP, REF, ALT, WEIGHT columns
-    ref_plink_path : str
-        path to reference plink files.
-    ref_pops: list of str
-        list of populations in reference plink files.
+        path to PGS weights, containing :code:`CHROM`, :code:`SNP`, :code:`REF`,
+        :code:`ALT`, :code:`WEIGHT` columns
     out : str
-        prefix of the output files.
+        prefix of the output files. {out}.sample_pgs.tsv and {out}.ref_pgs.tsv will be
+        written.
+    ref_plink_path : str
+        path to reference plink files. The :code:`ref_plink_path` should be a single
+        plink file.
+    ref_pops: list of str
+        list of populations in reference plink files. For example, ['YRI', 'CEU']
     weight_col : str, optional
         column in 'weights_path' representing the weight, by default "WEIGHT"
     dset_build: str, optional
@@ -258,22 +261,30 @@ def calc_partial_pgs(
         )
         df_weights = df_weights[df_weights.POS != -1].copy()
 
-    # reference data
-    dset_ref = admix.io.read_dataset(ref_plink_path)
-    ref_pop_indiv: Dict = {
-        pop: dset_ref.indiv.index[dset_ref.indiv[ref_pop_col] == pop].values
-        for pop in ref_pops
-    }
+    assert (ref_plink_path is None) == (
+        ref_pops is None
+    ), "Either both or none of ref_plink_path and ref_pops should be provided."
 
-    admix.logger.info(
-        f"Reading reference data with "
-        + ", ".join(
-            [f"{pop} #indiv={len(ref_pop_indiv[pop])}" for pop in ref_pop_indiv]
+    # reference data
+    CALC_REF = ref_plink_path is not None
+
+    if CALC_REF:
+        dset_ref = admix.io.read_dataset(ref_plink_path)
+        ref_pop_indiv: Dict = {
+            pop: dset_ref.indiv.index[dset_ref.indiv[ref_pop_col] == pop].values
+            for pop in ref_pops
+        }
+
+        admix.logger.info(
+            f"Reading reference data with "
+            + ", ".join(
+                [f"{pop} #indiv={len(ref_pop_indiv[pop])}" for pop in ref_pop_indiv]
+            )
         )
-    )
 
     total_sample_pgs: pd.DataFrame = 0
-    total_ref_pgs: Dict[str, pd.DataFrame] = {pop: 0 for pop in ref_pops}
+    if CALC_REF:
+        total_ref_pgs: Dict[str, pd.DataFrame] = {pop: 0 for pop in ref_pops}
     # iterate through each plink file
     for i, plink_prefix in enumerate(plink_prefix_list):
         admix.logger.info(
@@ -294,35 +305,42 @@ def calc_partial_pgs(
         _df_weights = df_weights.loc[idx2, :].copy()
         _df_weights.index = idx1
 
-        # align sample dset and reference dset
-        idx1, idx2, flip = dapgen.align_snp(
-            df1=_dset.snp[CHECK_COLS],
-            df2=dset_ref.snp[CHECK_COLS],
-        )
-        _dset = _dset[idx1]
-        _df_weights = _df_weights.loc[idx1, :]
-        # original code: _dset_ref = dset_ref[idx2]
-        # directly call admix.Dataset for potential unsorted scenarios:
-        _dset_ref = admix.Dataset(
-            dset_ref=dset_ref,
-            snp_idx=dset_ref.snp.index.get_indexer(idx2),
-            indiv_idx=slice(None),
-            enforce_order=False,
-        )
+        if CALC_REF:
+            # align sample dset and reference dset
+            idx1, idx2, flip = dapgen.align_snp(
+                df1=_dset.snp[CHECK_COLS],
+                df2=dset_ref.snp[CHECK_COLS],
+            )
+            _dset = _dset[idx1]
+            _df_weights = _df_weights.loc[idx1, :]
+            # original code: _dset_ref = dset_ref[idx2]
+            # directly call admix.Dataset for potential unsorted scenarios:
+            _dset_ref = admix.Dataset(
+                dset_ref=dset_ref,
+                snp_idx=dset_ref.snp.index.get_indexer(idx2),
+                indiv_idx=slice(None),
+                enforce_order=False,
+            )
         admix.logger.info(f"matched #SNPs={_dset.n_snp}/{_n_total_snp}")
 
-        sample_pgs, ref_pgs = admix.data.calc_partial_pgs(
-            dset=_dset,
-            df_weights=_df_weights,
-            dset_ref=_dset_ref,
-            ref_pop_indiv=[ref_pop_indiv[pop] for pop in ref_pops],
-        )
-        total_sample_pgs += sample_pgs
-        for i, pop in enumerate(ref_pops):
-            total_ref_pgs[pop] += ref_pgs[i]
+        if CALC_REF:
+            sample_pgs, ref_pgs = admix.data.calc_partial_pgs(
+                dset=_dset,
+                df_weights=_df_weights,
+                dset_ref=_dset_ref,
+                ref_pop_indiv=[ref_pop_indiv[pop] for pop in ref_pops],
+            )
+            total_sample_pgs += sample_pgs
+            for i, pop in enumerate(ref_pops):
+                total_ref_pgs[pop] += ref_pgs[i]
+        else:
+            sample_pgs = admix.data.calc_partial_pgs(dset=_dset, df_weights=_df_weights)
+            total_sample_pgs += sample_pgs
 
     total_sample_pgs.to_csv(out + ".sample_pgs.tsv", sep="\t")
-    for pop in ref_pops:
-        total_ref_pgs[pop].to_csv(out + f".ref_pgs_{pop}.tsv", sep="\t")
-        admix.logger.info(f"Reference PGS saved to {out}.ref_pgs_{pop}.tsv")
     admix.logger.info(f"Sample PGS saved to {out}.sample_pgs.tsv")
+
+    if CALC_REF:
+        for pop in ref_pops:
+            total_ref_pgs[pop].to_csv(out + f".ref_pgs_{pop}.tsv", sep="\t")
+            admix.logger.info(f"Reference PGS saved to {out}.ref_pgs_{pop}.tsv")
