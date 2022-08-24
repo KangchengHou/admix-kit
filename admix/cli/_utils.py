@@ -73,7 +73,7 @@ def _process_genetic_map(root_dir, build):
 
 def get_1kg_ref(
     dir: str,
-    build: str = "hg38",
+    build: str,
     verbose: bool = False,
 ):
     """
@@ -85,10 +85,9 @@ def get_1kg_ref(
         Directory where the reference genome is stored. The following files will be
         downloaded and stored in this directory:
         - ${dir}/pgen: containing plink2 files
-        - ${dir}/vcf: containing vcf files
         - ${dir}/metadata: containing metadata files
     build : str
-        Build of the reference genome. hg38 (default) or hg19.
+        Build of the reference genome. hg38 or hg19.
     verbose : bool
         Whether to print out the progress of the download.
     """
