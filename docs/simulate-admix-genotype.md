@@ -31,9 +31,7 @@ N_GEN=8
 ```
 
 ```bash
-# download 1,000 Genomes reference panel 
-# (this step will take 2-3 hours, but has to be done only once)
-# this 1,000 Genomes reference panel is downloaded from plink2 website 
+# download 1,000 Genomes reference panel from plink2 website 
 # (https://www.cog-genomics.org/plink/2.0/resources)
 # you can use your own reference data (but you need to format them into plink2 pgen format)
 # see https://www.cog-genomics.org/plink/2.0/input
