@@ -83,16 +83,9 @@ done
 We use [admix-simu](https://github.com/williamslab/admix-simu) to simulate the admixture process of ancestral populations.
 We simulate 8 generations, with admixture proportion of 20% / 80%.
 
-### Installing `admix-simu`
-```bash
-# download and compile admix-simu
-git clone https://github.com/williamslab/admix-simu.git
-cd admix-simu && make && cd ..
-```
-
 ### Simulation
 ```bash
-# ADMIX_SIMU_DIR is the path to the admix-simu directory (that is git cloned above)
+# admix-simu should be automatically installed using this command
 ADMIX_SIMU_DIR=./admix-simu
 admix admix-simu \
     --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2', 'data/ancestry/PEL.hapgen2']" \
@@ -100,8 +93,7 @@ admix admix-simu \
     --n-indiv ${N_INDIV} \
     --n-gen ${N_GEN} \
     --build ${BUILD} \
-    --out data/admix \
-    --admix-simu-dir ${ADMIX_SIMU_DIR}
+    --out data/admix
 
 # you will obtain 
 # (1) plink2 phased genotype: data/admix.{pgen,pvar,psam}
