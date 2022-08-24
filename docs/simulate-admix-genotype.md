@@ -38,8 +38,7 @@ N_GEN=8
 # you can use your own reference data (but you need to format them into plink2 pgen format)
 # see https://www.cog-genomics.org/plink/2.0/input
 
-# if you want to save more time, set `--export-vcf False`
-admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD} --export-vcf True
+admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
 # subset hapmap3 SNPs
 admix subset-hapmap3 \
