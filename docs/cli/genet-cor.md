@@ -1,5 +1,5 @@
 # Genetic correlation estimation
-
+For more background on this module, we recommend reading [Causal effects on complex traits are similar across segments of different continental ancestries within admixed individuals](https://www.medrxiv.org/content/10.1101/2022.08.16.22278868v1). medRxiv (2022).
 ## Technical details
 ### Problem description
 Here, we describe how to estimate $r_\text{admix}$, the genetic correlation of causal effects across local ancestry backgrounds. 

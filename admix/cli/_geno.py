@@ -242,6 +242,18 @@ def calc_partial_pgs(
         build transform for the dataset, by default None
     weights_build: str, optional
         build transform for the weights, by default None
+
+    Examples
+    --------
+    .. code-block:: bash
+
+        admix calc-partial-pgs \\
+            --plink-path chr22.pgen \\
+            --weights-path weight.tsv \\
+            --ref-plink-path 1kg-plink \\
+            --ref-pops CEU,YRI \\
+            --dset-build 'hg38->hg19' \\
+            --out out
     """
     log_params("calc-partial-pgs", locals())
 
@@ -269,6 +281,12 @@ def calc_partial_pgs(
     CALC_REF = ref_plink_path is not None
 
     if CALC_REF:
+        assert ref_plink_path.endswith(".pgen") or ref_plink_path.endswith(
+            ".bed"
+        ), "Reference plink file should be a single .pgen or .bed file."
+        # remove .pgen or .bed from the file name
+        ref_plink_path = ref_plink_path.rsplit(".", 1)[0]
+        admix.logger.info(f"Reading reference plink file from {ref_plink_path}")
         dset_ref = admix.io.read_dataset(ref_plink_path)
         ref_pop_indiv: Dict = {
             pop: dset_ref.indiv.index[dset_ref.indiv[ref_pop_col] == pop].values
