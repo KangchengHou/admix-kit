@@ -541,9 +541,9 @@ def calc_partial_pgs(
     if CALC_REF:
         ref_weights = weights * ref_wgt_flip * sample_wgt_flip
 
-    assert (
-        len(ref_pop_indiv) == dset.n_anc
-    ), "`len(ref_pops)` should match with `dset.n_anc`"
+        assert (
+            len(ref_pop_indiv) == dset.n_anc
+        ), "`len(ref_pops)` should match with `dset.n_anc`"
 
     ## scoring
     dset_geno, dset_lanc = dset.geno.compute(), dset.lanc.compute()
