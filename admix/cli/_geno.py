@@ -247,6 +247,15 @@ def calc_partial_pgs(
     --------
     .. code-block:: bash
 
+    admix calc-partial-pgs \\
+        --plink-path chr22.pgen \\
+        --weights-path weight.tsv \\
+        --dset-build 'hg38->hg19' \\
+        --out out
+
+    To also calculate PGS for the reference population, use the following command:
+    .. code-block:: bash
+
         admix calc-partial-pgs \\
             --plink-path chr22.pgen \\
             --weights-path weight.tsv \\
