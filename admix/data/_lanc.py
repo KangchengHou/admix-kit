@@ -169,17 +169,19 @@ class Lanc(object):
         # if indiv_idx is slice(None), use all individuals
         if indiv_idx is slice(None):
             indiv_idx = slice(0, self.n_indiv)
-        assert (
-            isinstance(snp_idx, slice)
-            and ((snp_idx.step == 1) or (snp_idx.step is None))
-            and (snp_idx.start is not None)
-            and (snp_idx.stop is not None)
-        ), "SNP index must be a slice with `step` = 1, in the form of start : stop"
+        assert isinstance(snp_idx, slice), "SNP index must be a slice"
+        assert (snp_idx.step is None) or (
+            snp_idx.step is None
+        ), "SNP index must with `step` = 1"
+        snp_start = snp_idx.start if snp_idx.start is not None else 0
+        snp_stop = snp_idx.stop if snp_idx.stop is not None else self.n_snp
+        assert snp_start >= 0, "SNP index must start at 0 or higher"
+        assert snp_stop <= self.n_snp, "SNP index must stop at n_snp or lower"
+        assert snp_start < snp_stop, "SNP index must be a slice with `start < stop`"
+
         breaks = self._breaks[indiv_idx]
         values = self._values[indiv_idx]
-        breaks, values = lanc_subset_snp_range(
-            breaks, values, snp_idx.start, snp_idx.stop
-        )
+        breaks, values = lanc_subset_snp_range(breaks, values, snp_start, snp_stop)
         return Lanc(breaks=breaks, values=values)
 
     def write(

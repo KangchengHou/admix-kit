@@ -178,29 +178,52 @@ def read_vcf(
     return dset
 
 
-def read_digit_mat(path, filter_non_numeric=False):
+def read_digit_mat(path: str, filter_non_numeric: bool = False, nrows: int = None):
     """
     Read a matrix of integer with [0-9], and with no delimiter.
 
-    Args
-    ----
+    Parameters
+    ----------
+    path : str
+        path to the matrix file
+    filter_non_numeric : bool, optional
+        whether to filter out non-numeric characters, by default False
+    nrows : int, optional
+        number of rows to read, by default None
 
+    Returns
+    -------
+    np.ndarray
+        matrix of integer
     """
-    if filter_non_numeric:
-        with open(path) as f:
-            mat = np.array(
-                [
-                    np.array([int(c) for c in re.sub("[^0-9]", "", line.strip())])
-                    for line in f.readlines()
-                ],
-                dtype=np.int8,
-            )
+    if nrows is None:
+        if filter_non_numeric:
+            with open(path) as f:
+                mat = np.array(
+                    [
+                        np.array([int(c) for c in re.sub("[^0-9]", "", line.strip())])
+                        for line in f.readlines()
+                    ],
+                    dtype=np.int8,
+                )
+        else:
+            with open(path) as f:
+                mat = np.array(
+                    [
+                        np.array([int(c) for c in line.strip()])
+                        for line in f.readlines()
+                    ],
+                    dtype=np.int8,
+                )
     else:
-        with open(path) as f:
-            mat = np.array(
-                [np.array([int(c) for c in line.strip()]) for line in f.readlines()],
-                dtype=np.int8,
-            )
+        assert filter_non_numeric is False
+        mat = np.array(
+            [
+                np.array([int(c) for c in line.item()])
+                for line in pd.read_csv(path, nrows=nrows, header=None).values
+            ],
+            dtype=np.int8,
+        )
     return mat
 
 
