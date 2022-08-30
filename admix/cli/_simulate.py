@@ -175,8 +175,8 @@ def simulate_pheno(
         columns=columns,
         index=df_indiv.index,
     )
-
+    admix.logger.info(f"results written to {out}.[beta|pheno_g|pheno].tsv")
     for suffix, df in zip(
         ["beta", "pheno_g", "pheno"], [df_beta, df_pheno_g, df_pheno]
     ):
-        df.to_csv(f"{out}.{suffix}.tsv.gz", sep="\t", float_format="%.6g")
+        df.to_csv(f"{out}.{suffix}.tsv", sep="\t", float_format="%.6g")

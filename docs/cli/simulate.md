@@ -91,5 +91,5 @@ Simulate beta first
 Then simulate environmental noise and phenotype.
 
 ```{eval-rst}
-.. autofunction:: admix.cli.simulate_admix_pheno
+.. autofunction:: admix.cli.simulate_pheno
 ```
