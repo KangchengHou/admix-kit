@@ -72,3 +72,24 @@ admix admix-simu \
     --build ${BUILD} \
     --out ../data/geno/admix
 ```
+
+## Rename individuals
+```python
+import dapgen
+import shutil
+for pop in ["admix", "CEU", "YRI"]:
+    df_psam = dapgen.read_psam(f"{pop}.psam").reset_index()
+    # rename old files to backup
+    shutil.move(f"{pop}.psam", f"{pop}.psam.bak")
+    df_psam["#IID"] = [f"{pop}{i}" for i in range(len(df_psam))]
+    df_psam[["#IID"]].to_csv(f"{pop}.psam", index=False, header=True)
+```
+
+
+## Simulate phenotypes
+Simulate beta first
+Then simulate environmental noise and phenotype.
+
+```{eval-rst}
+.. autofunction:: admix.cli.simulate_admix_pheno
+```

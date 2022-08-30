@@ -346,7 +346,6 @@ def binary_pheno(
         raise NotImplementedError
 
 
-# follow admix_genet_cor to rewrite this code
 def quant_pheno_1pop(
     geno: da.Array,
     hsq: float,
@@ -357,7 +356,7 @@ def quant_pheno_1pop(
     cov_effects: List[float] = None,
     n_sim=10,
 ) -> dict:
-    """Simulate continuous phenotype for a single population [continuous]
+    """Simulate quantative phenotype for a single population [continuous]
 
     Parameters
     ----------
@@ -379,7 +378,6 @@ def quant_pheno_1pop(
     n_sim : int, optional
         number of simulations, by default 10
 
-
     Returns
     -------
     beta: np.ndarray
@@ -393,9 +391,7 @@ def quant_pheno_1pop(
 
     # simulate effect sizes
     if beta is None:
-        if n_causal is None:
-            # n_causal = n_snp if `n_causal` is not specified
-            n_causal = n_snp
+        assert n_causal is not None, "n_causal must be specified if beta is None"
 
         if snp_prior_var is None:
             snp_prior_var = np.ones(n_snp)
