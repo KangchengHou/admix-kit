@@ -4,7 +4,7 @@ import fire
 from ._assoc import assoc
 from ._geno import append_snp_info, calc_pgs, calc_partial_pgs
 from ._utils import log_params, get_1kg_ref, select_admix_indiv
-from ._simulate import simulate_pheno
+from ._simulate import simulate_admix_pheno, simulate_pheno
 from ._lanc import lanc, lanc_convert, lanc_count
 from ._ext import (
     prune,
@@ -16,7 +16,7 @@ from ._ext import (
     subset_hapmap3,
     subset_pop_indiv,
     hapgen2,
-    admix_simu
+    admix_simu,
 )
 from ._plot import plot_joint_pca
 from ._genet_cor import (
