@@ -53,6 +53,9 @@ def assoc(
 
     Examples
     --------
+
+    **Basic usage**    
+
     .. code-block:: bash
 
         # See complete example at 
@@ -63,7 +66,42 @@ def assoc(
             --method ATT,TRACTOR \\
             --quantile-normalize True \\
             --out toy-admix
+
+    **Parallel analysis**
+
+    To parallelize the analysis, use :code:`--snp-list` option to split the analysis into
+    multiple jobs with each job analyzing a subset of SNPs. :code:`--snp-list` accepts a 
+    file path containing a list of SNPs (1 SNP per line). For example, to split the
+    above job into 10 jobs, we run the following code to create snplist files:
+
+    .. code-block:: python
+
+        import admix
+        import numpy as np
+
+        DSET_PREFIX="/path/to/pfile" # e.g. "toy-admix"
+
+        dset = admix.io.read_dataset(DSET_PREFIX)
+        index_list = np.array_split(dset.snp.index, 10)
+        for i, index in enumerate(index_list):
+            np.savetxt(f"cache/{DSET_PREFIX}.{i}.snplist".format(i), index, fmt="%s")
+    
+    Then we run:
+
+    .. code-block:: bash
+
+        # note the added --snp-list line
+        # replace ${JOB_ID} with 0, 1, 2, ..., ${{N_JOB - 1}}
+        
+        admix assoc \\
+            --pfile toy-admix \\
+            --pheno toy-admix.pheno \\
+            --method ATT,TRACTOR \\
+            --quantile-normalize True \\
+            --snp-list cache/toy-admix.${JOB_ID}.snplist \\
+            --out toy-admix
     """
+
     log_params("assoc", locals())
     assert family in ["quant", "binary"], "family must be either quant or binary"
 
