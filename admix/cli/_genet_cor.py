@@ -143,7 +143,7 @@ def admix_grm(
     )
 
     if write_raw:
-        for suffix, mat in enumerate(["G1", "G2", "G12"], [G1, G2, G12]):
+        for suffix, mat in zip(["G1", "G2", "G12"], [G1, G2, G12]):
             admix.tools.gcta.write_grm(
                 f"{out_prefix}.{suffix}",
                 K=mat,
