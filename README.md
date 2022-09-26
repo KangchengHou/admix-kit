@@ -14,6 +14,7 @@ git clone https://github.com/KangchengHou/admix-kit
 cd admix-kit && pip install -e .
 ```
 > Installation requires cmake version > 3.12. Use `cmake --version` to check your cmake version. Use `pip install cmake` to install the latest version.
+
 > In some cases, `admix` may not be automatically to your `$PATH` (e.g., because of user installation mode). You need to look through the log and find where `admix` script is installed to and manually add that to your `$PATH` (e.g., type `PATH=$PATH:~/.local/bin`). 
 
 ## Get started
