@@ -62,6 +62,7 @@ def admix_grm(
     freq_cols=["LANC_FREQ1", "LANC_FREQ2"],
     snp_chunk_size: int = 256,
     snp_list: str = None,
+    write_raw: bool = False,
 ) -> None:
     """
     Calculate the admix GRM for a given pfile
@@ -86,7 +87,8 @@ def admix_grm(
     snp_list : str, optional
         Path to a file containing a list of SNPs to use. Each line should be a SNP ID.
         Only SNPs in the list will be used for the analysis. By default None
-
+    write_raw: bool, optional
+        Whether to write the raw GRM, G1, G2, G12, by default False
     Returns
     -------
     GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated
@@ -128,15 +130,26 @@ def admix_grm(
     K1 = G1 + G2
     K2 = G12 + G12.T
 
+    df_weight = dset.snp.PRIOR_VAR
+    df_id=pd.DataFrame(
+            {"0": dset.indiv.index.values, "1": dset.indiv.index.values}
+        )
     _write_admix_grm(
         K1=K1,
         K2=K2,
-        df_weight=dset.snp.PRIOR_VAR,
-        df_id=pd.DataFrame(
-            {"0": dset.indiv.index.values, "1": dset.indiv.index.values}
-        ),
+        df_weight=df_weight,
+        df_id=df_id,
         out_prefix=out_prefix,
     )
+
+    if write_raw:
+        for suffix, mat in enumerate(["G1", "G2", "G12"], [G1, G2, G12]):
+            admix.tools.gcta.write_grm(
+                f"{out_prefix}.{suffix}",
+                K=mat,
+                df_id=df_id,
+                n_snps=np.repeat(len(df_weight), len(df_id)),
+            )
 
 
 def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
