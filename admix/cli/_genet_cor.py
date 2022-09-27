@@ -2,7 +2,7 @@ import admix
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from typing import List
+from typing import List, Dict
 import glob
 from natsort import natsorted
 import os
@@ -13,8 +13,7 @@ from scipy.interpolate import CubicSpline
 
 
 def _write_admix_grm(
-    K1: np.ndarray,
-    K2: np.ndarray,
+    dict_grm: Dict[str, np.ndarray],
     df_weight: pd.Series,
     df_id: pd.DataFrame,
     out_prefix: str,
@@ -23,10 +22,8 @@ def _write_admix_grm(
 
     Parameters
     ----------
-    K1 : np.ndarray
-        K1 matrix
-    K2 : np.ndarray
-        K2 matrix
+    dict_grm : Dict[str, np.ndarray]
+        name -> grm matrix
     df_weight : pd.Series
         snp weights
     n_snp : int
@@ -40,11 +37,11 @@ def _write_admix_grm(
     -------
     None
     """
-    for i, K in enumerate([K1, K2]):
-        name = f".K{i+1}"
+    for name in dict_grm:
+        grm = dict_grm[name]
         admix.tools.gcta.write_grm(
-            out_prefix + name,
-            K=K,
+            out_prefix + "." + name,
+            K=grm,
             df_id=df_id,
             n_snps=np.repeat(len(df_weight), len(df_id)),
         )
@@ -135,8 +132,7 @@ def admix_grm(
             {"0": dset.indiv.index.values, "1": dset.indiv.index.values}
         )
     _write_admix_grm(
-        K1=K1,
-        K2=K2,
+        dict_grm = {"K1": K1, "K2": K2},
         df_weight=df_weight,
         df_id=df_id,
         out_prefix=out_prefix,
@@ -228,8 +224,7 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     df_weight = pd.concat(prior_var_list)
 
     _write_admix_grm(
-        K1=K1,
-        K2=K2,
+        dict_grm = {"K1": K1, "K2": K2},
         df_weight=df_weight,
         df_id=df_id,
         out_prefix=out_prefix,
