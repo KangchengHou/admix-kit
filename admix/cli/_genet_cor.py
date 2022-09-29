@@ -328,6 +328,7 @@ def summarize_genet_cor(
     scale_factor: float = None,
     freq_col: str = "FREQ",
     index_col: str = "snp",
+    rg_str :str = "rg",
 ):
     """Summarize the results of genetic correlation analysis.
 
@@ -349,6 +350,8 @@ def summarize_genet_cor(
         column name for frequency in freq_file
     index_col: str
         column name for index in freq_file
+    rg_str : str
+        string name for rg, by default "rg", or "rho" (for legacy)
 
     Returns
     -------
@@ -370,7 +373,7 @@ def summarize_genet_cor(
         sorted(
             [
                 int(os.path.basename(p).split(".")[0][2:])
-                for p in glob.glob(os.path.join(est_dir, "rg*.hsq"))
+                for p in glob.glob(os.path.join(est_dir, f"{rg_str}*.hsq"))
             ]
         )
     )
@@ -379,7 +382,7 @@ def summarize_genet_cor(
     n_indiv = None
     loglkl_list = []
     for rg in rg_list:
-        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rg{rg}"))
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"{rg_str}{rg}"))
         if n_indiv is None:
             n_indiv = dict_reml["n"]
         else:
@@ -426,7 +429,7 @@ def summarize_genet_cor(
         admix.logger.info(f"Computed hsq scale factor = {scale_factor:.3g}")
 
     if scale_factor is not None:
-        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"rg100"))
+        dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"{rg_str}100"))
         est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
             dict_reml, scale_factor=scale_factor
         )
