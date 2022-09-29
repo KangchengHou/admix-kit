@@ -372,7 +372,7 @@ def summarize_genet_cor(
     rg_list = np.array(
         sorted(
             [
-                int(os.path.basename(p).split(".")[0][2:])
+                int(os.path.basename(p).split(".")[0][len(rg_str):])
                 for p in glob.glob(os.path.join(est_dir, f"{rg_str}*.hsq"))
             ]
         )
