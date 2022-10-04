@@ -37,6 +37,87 @@ def _append_to_file(path: str, df: pd.DataFrame):
         df_snp_info.to_csv(path, sep="\t", float_format="%.8g")
 
 
+def grm(
+    plink_file: str,
+    out_prefix: str,
+    maf_cutoff: float = 0.005,
+    freq_suffix: str = "afreq",
+    her_model="mafukb",
+    snp_chunk_size: int = 256,
+    snp_list: str = None,
+) -> None:
+    """
+    Calculate the GRM for a given PLINK file
+
+    Parameters
+    ----------
+    plink_file : str
+        Path to the pfile
+    out_prefix : str
+        Prefix of the output files
+    maf_cutoff : float, optional
+        MAF cutoff for the admixed individuals, by default 0.005
+    her_model : str, optional
+        Heritability model, by default "mafukb"
+        one of "uniform", "gcta", "ldak", "mafukb"
+    snp_chunk_size : int, optional
+        Number of SNPs to read at a time, by default 256
+        This can be tuned to reduce memory usage
+    snp_list : str, optional
+        Path to a file containing a list of SNPs to use. Each line should be a SNP ID.
+        Only SNPs in the list will be used for the analysis. By default None
+    Returns
+    -------
+    GRM files: {out_prefix}.[grm.bin | grm.id | grm.n] will be generated
+    Weight file: {out_prefix}.weight.tsv will be generated
+    """
+
+    log_params("grm", locals())
+    geno, df_snp, df_indiv = dapgen.read_plink(plink_file, snp_chunk=snp_chunk_size)
+    plink_suffix = plink_file.split(".")[-1]
+    df_freq = pd.read_csv(
+        plink_file.replace(plink_suffix, freq_suffix), sep="\t"
+    ).set_index("ID")
+    assert np.all(df_snp.index == df_freq.index)
+    df_snp["FREQ"] = df_freq["ALT_FREQS"]
+
+    # filter for SNPs
+    snp_subset = np.ones(len(df_snp)).astype(bool)
+
+    if snp_list is not None:
+        with open(snp_list, "r") as f:
+            filter_snp_list = [line.strip() for line in f]
+        n_filter_snp = len(filter_snp_list)
+        snp_subset = snp_subset & df_snp.index.isin(filter_snp_list)
+        if sum(snp_subset) < n_filter_snp:
+            admix.logger.warning(
+                f"{n_filter_snp - sum(snp_subset)} SNPs in {snp_list} are not in the dataset"
+            )
+
+    snp_subset = snp_subset & df_snp["FREQ"].between(maf_cutoff, 1 - maf_cutoff).values
+    admix.logger.info(f"{sum(snp_subset)} SNPs are used for GRM calculation")
+    
+    # subset
+    df_snp = df_snp.loc[snp_subset, :]
+    geno = geno[snp_subset, :]
+
+    # calculate prior
+    df_snp["PRIOR_VAR"] = admix.data.calc_snp_prior_var(df_snp, her_model=her_model)
+
+    # calculate GRM
+    grm = admix.data.grm(geno, snp_prior_var=df_snp["PRIOR_VAR"].values)
+    df_weight = df_snp["PRIOR_VAR"]
+    df_id = pd.DataFrame({"0": df_indiv.index.values, "1": df_indiv.index.values})
+
+    # write GRM
+    admix.tools.gcta.write_grm(
+        out_prefix,
+        K=grm,
+        df_id=df_id,
+        n_snps=np.repeat(len(df_weight), len(df_id)),
+    )
+
+
 def append_snp_info(
     pfile: str,
     out: str = None,
