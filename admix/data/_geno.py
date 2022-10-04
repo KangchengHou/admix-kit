@@ -191,6 +191,8 @@ def grm(geno: da.Array, snp_prior_var: np.ndarray = None):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :].compute()
         impute_with_mean(geno_chunk, inplace=True, axis=1)
+        # centering
+        geno_chunk -= geno_chunk.mean(axis=1)[:, np.newaxis]
         # multiply by the prior variance on each SNP
         geno_chunk *= np.sqrt(snp_prior_var[start:stop])[:, np.newaxis]
         mat += np.dot(geno_chunk.T, geno_chunk) / snp_prior_var_sum
