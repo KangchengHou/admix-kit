@@ -163,52 +163,39 @@ def geno_mult_mat(
     else:
         return ret
 
-
-def grm(dset: admix.Dataset, method="gcta", inplace=True):
+def grm(geno: da.Array, snp_prior_var: np.ndarray = None):
     """Calculate the GRM matrix
     The GRM matrix is calculated treating the genotypes as from one ancestry population,
     the same as GCTA.
 
     Parameters
     ----------
-    dset: admix.Dataset
-        dataset containing geno
-    method: str
-        method to calculate the GRM matrix, `gcta` or `raw`
-        - `raw`: use the raw genotype data without any transformation
-        - `center`: center the genotype data only
-        - `gcta`: use the GCTA implementation of GRM, center + standardize
-    inplace: bool
-        whether to return a new dataset or modify the input dataset
+    geno: admix.Dataset
+        genotype (n_snp, n_indiv) matrix
+    snp_prior_var : np.ndarray
+        Prior variance of each SNP, shape (n_snp,)
+
     Returns
     -------
     n_indiv x n_indiv GRM matrix if `inplace` is False, else return None
     """
+    n_snp = geno.shape[0]
+    if snp_prior_var is None:
+        snp_prior_var = np.ones(n_snp)
+    snp_prior_var_sum = snp_prior_var.sum()
 
-    assert method in [
-        "raw",
-        "center",
-        "gcta",
-    ], "`method` should be `raw`, `center`, or `gcta`"
-    g = dset.geno.sum(axis=2)
+    mat = 0
+    snp_chunks = geno.chunks[0]
+    indices = np.insert(np.cumsum(snp_chunks), 0, 0)
+    for i in tqdm(range(len(indices) - 1), desc="admix.data.grm"):
+        start, stop = indices[i], indices[i + 1]
+        geno_chunk = geno[start:stop, :].compute()
+        impute_with_mean(geno_chunk, inplace=True, axis=1)
+        # multiply by the prior variance on each SNP
+        geno_chunk *= np.sqrt(snp_prior_var[start:stop])[:, np.newaxis]
+        mat += np.dot(geno_chunk.T, geno_chunk) / snp_prior_var_sum
 
-    if method == "raw":
-        grm = np.dot(g.T, g) / dset.n_snp
-    elif method == "center":
-        g -= g.mean(axis=0)
-        grm = np.dot(g.T, g) / dset.n_snp
-    elif method == "gcta":
-        # normalization
-        g_mean = g.mean(axis=1)
-        assert np.all((0 < g_mean) & (g_mean < 2)), "for some SNP, MAF = 0"
-        g = (g - g_mean[:, None]) / np.sqrt(g_mean * (2 - g_mean) / 2)[:, None]
-        # calculate GRM
-        grm = np.dot(g.T, g) / dset.n_snp
-    else:
-        raise ValueError("method should be `gcta` or `raw`")
-
-    return grm
-
+    return mat
 
 def admix_grm(
     geno: da.Array, lanc: da.Array, n_anc: int = 2, snp_prior_var: np.ndarray = None
