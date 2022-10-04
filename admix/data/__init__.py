@@ -9,7 +9,7 @@ on their own alone.
 from ._geno import allele_per_anc, af_per_anc, geno_mult_mat
 from ._geno import calc_pgs, calc_partial_pgs
 from ._geno import calc_snp_prior_var, impute_with_mean
-from ._geno import admix_ld, admix_grm
+from ._geno import grm, admix_ld, admix_grm
 
 from ._stats import (
     quantile_normalize,
