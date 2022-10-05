@@ -96,7 +96,7 @@ def grm(
 
     snp_subset = snp_subset & df_snp["FREQ"].between(maf_cutoff, 1 - maf_cutoff).values
     admix.logger.info(f"{sum(snp_subset)} SNPs are used for GRM calculation")
-    
+
     # subset
     df_snp = df_snp.loc[snp_subset, :]
     geno = geno[snp_subset, :]
@@ -116,6 +116,9 @@ def grm(
         df_id=df_id,
         n_snps=np.repeat(len(df_weight), len(df_id)),
     )
+
+    # write weight
+    df_weight.to_csv(out_prefix + ".weight.tsv", sep="\t")
 
 
 def append_snp_info(
