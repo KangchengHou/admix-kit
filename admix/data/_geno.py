@@ -163,39 +163,54 @@ def geno_mult_mat(
     else:
         return ret
 
-def grm(geno: da.Array, snp_prior_var: np.ndarray = None):
+def grm(geno: da.Array, subpopu:np.ndarray = None):
     """Calculate the GRM matrix
-    The GRM matrix is calculated treating the genotypes as from one ancestry population,
-    the same as GCTA.
+    This function is to serve as an alternative of GCTA --make-grm
 
     Parameters
     ----------
     geno: admix.Dataset
         genotype (n_snp, n_indiv) matrix
-    snp_prior_var : np.ndarray
-        Prior variance of each SNP, shape (n_snp,)
+    subpopu : np.ndarray
+        subpopulation labels, with shape (n_indiv,). The allele frequencies and 
+        normalization are performed separately within each subpopulation.
 
     Returns
     -------
-    n_indiv x n_indiv GRM matrix if `inplace` is False, else return None
+    np.ndarray
+        GRM matrix (n_indiv, n_indiv)
     """
+    def normalize_geno(g):
+        """Normalize the genotype matrix
+        """
+        # impute missing genotypes
+        impute_with_mean(g, inplace=True, axis=1)
+        # normalize
+        g -= np.mean(g, axis=1)[:, None]
+        g /= np.std(g, axis=1)[:, None]
+    
     n_snp = geno.shape[0]
-    if snp_prior_var is None:
-        snp_prior_var = np.ones(n_snp)
-    snp_prior_var_sum = snp_prior_var.sum()
+    n_indiv = geno.shape[1]
 
+    if subpopu is not None:
+        assert n_indiv == subpopu.shape[0], "subpopu should have the same length as the number of individuals"
+        unique_subpopu = np.unique(subpopu)
+        admix.logger.info(f"{len(unique_subpopu)} subpopulations found: {unique_subpopu}")
+
+    admix.logger.info(f"Calculating GRM matrix with {n_snp} SNPs and {n_indiv} individuals")
     mat = 0
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
     for i in tqdm(range(len(indices) - 1), desc="admix.data.grm"):
         start, stop = indices[i], indices[i + 1]
         geno_chunk = geno[start:stop, :].compute()
-        impute_with_mean(geno_chunk, inplace=True, axis=1)
-        # centering
-        geno_chunk -= geno_chunk.mean(axis=1)[:, np.newaxis]
-        # multiply by the prior variance on each SNP
-        geno_chunk *= np.sqrt(snp_prior_var[start:stop])[:, np.newaxis]
-        mat += np.dot(geno_chunk.T, geno_chunk) / snp_prior_var_sum
+        if subpopu is not None:
+            for popu in np.unique(subpopu):
+                normalize_geno(geno_chunk[:, subpopu == popu])
+        else:
+            normalize_geno(geno_chunk)
+            
+        mat += np.dot(geno_chunk.T, geno_chunk) / n_snp
 
     return mat
 
