@@ -184,10 +184,11 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
         """Normalize the genotype matrix
         """
         # impute missing genotypes
-        impute_with_mean(g, inplace=True, axis=1)
+        g = impute_with_mean(g, inplace=False, axis=1)
         # normalize
         g -= np.mean(g, axis=1)[:, None]
         g /= np.std(g, axis=1)[:, None]
+        return g
     
     n_snp = geno.shape[0]
     n_indiv = geno.shape[1]
@@ -206,10 +207,10 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
         geno_chunk = geno[start:stop, :].compute()
         if subpopu is not None:
             for popu in np.unique(subpopu):
-                normalize_geno(geno_chunk[:, subpopu == popu])
+                geno_chunk[:, subpopu == popu] = normalize_geno(geno_chunk[:, subpopu == popu])
         else:
-            normalize_geno(geno_chunk)
-            
+            geno_chunk = normalize_geno(geno_chunk)
+
         mat += np.dot(geno_chunk.T, geno_chunk) / n_snp
 
     return mat
