@@ -212,7 +212,7 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
             geno_chunk = normalize_geno(geno_chunk)
 
         mat += np.dot(geno_chunk.T, geno_chunk) / n_snp
-
+        print(mat)
     return mat
 
 def admix_grm(

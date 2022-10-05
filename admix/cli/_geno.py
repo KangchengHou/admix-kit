@@ -101,7 +101,7 @@ def grm(
     else:
         grm = admix.data.grm(geno, df_indiv["POPU"].values)
 
-    df_id = pd.DataFrame({"0": df_indiv.index.values, "1": df_indiv.index.values})
+    df_id = pd.DataFrame({"0": df_indiv.FID.values, "1": df_indiv.IID.values})
 
     # write GRM
     admix.tools.gcta.write_grm(
