@@ -186,8 +186,7 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
         # impute missing genotypes
         g = impute_with_mean(g, inplace=False, axis=1)
         # normalize
-        g -= np.mean(g, axis=1)[:, None]
-        g /= np.std(g, axis=1)[:, None]
+        g = (g - np.mean(g, axis=1)[:, None]) / np.std(g, axis=1)[:, None]
         return g
     
     n_snp = geno.shape[0]
@@ -212,7 +211,6 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
             geno_chunk = normalize_geno(geno_chunk)
 
         mat += np.dot(geno_chunk.T, geno_chunk) / n_snp
-        print(mat)
     return mat
 
 def admix_grm(
