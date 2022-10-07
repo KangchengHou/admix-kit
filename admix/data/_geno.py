@@ -163,7 +163,8 @@ def geno_mult_mat(
     else:
         return ret
 
-def grm(geno: da.Array, subpopu:np.ndarray = None):
+
+def grm(geno: da.Array, subpopu: np.ndarray = None, std_method: str = "std"):
     """Calculate the GRM matrix
     This function is to serve as an alternative of GCTA --make-grm
 
@@ -172,32 +173,48 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
     geno: admix.Dataset
         genotype (n_snp, n_indiv) matrix
     subpopu : np.ndarray
-        subpopulation labels, with shape (n_indiv,). The allele frequencies and 
+        subpopulation labels, with shape (n_indiv,). The allele frequencies and
         normalization are performed separately within each subpopulation.
+    std_method : str
+        Method to standardize the GRM. Currently supported:
+        "std" (standardize to have mean 0 and variance 1),
+        "allele" (standardize to have mean 0 but no scaling)
 
     Returns
     -------
     np.ndarray
         GRM matrix (n_indiv, n_indiv)
     """
+
     def normalize_geno(g):
-        """Normalize the genotype matrix
-        """
+        """Normalize the genotype matrix"""
         # impute missing genotypes
         g = impute_with_mean(g, inplace=False, axis=1)
         # normalize
-        g = (g - np.mean(g, axis=1)[:, None]) / np.std(g, axis=1)[:, None]
+        if std_method == "std":
+            g = (g - np.mean(g, axis=1)[:, None]) / np.std(g, axis=1)[:, None]
+        elif std_method == "allele":
+            g = g - np.mean(g, axis=1)[:, None]
+        else:
+            raise ValueError("std_method should be either `std` or `allele`")
         return g
-    
+
+    assert std_method in ["std", "allele"], "std_method should be `std` or `allele`"
     n_snp = geno.shape[0]
     n_indiv = geno.shape[1]
 
     if subpopu is not None:
-        assert n_indiv == subpopu.shape[0], "subpopu should have the same length as the number of individuals"
+        assert (
+            n_indiv == subpopu.shape[0]
+        ), "subpopu should have the same length as the number of individuals"
         unique_subpopu = np.unique(subpopu)
-        admix.logger.info(f"{len(unique_subpopu)} subpopulations found: {unique_subpopu}")
+        admix.logger.info(
+            f"{len(unique_subpopu)} subpopulations found: {unique_subpopu}"
+        )
 
-    admix.logger.info(f"Calculating GRM matrix with {n_snp} SNPs and {n_indiv} individuals")
+    admix.logger.info(
+        f"Calculating GRM matrix with {n_snp} SNPs and {n_indiv} individuals"
+    )
     mat = 0
     snp_chunks = geno.chunks[0]
     indices = np.insert(np.cumsum(snp_chunks), 0, 0)
@@ -206,12 +223,15 @@ def grm(geno: da.Array, subpopu:np.ndarray = None):
         geno_chunk = geno[start:stop, :].compute()
         if subpopu is not None:
             for popu in np.unique(subpopu):
-                geno_chunk[:, subpopu == popu] = normalize_geno(geno_chunk[:, subpopu == popu])
+                geno_chunk[:, subpopu == popu] = normalize_geno(
+                    geno_chunk[:, subpopu == popu]
+                )
         else:
             geno_chunk = normalize_geno(geno_chunk)
 
         mat += np.dot(geno_chunk.T, geno_chunk) / n_snp
     return mat
+
 
 def admix_grm(
     geno: da.Array, lanc: da.Array, n_anc: int = 2, snp_prior_var: np.ndarray = None

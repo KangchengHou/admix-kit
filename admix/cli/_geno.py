@@ -40,7 +40,8 @@ def _append_to_file(path: str, df: pd.DataFrame):
 def grm(
     plink_file: str,
     out_prefix: str,
-    subpopu:str=None,
+    subpopu: str = None,
+    std_method: str = "std",
     snp_chunk_size: int = 256,
     snp_list: str = None,
 ) -> None:
@@ -55,27 +56,37 @@ def grm(
         Prefix of the output files
     subpopu : str
         Path to the subpopulation file
+    std_method : str
+        Method to standardize the GRM. Currently supported:
+        "std" (standardize to have mean 0 and variance 1),
+        "allele" (standardize to have mean 0 but no scaling)
     snp_chunk_size : int, optional
         Number of SNPs to read at a time, by default 256
         This can be tuned to reduce memory usage
     snp_list : str, optional
         Path to a file containing a list of SNPs to use. Each line should be a SNP ID.
         Only SNPs in the list will be used for the analysis. By default None
+
     Returns
     -------
     GRM files: {out_prefix}.[grm.bin | grm.id | grm.n] will be generated
     Weight file: {out_prefix}.weight.tsv will be generated
     """
-
+    assert std_method in ["std", "allele"], f"Unknown std_method: {std_method}"
     log_params("grm", locals())
+
     geno, df_snp, df_indiv = dapgen.read_plink(plink_file, snp_chunk=snp_chunk_size)
     n_indiv = len(df_indiv)
 
     if subpopu is not None:
-        df_subpopu = pd.read_csv("data/subpopu.txt", delim_whitespace=True, header=None, dtype=str)
-        df_subpopu.columns=["FID", "IID", "POPU"]
+        df_subpopu = pd.read_csv(
+            "data/subpopu.txt", delim_whitespace=True, header=None, dtype=str
+        )
+        df_subpopu.columns = ["FID", "IID", "POPU"]
         df_indiv = pd.merge(df_indiv, df_subpopu, on=["FID", "IID"])
-        assert len(df_indiv) == n_indiv, "Individuals in the subpopulation file do not match the PLINK file"
+        assert (
+            len(df_indiv) == n_indiv
+        ), "Individuals in the subpopulation file do not match the PLINK file"
 
     # filter for SNPs
     snp_subset = np.ones(len(df_snp)).astype(bool)
@@ -97,9 +108,11 @@ def grm(
 
     # calculate GRM
     if subpopu is None:
-        grm = admix.data.grm(geno)
+        grm = admix.data.grm(geno, subpopu=None, std_method=std_method)
     else:
-        grm = admix.data.grm(geno, df_indiv["POPU"].values)
+        grm = admix.data.grm(
+            geno, subpopu=df_indiv["POPU"].values, std_method=std_method
+        )
 
     df_id = pd.DataFrame({"0": df_indiv.FID.values, "1": df_indiv.IID.values})
 
