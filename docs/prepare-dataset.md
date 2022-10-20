@@ -76,7 +76,9 @@ plink2 \
     --out ${merged_pfile}
 ```
 
-### Step 1.4 (optional): perform joint PCA with 1kg reference panel and select admixed individuals based on PC
+### Step 1.4 (optional): perform joint PCA with 1kg reference panel
+By overlapping your sample with the 1,000 Genomes reference panel, you can get an overall
+idea of genetic ancestries of individuals in your sample.
 ```bash
 admix pfile-merge-indiv \
     --pfile1 ${REF_DIR}/all_chr \
@@ -86,10 +88,6 @@ admix pfile-merge-indiv \
 plink2 --pfile ${OUT_DIR}/merged \
     --pca approx \
     --out ${OUT_DIR}/merged_pca
-```
-
-```{note}
-There are many 
 ```
 
 

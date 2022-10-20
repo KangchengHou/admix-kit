@@ -96,7 +96,6 @@ Now we will run RFmix to infer local ancestry for your genotype file (see how to
 ```bash
 ## Specify constants
 chrom=XX # this script should be ran 1 chromosome at a time
-build=hg38 # replace hg38 with hg19 as needed
 REF_DIR=/path/to/1kg/ # see step 1, set it to the root directory containing metadata/ pgen/ vcf/
 RFMIX=/path/to/rfmix_exe # see above to download and compile rfmix executables
 
@@ -120,14 +119,14 @@ tabix -p vcf ${out_prefix}.tmp.vcf.gz
 # e.g., For local ancestry inference of European-African admixed individuals, we 
 # recommend using CEU, YRI only.
 awk '$2=="CEU" || $2=="YRI" || $2=="PEL" {print $1 "\t" $2}' \
-    ${REF_DIR}/metadata/${build}.unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
+    ${REF_DIR}/metadata/unrelated_sample.tsv >${out_prefix}.tmp.sample_map.tsv
 
 ## run RFmix
 ${RFMIX} \
     -f ${out_prefix}.tmp.vcf.gz \
-    -r ${REF_DIR}/vcf/${build}.chr${chrom}.vcf.gz \
+    -r ${REF_DIR}/vcf/chr${chrom}.vcf.gz \
     -m ${out_prefix}.tmp.sample_map.tsv \
-    -g ${REF_DIR}/metadata/genetic_map/${build}.chr${chrom}.tsv \
+    -g ${REF_DIR}/metadata/genetic_map/chr${chrom}.tsv \
     --chromosome=${chrom} \
     -o ${out_prefix}
 
