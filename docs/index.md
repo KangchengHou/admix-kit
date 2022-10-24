@@ -13,15 +13,14 @@ We have also created [command line interface (CLI)](cli/index.md) for main funct
 ```bash
 # Install admix-kit with Python 3.7, 3.8, 3.9
 git clone https://github.com/KangchengHou/admix-kit
-cd admix-kit
-pip install -r requirements.txt; pip install -e .
+cd admix-kit && pip install -e .
 ```
 
 ```{note}
 `admix-kit` is still in beta version undergoing frequent updates, we welcome any [feedbacks](https://github.com/KangchengHou/admix-kit/pulls) and [bug reports](https://github.com/KangchengHou/admix-kit/issues).   
 ```
 
-Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](quickstart-cli.md).
+Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](cli/index).
 
 `admix-kit` has been used in the following projects:
 1. [On powerful GWAS in admixed populations](https://www.nature.com/articles/s41588-021-00953-5). Nature Genetics (2021).
@@ -31,7 +30,6 @@ Now, let us jump to quick start with [python](notebooks/quickstart) or [CLI](qui
 ```{toctree}
 :hidden:
 install
-quickstart-cli
 notebooks/quickstart
 cli/index
 api
