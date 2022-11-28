@@ -75,6 +75,7 @@ def get_1kg_ref(
     dir: str,
     build: str,
     verbose: bool = False,
+    memory: int = 16000,
 ):
     """
     Get the 1,000 reference genome in plink2 format.
@@ -90,6 +91,8 @@ def get_1kg_ref(
         Build of the reference genome. hg38 or hg19.
     verbose : bool
         Whether to print out the progress of the download.
+    memory : int
+        Memory in MB to use for PLINK command. Default is 16000 (~16GB).
     """
     log_params("get-1kg-ref", locals())
 
@@ -160,6 +163,7 @@ def get_1kg_ref(
         "--chr 1-22",
         "--set-all-var-ids @:#:\$r:\$a",
         f"--make-pgen --out {dir}/pgen/raw2",
+        f"--memory {memory}",
     ]
     call_helper(" ".join(cmds))
 
@@ -174,6 +178,7 @@ def get_1kg_ref(
         f"plink2 --pfile {dir}/pgen/raw2",
         f"--exclude {dir}/pgen/raw2.snplist",
         f"--make-pgen --out {dir}/pgen/all_chr",
+        f"--memory {memory}",
     ]
     call_helper(" ".join(cmds))
 
