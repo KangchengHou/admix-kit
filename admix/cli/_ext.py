@@ -228,11 +228,31 @@ def admix_simu(
     build: str,
     out: str,
 ):
-    """Run admix-simu to expand population using a PLINK file."""
+    """Run admix-simu to expand population using a PLINK file.
+    
+    Parameters
+    ----------
+    pfile_list : List[str]
+        list of pgen files, with or without .pgen extension is file
+    admix_prop : List[float]
+        list of admix proportions
+    n_gen : int
+        number of generations
+    n_indiv : int
+        number of individuals
+    build : str
+        genetic map build, e.g. hg38, hg19
+    out : str
+        output prefix
+    
+    """
     log_params("admix-simu", locals())
     assert isinstance(pfile_list, list)
     assert isinstance(admix_prop, list)
     admix_prop = [float(p) for p in admix_prop]
+    # remove .pgen extention name if present
+    pfile_list = [os.path.splitext(p)[0] for p in pfile_list if p.endswith(".pgen")]
+    admix.logger.info(f"Received pfile_list={','.join(pfile_list)}")
     admix.tools.admix_simu(
         pfile_list=pfile_list,
         admix_prop=admix_prop,
