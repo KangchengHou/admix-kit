@@ -25,7 +25,7 @@ As RFmix takes reference dataset in vcf format, we convert pgen format to vcf fo
 ```bash
 # convert plink2 to vcf
 root_dir=/path/to/1kg/
-mkdir -p ${root_dir}/1kg/
+mkdir -p ${root_dir}/vcf/
 for chrom in {1..22}; do
     plink2 \
     --pfile ${root_dir}/pgen/all_chr \
