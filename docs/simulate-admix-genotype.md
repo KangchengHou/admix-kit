@@ -13,6 +13,19 @@ In the following, we go through each part of the pipeline using an example of si
 ```{note}
 Run in Linux environment (because HAPGEN2 can only be run in Linux). 
 ```
+
+## Step 0 (optional): download software and reference data
+We use many 3rd party software in this pipeline. You may want to download them in advance in case you don't have internet connection in running the code.
+```bash
+for name in hapgen2 admix-simu plink2 hapmap3_snps; do
+    admix download-dependency --name ${name}
+done
+
+admix download-dependency --name genetic_map --build hg38
+admix download-dependency --name genetic_map --build hg19
+```
+It is ok to skip this step. `admix-kit` will automatically download the software and reference data if you have the internet connection.
+
 ## Step 1: prepare ancestral reference population data
 We go through the following steps:
 1. download 1,000 Genomes reference data 
