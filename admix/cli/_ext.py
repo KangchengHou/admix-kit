@@ -252,7 +252,9 @@ def admix_simu(
     assert isinstance(admix_prop, list)
     admix_prop = [float(p) for p in admix_prop]
     # remove .pgen extention name if present
-    pfile_list = [os.path.splitext(p)[0] for p in pfile_list if p.endswith(".pgen")]
+    pfile_list = [
+        os.path.splitext(p)[0] if p.endswith(".pgen") else p for p in pfile_list
+    ]
     admix.logger.info(f"Received pfile_list={','.join(pfile_list)}")
     admix.tools.admix_simu(
         pfile_list=pfile_list,
