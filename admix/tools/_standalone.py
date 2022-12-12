@@ -337,3 +337,6 @@ def admix_simu(
 
     # clean up
     shutil.rmtree(tmp_dir)
+
+    # hint the file path
+    admix.logger.info(f"Output files are saved to {out_prefix}.*")
