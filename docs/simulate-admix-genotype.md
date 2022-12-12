@@ -38,6 +38,8 @@ N_GEN=8
 
 admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
+mkdir -p data/ancestry
+
 # subset hapmap3 SNPs
 admix subset-hapmap3 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \

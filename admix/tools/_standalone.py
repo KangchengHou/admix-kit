@@ -128,6 +128,11 @@ def interpolate_genetic_position(chrom: int, pos: np.ndarray, build: str) -> np.
     -------
     np.ndarray
         genetic position
+
+    Notes
+    -----
+    When a given position is out of the range of the genetic map, the genetic position
+    will be extrapolated linearly.
     """
     assert build in ["hg19", "hg38"]
     from scipy.interpolate import interp1d
@@ -138,7 +143,10 @@ def interpolate_genetic_position(chrom: int, pos: np.ndarray, build: str) -> np.
     df_map = df_map[df_map["chr"] == chrom]
     assert np.all(np.sort(df_map["position"]) == df_map["position"])
     interp = interp1d(
-        x=df_map["position"], y=df_map["Genetic_Map(cM)"], assume_sorted=True
+        x=df_map["position"],
+        y=df_map["Genetic_Map(cM)"],
+        assume_sorted=True,
+        fill_value="extrapolate",
     )
     genetic_pos = interp(pos)
     return genetic_pos
