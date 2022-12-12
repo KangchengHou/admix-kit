@@ -6,6 +6,7 @@ import pandas as pd
 import glob
 import os
 from ._utils import log_params
+from typing import List
 
 
 def prune(pfile: str, out: str, indep_pairwise_params: List = None):
@@ -229,7 +230,7 @@ def admix_simu(
     out: str,
 ):
     """Run admix-simu to expand population using a PLINK file.
-    
+
     Parameters
     ----------
     pfile_list : List[str]
@@ -244,7 +245,7 @@ def admix_simu(
         genetic map build, e.g. hg38, hg19
     out : str
         output prefix
-    
+
     """
     log_params("admix-simu", locals())
     assert isinstance(pfile_list, list)
@@ -261,3 +262,36 @@ def admix_simu(
         build=build,
         out_prefix=out,
     )
+
+
+def download_dependency(
+    name: str,
+    **kwargs,
+):
+    """
+    Download dependency file or cache data, therefore to avoid downloading on the fly.
+
+    name : str
+        name of the dependency. Include the following:
+        Software:
+            - plink2
+            - plink
+            - gcta64
+            - liftOver
+            - hapgen2
+            - admix-simu
+        Data:
+            - genetic_map --build hg38/hg19
+            - hapmap3_snps
+    kwargs : Dict[str, Any]
+        keyword arguments to pass to the download function, e.g. build for genetic_map
+    """
+    log_params("download-dependency", locals())
+    if name in ("plink2", "plink", "gcta64", "liftOver", "hapgen2", "admix-simu"):
+        path = admix.tools.get_dependency(name)
+        admix.logger.info(f"{name} can be found at {path}")
+    elif name == "genetic_map":
+        assert "build" in kwargs, "build must be specified for genetic_map"
+        admix.tools.get_cache_data(name=name, build=kwargs["build"])
+    elif name == "hapmap3_snps":
+        admix.tools.get_cache_data(name=name)
