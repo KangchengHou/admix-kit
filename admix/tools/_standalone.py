@@ -40,7 +40,7 @@ def hapgen2(
     out_prefix : str
         output prefix
     """
-    tmp_dir = out_prefix + ".hapgen2_tmpdata"
+    tmp_dir = out_prefix + ".hapgen2tmpdata"
     assert not os.path.exists(
         tmp_dir
     ), f"{tmp_dir} should not exist, please remove it before running this function"
@@ -216,7 +216,7 @@ def admix_simu(
     ##################################
     # format input
     ##################################
-    tmp_dir = out_prefix + ".admixsimu_tmpdata"
+    tmp_dir = out_prefix + ".admixsimutmpdata"
     assert not os.path.exists(
         tmp_dir
     ), f"{tmp_dir} should not exist, please remove it before running this function"
