@@ -3,7 +3,6 @@ Standalone functions corresponding to the external tools
 """
 
 import admix
-import tempfile
 import os
 import subprocess
 import pandas as pd
@@ -41,8 +40,11 @@ def hapgen2(
     out_prefix : str
         output prefix
     """
-    tmp = tempfile.TemporaryDirectory()
-    tmp_dir = tmp.name
+    tmp_dir = out_prefix + ".hapgen2_tmpdata"
+    assert not os.path.exists(
+        tmp_dir
+    ), f"{tmp_dir} should not exist, please remove it before running this function"
+    os.makedirs(tmp_dir, exist_ok=False)
     tmp_data_prefix = os.path.join(tmp_dir, "hapgen2_data")
 
     ##################################
@@ -108,7 +110,7 @@ def hapgen2(
     ##################################
     # clean up
     ##################################
-    tmp.cleanup()
+    shutil.rmtree(tmp_dir)
 
 
 def interpolate_genetic_position(chrom: int, pos: np.ndarray, build: str) -> np.ndarray:
@@ -174,8 +176,10 @@ def admix_simu(
         number of generations to simulate
     n_indiv : int
         number of individuals to simulate
-    out_prefix: output prefix
-        admix_simu_dir: Directory to the admix_simu software
+    out_prefix: str
+        output prefix
+    admix_simu_dir: str
+        Directory to the admix_simu software
 
     Returns
     -------
@@ -212,8 +216,11 @@ def admix_simu(
     ##################################
     # format input
     ##################################
-    tmp = tempfile.TemporaryDirectory()
-    tmp_dir = tmp.name
+    tmp_dir = out_prefix + ".admixsimu_tmpdata"
+    assert not os.path.exists(
+        tmp_dir
+    ), f"{tmp_dir} should not exist, please remove it before running this function"
+    os.makedirs(tmp_dir, exist_ok=False)
     df_snp_info = None
     chrom = None
     for pfile_path in pfile_list:
@@ -329,4 +336,4 @@ def admix_simu(
     shutil.move(os.path.join(tmp_dir, "admix.bp"), f"{out_prefix}.bp")
 
     # clean up
-    tmp.cleanup()
+    shutil.rmtree(tmp_dir)
