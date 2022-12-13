@@ -7,6 +7,11 @@ If you need help, [raise an issue](https://github.com/KangchengHou/admix-kit/iss
 update this guideline to adapt to your data.
 ```
 
+```{note}
+Note on converting UK Biobank version 2 phased haplotype data (contributed by Jordan Rossen from HSPH):
+
+When converting UK Biobank version 2 phased haplotype data bgen format using plink2, for chromosomes 1-20, the ref-first flag should be used (`--bgen ref-first`) and for chromosomes 21-22, the ref-last flag should be used (`--bgen ref-last`). This is because the allele encoding is switched for chromosomes 21 and 22, specifically in the phased haplotype data (this is not an issue in the UK Biobank imputed data). This issue has been previously noted on the [UK Biobank mailing list](https://www.jiscmail.ac.uk/cgi-bin/webadmin?A0=UKB-GENETICS) (registration is needed).
+```
 ## Step 1: download and process reference data
 
 ```bash
