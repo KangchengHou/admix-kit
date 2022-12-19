@@ -95,3 +95,85 @@ admix genet-cor \
 .. autofunction:: admix.cli.admix_grm_merge
 .. autofunction:: admix.cli.genet_cor
 ```
+
+
+# Examples
+We use an example to go through the pipeline.
+
+## Download data
+```bash
+wget "https://www.dropbox.com/s/ub9c6l82ek2yq8q/admix-simu-data.zip?dl=1" -O admix-simu-data.zip
+unzip admix-simu-data.zip
+pfile=admix-simu-data/CEU-YRI-PEL
+# pfile=admix-simu-data/CEU-YRI
+out_dir=out/
+mkdir -p ${out_dir}
+```
+
+## Simulate phenotype
+```bash
+for cor in 0.9 0.95 1.0; do
+    admix simulate-admix-pheno \
+        --pfile ${pfile} \
+        --hsq 0.25 \
+        --p-causal 1.0 \
+        --cor ${cor} \
+        --n-sim 10 \
+        --out-prefix ${out_dir}/cor-${cor}
+done
+```
+
+```python
+import pandas as pd
+import numpy as np
+
+for cor in [0.9, 0.95, 1.0]:
+    df = pd.read_csv(f"{out_dir}/cor-{cor}.pheno", sep="\t", index_col=0)
+    for i in range(10):
+        df_sim = df[[f"SIM{i}"]].copy()
+        df_sim["COVAR"] = np.random.normal(size=df_sim.shape[0])
+        df_sim.to_csv(f"{out_dir}/cor-{cor}.sim{i}.pheno", sep="\t", header=True)
+```
+
+## Compute GRM
+```bash
+mkdir -p ${out_dir}/admix-grm
+admix append-snp-info \
+    --pfile ${pfile} \
+    --out ${pfile}.snp_info
+
+admix admix-grm \
+    --pfile ${pfile} \
+    --out-prefix ${out_dir}/admix-grm/grm
+```
+
+## Estimate genetic correlation
+```bash
+cor=0.9
+i=0
+mkdir -p ${out_dir}/estimate
+admix genet-cor \
+    --pheno ${out_dir}/cor-${cor}.sim${i}.pheno \
+    --grm-prefix ${out_dir}/admix-grm/grm \
+    --out-dir ${out_dir}/estimate/cor-${cor}.sim${i}
+
+admix summarize-genet-cor \
+    --est-dir ${out_dir}/estimate/cor-${cor}.sim${i} \
+    --out-prefix ${out_dir}/estimate/cor-${cor}.sim${i}
+
+cat out/estimate/cor-0.9.sim0.summary.json
+
+# {
+#     "n": 5000,
+#     "rg_mode": 0.881,
+#     "rg_hpdi(50%)": [
+#         0.835,
+#         0.922
+#     ],
+#     "rg_hpdi(95%)": [
+#         0.726,
+#         0.981
+#     ],
+#     "rg=1_pval": 0.01606506671979559
+# }
+```

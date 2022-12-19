@@ -95,7 +95,6 @@ def admix_grm(
     log_params("admix-grm", locals())
     assert len(freq_cols) == 2, "freq_cols must be a list of length 2"
     dset = admix.io.read_dataset(pfile=pfile, snp_chunk=snp_chunk_size)
-    assert dset.n_anc == 2, "Currently only 2-way admixture is supported"
 
     # filter for SNPs
     if snp_list is not None:
@@ -118,27 +117,29 @@ def admix_grm(
 
     dset.snp["PRIOR_VAR"] = admix.data.calc_snp_prior_var(dset.snp, her_model=her_model)
 
-    G1, G2, G12 = admix.data.admix_grm(
+    K1, K2 = admix.data.admix_grm_equal_var(
         geno=dset.geno,
         lanc=dset.lanc,
         snp_prior_var=dset.snp.PRIOR_VAR.values,
+        n_anc=dset.n_anc,
     )
 
-    K1 = G1 + G2
-    K2 = G12 + G12.T
-
     df_weight = dset.snp.PRIOR_VAR
-    df_id=pd.DataFrame(
-            {"0": dset.indiv.index.values, "1": dset.indiv.index.values}
-        )
+    df_id = pd.DataFrame({"0": dset.indiv.index.values, "1": dset.indiv.index.values})
     _write_admix_grm(
-        dict_grm = {"K1": K1, "K2": K2},
+        dict_grm={"K1": K1, "K2": K2},
         df_weight=df_weight,
         df_id=df_id,
         out_prefix=out_prefix,
     )
 
     if write_raw:
+        G1, G2, G12 = admix.data.admix_grm(
+            geno=dset.geno,
+            lanc=dset.lanc,
+            snp_prior_var=dset.snp.PRIOR_VAR.values,
+        )
+
         for suffix, mat in zip(["G1", "G2", "G12"], [G1, G2, G12]):
             admix.tools.gcta.write_grm(
                 f"{out_prefix}.{suffix}",
@@ -224,7 +225,7 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
     df_weight = pd.concat(prior_var_list)
 
     _write_admix_grm(
-        dict_grm = {"K1": K1, "K2": K2},
+        dict_grm={"K1": K1, "K2": K2},
         df_weight=df_weight,
         df_id=df_id,
         out_prefix=out_prefix,
@@ -328,7 +329,7 @@ def summarize_genet_cor(
     scale_factor: float = None,
     freq_col: str = "FREQ",
     index_col: str = "snp",
-    rg_str :str = "rg",
+    rg_str: str = "rg",
 ):
     """Summarize the results of genetic correlation analysis.
 
@@ -372,7 +373,7 @@ def summarize_genet_cor(
     rg_list = np.array(
         sorted(
             [
-                int(os.path.basename(p).split(".")[0][len(rg_str):])
+                int(os.path.basename(p).split(".")[0][len(rg_str) :])
                 for p in glob.glob(os.path.join(est_dir, f"{rg_str}*.hsq"))
             ]
         )
