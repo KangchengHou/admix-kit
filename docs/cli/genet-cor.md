@@ -70,7 +70,7 @@ admix admix-grm \
 ```
 This step will generate `${out_dir}/admix-grm/chr${chrom}.[grm.bin|grm.id|grm.n|weight.tsv]` files.
 
-## Step 2: merging GRMs across chomosomes
+## Step 2: merging GRMs across chromosomes
 
 ```bash
 admix admix-grm-merge \
@@ -104,8 +104,7 @@ We use an example to go through the pipeline.
 ```bash
 wget "https://www.dropbox.com/s/ub9c6l82ek2yq8q/admix-simu-data.zip?dl=1" -O admix-simu-data.zip
 unzip admix-simu-data.zip
-pfile=admix-simu-data/CEU-YRI-PEL
-# pfile=admix-simu-data/CEU-YRI
+pfile=admix-simu-data/CEU-YRI # for an example of 3-way admixture, use pfile=admix-simu-data/CEU-YRI-PEL
 out_dir=out/
 mkdir -p ${out_dir}
 ```
@@ -119,6 +118,7 @@ for cor in 0.9 0.95 1.0; do
         --p-causal 1.0 \
         --cor ${cor} \
         --n-sim 10 \
+        --seed 1234 \
         --out-prefix ${out_dir}/cor-${cor}
 done
 ```
@@ -131,6 +131,7 @@ for cor in [0.9, 0.95, 1.0]:
     df = pd.read_csv(f"{out_dir}/cor-{cor}.pheno", sep="\t", index_col=0)
     for i in range(10):
         df_sim = df[[f"SIM{i}"]].copy()
+        # add random covariates
         df_sim["COVAR"] = np.random.normal(size=df_sim.shape[0])
         df_sim.to_csv(f"{out_dir}/cor-{cor}.sim{i}.pheno", sep="\t", header=True)
 ```
@@ -152,6 +153,7 @@ admix admix-grm \
 cor=0.9
 i=0
 mkdir -p ${out_dir}/estimate
+# this step will take a while
 admix genet-cor \
     --pheno ${out_dir}/cor-${cor}.sim${i}.pheno \
     --grm-prefix ${out_dir}/admix-grm/grm \
@@ -162,18 +164,31 @@ admix summarize-genet-cor \
     --out-prefix ${out_dir}/estimate/cor-${cor}.sim${i}
 
 cat out/estimate/cor-0.9.sim0.summary.json
+```
 
-# {
-#     "n": 5000,
-#     "rg_mode": 0.881,
-#     "rg_hpdi(50%)": [
-#         0.835,
-#         0.922
-#     ],
-#     "rg_hpdi(95%)": [
-#         0.726,
-#         0.981
-#     ],
-#     "rg=1_pval": 0.01606506671979559
-# }
+```json
+{
+    "n": 5000,
+    "rg_mode": 0.909,
+    "rg_hpdi(50%)": [
+        0.854,
+        0.952
+    ],
+    "rg_hpdi(95%)": [
+        0.729,
+        1.0
+    ],
+    "rg=1_pval": 0.13
+}
+```
+```{note}
+Here the wide credible interval is due to the small sample size (N=5,000) used in the analysis.
+```
+
+To obtain results for simulations from all correlation parameters and simulation replicates (or for all traits in real data analysis), we recommend using computing clusters to parallelize this process. After these results are obtained, one can use `admix meta-analyze-genet-cor` to meta-analyze these results. For example,
+
+```bash
+for cor in 0.9 0.95 1.0; do
+    admix meta-analyze-genet-cor --loglkl-files "out/estimate/cor-${cor}.sim*.loglkl.txt"
+done
 ```
