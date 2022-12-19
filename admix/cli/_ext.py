@@ -74,6 +74,18 @@ def liftover(pfile: str, out: str, chain="hg19->hg38"):
 
 
 def pfile_merge_indiv(pfile1: str, pfile2: str, out: str):
+    """Merge individuals from 2 pfiles into a single pfile
+
+    Parameters
+    ----------
+    pfile1 : str
+        first pfile
+    pfile2 : str
+        second pfile
+    out : str
+        output pfile prefix
+    """
+
     log_params("pfile-merge-indiv", locals())
     admix.tools.plink2.merge_indiv(pfile1=pfile1, pfile2=pfile2, out_prefix=out)
     admix.logger.info(

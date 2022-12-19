@@ -93,6 +93,13 @@ def get_1kg_ref(
         Whether to print out the progress of the download.
     memory : int
         Memory in MB to use for PLINK command. Default is 16000 (~16GB).
+
+    Examples
+    --------
+    .. code-block:: bash
+
+        admix get-1kg-ref --dir=/path/to/1kg --build hg38
+
     """
     log_params("get-1kg-ref", locals())
 

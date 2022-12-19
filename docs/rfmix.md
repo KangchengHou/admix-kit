@@ -54,7 +54,7 @@ admix pfile-merge-indiv \
     --pfile2 ${sample_pfile} \
     --out ${out_dir}/merged
 
-# perform PCA
+# perform PCA (you may want to remove the 'approx' modifier if you don't have many samples in your data set (<5,000 individuals))
 plink2 --bfile ${out_dir}/merged \
     --pca approx \
     --out ${out_dir}/merged_pca

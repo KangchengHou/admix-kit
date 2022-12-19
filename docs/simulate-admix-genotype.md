@@ -98,18 +98,28 @@ We simulate 8 generations, with admixture proportion of 20% / 80%.
 
 ### Simulation
 ```bash
-# admix-simu should be automatically installed using this command
+# Simulate 3-way admixture
 admix admix-simu \
     --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2', 'data/ancestry/PEL.hapgen2']" \
-    --admix-prop "[0.4,0.1,0.5]" \
+    --admix-prop "[0.3,0.2,0.5]" \
     --n-indiv ${N_INDIV} \
     --n-gen ${N_GEN} \
     --build ${BUILD} \
-    --out data/admix
+    --out data/CEU-YRI-PEL
+
+# Simulate 2-way admixture
+admix admix-simu \
+    --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2']" \
+    --admix-prop "[0.2,0.8]" \
+    --n-indiv ${N_INDIV} \
+    --n-gen ${N_GEN} \
+    --build ${BUILD} \
+    --out data/CEU-YRI
 
 # you will obtain 
-# (1) plink2 phased genotype: data/admix.{pgen,pvar,psam}
-# (2) local ancestry: data/admix.lanc
+# (1) plink2 phased genotype: data/{CEU-YRI-PEL|CEU-YRI}.{pgen,pvar,psam}
+# (2) local ancestry: data/{CEU-YRI-PEL|CEU-YRI}.lanc
 ```
 
-<!-- TODO: To perform basic check on the simulated data. We performed some basic analyses below. -->
+### Visualization
+We perform several visualizations to verify the simulated data are reasonable. See [this page](notebooks/analyze-admix-simu-data.ipynb) for details.
