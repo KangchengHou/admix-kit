@@ -239,6 +239,7 @@ def genet_cor(
     rg_grid=np.linspace(0, 1.0, 21),
     quantile_normalize: bool = True,
     n_thread: int = 2,
+    clean: bool = True,
 ):
     """Estimate genetic correlation
 
@@ -248,7 +249,7 @@ def genet_cor(
         phenotype file, the 1st column contains ID, 2nd column contains phenotype, and
         the rest of columns are covariates.
     grm_prefix : str
-        folder containing GRM files
+        folder containing K1, K2 GRM files
     out_dir : str
         folder to store the output files
     rg_grid : list, optional
@@ -319,6 +320,10 @@ def genet_cor(
             n_thread=n_thread,
             est_fix=True,
         )
+        if clean:
+            # remove <grm>.grm.* files
+            for f in glob.glob(grm + ".grm.*"):
+                os.remove(f)
 
 
 def summarize_genet_cor(
