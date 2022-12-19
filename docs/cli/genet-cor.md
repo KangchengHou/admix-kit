@@ -100,7 +100,7 @@ admix genet-cor \
 # Examples
 We use an example to go through the pipeline.
 
-## Download data
+## Step 1: Download data
 ```bash
 wget "https://www.dropbox.com/s/ub9c6l82ek2yq8q/admix-simu-data.zip?dl=1" -O admix-simu-data.zip
 unzip admix-simu-data.zip
@@ -109,7 +109,7 @@ out_dir=out/
 mkdir -p ${out_dir}
 ```
 
-## Simulate phenotype
+## Step 2: Simulate phenotype
 ```bash
 for cor in 0.9 0.95 1.0; do
     admix simulate-admix-pheno \
@@ -136,7 +136,7 @@ for cor in [0.9, 0.95, 1.0]:
         df_sim.to_csv(f"{out_dir}/cor-{cor}.sim{i}.pheno", sep="\t", header=True)
 ```
 
-## Compute GRM
+## Step 3: Compute GRM
 ```bash
 mkdir -p ${out_dir}/admix-grm
 admix append-snp-info \
@@ -148,7 +148,7 @@ admix admix-grm \
     --out-prefix ${out_dir}/admix-grm/grm
 ```
 
-## Estimate genetic correlation
+## Step 4: Estimate genetic correlation
 ```bash
 cor=0.9
 i=0
