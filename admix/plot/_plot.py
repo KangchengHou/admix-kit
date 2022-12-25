@@ -513,7 +513,9 @@ def rg_posterior(
     xs: np.ndarray,
     dict_loglik: Dict[str, np.ndarray],
     ci=[0.5, 0.95],
+    s=11,
     colors="black",
+    markers="o",
     ax=None,
 ):
     """
@@ -528,7 +530,9 @@ def rg_posterior(
     ci: Union[float, List[float]]
         ci to plot, can be 1 float or two float
     colors:
-        ["darkred"] + ["darkblue"] * (len(est) - 1)
+        ["darkblue"] * (len(est) - 1) + ["darkred"]
+    markers:
+        ["o"] * (len(est) - 1) + ["^"]
     """
     if ax is None:
         ax = plt.gca()
@@ -540,6 +544,13 @@ def rg_posterior(
     trait_list = list(dict_loglik.keys())[::-1]
     if isinstance(colors, list):
         colors = colors[::-1]
+    elif isinstance(colors, str):
+        colors = [colors] * len(trait_list)
+    if isinstance(markers, list):
+        markers = markers[::-1]
+    elif isinstance(markers, str):
+        markers = [markers] * len(trait_list)
+
     dict_mode = {trait: xs[dict_loglik[trait].argmax()] for trait in trait_list}
 
     dict_ci_err: Dict[int, Dict] = {ci[0]: dict(), ci[1]: dict()}
@@ -567,7 +578,14 @@ def rg_posterior(
             ecolor=colors,
         )
         if i == 0:
-            ax.scatter(y=np.arange(len(mode)), x=mode, s=11, color=colors)
+            for j, trait in enumerate(trait_list):
+                ax.scatter(
+                    x=mode[j],
+                    y=j,
+                    marker=markers[j],
+                    color=colors[j],
+                    s=s,
+                )
 
     for y in np.arange(len(mode)):
         ax.axhline(y=y, color="gray", ls="dotted", lw=0.5, alpha=0.8)
@@ -583,6 +601,5 @@ def rg_posterior(
 
     # annotation
     ax.tick_params(left=False, pad=-1)
-
     ax.axvline(x=1.0, color="red", ls="--", lw=0.8, alpha=0.4)
     ax.set_title("Estimated $r_{admix}$", fontsize=10, x=0.5)
