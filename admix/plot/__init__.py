@@ -7,6 +7,7 @@ from ._plot import (
     pca,
     joint_pca,
     rg_posterior,
+    susie,
 )
 
 
