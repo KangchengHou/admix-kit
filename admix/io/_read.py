@@ -123,9 +123,7 @@ def read_dataset(
     return dset
 
 
-def read_vcf(
-    path: str, region: str = None, samples: List[str] = None
-) -> Optional[xr.Dataset]:
+def read_vcf(path: str, region: str = None, samples: List[str] = None) -> Optional[xr.Dataset]:
     """read vcf file and form xarray.Dataset
 
     Parameters
@@ -209,10 +207,7 @@ def read_digit_mat(path: str, filter_non_numeric: bool = False, nrows: int = Non
         else:
             with open(path) as f:
                 mat = np.array(
-                    [
-                        np.array([int(c) for c in line.strip()])
-                        for line in f.readlines()
-                    ],
+                    [np.array([int(c) for c in line.strip()]) for line in f.readlines()],
                     dtype=np.int8,
                 )
     else:
@@ -290,22 +285,14 @@ def read_rfmix(
 
     # assign local ancestry
     df_rfmix = pd.read_csv(path, sep="\t", skiprows=1)
-    assert (
-        np.unique(df_rfmix["#chm"]).shape[0] == 1
-    ), "rfmix can only contain one chromosome"
-    assert (
-        np.unique(df_snp["CHROM"]).shape[0] == 1
-    ), "df_snp can only contain one chromosome"
+    assert np.unique(df_rfmix["#chm"]).shape[0] == 1, "rfmix can only contain one chromosome"
+    assert np.unique(df_snp["CHROM"]).shape[0] == 1, "df_snp can only contain one chromosome"
     assert set(df_rfmix["#chm"].values) == set(
         df_snp["CHROM"].values
     ), "rfmix and df_snp must contain the same chromosome"
     # read the 2 haplotype, the value of those haplotype corresponds to the local ancestry
-    lanc0 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".0")].rename(
-        columns=lambda x: x[:-2]
-    )
-    lanc1 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".1")].rename(
-        columns=lambda x: x[:-2]
-    )
+    lanc0 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".0")].rename(columns=lambda x: x[:-2])
+    lanc1 = df_rfmix.loc[:, df_rfmix.columns.str.endswith(".1")].rename(columns=lambda x: x[:-2])
     assert (
         np.any([col.endswith(".2") for col in df_rfmix.columns]) == False
     ), "There are columns with .2 in the rfmix file (not expected), please raise an issue"
@@ -314,9 +301,7 @@ def read_rfmix(
 
     df_rfmix_info = df_rfmix.iloc[:, 0:3].copy()
     # extend local ancestry to two ends of chromosomes if necessary
-    df_rfmix_info.loc[0, "spos"] = min(
-        df_snp["POS"][0] - 1, df_rfmix_info.loc[0, "spos"]
-    )
+    df_rfmix_info.loc[0, "spos"] = min(df_snp["POS"][0] - 1, df_rfmix_info.loc[0, "spos"])
     df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"] = max(
         df_snp["POS"][-1] + 1, df_rfmix_info.loc[len(df_rfmix_info) - 1, "epos"]
     )
@@ -331,9 +316,7 @@ def read_rfmix(
     # find the RFmix break points in coordinates of SNP location
     chunk_stop = 0
     for chunk_i, chunk in df_rfmix_info.iterrows():
-        chunk_mask = np.where(
-            (chunk.spos <= df_snp["POS"]) & (df_snp["POS"] < chunk.epos)
-        )[0]
+        chunk_mask = np.where((chunk.spos <= df_snp["POS"]) & (df_snp["POS"] < chunk.epos))[0]
         if len(chunk_mask) > 0:
             chunk_stop = chunk_mask[-1]
         else:
@@ -361,9 +344,7 @@ def read_rfmix(
     for indiv_i in range(n_indiv):
         indiv_mask = indiv_pos == indiv_i
         # +1 because .lanc denote the [start, stop) of the break points
-        indiv_snp_pos, unique_mask = np.unique(
-            snp_pos[indiv_mask] + 1, return_index=True
-        )
+        indiv_snp_pos, unique_mask = np.unique(snp_pos[indiv_mask] + 1, return_index=True)
         indiv_values = values[indiv_mask][unique_mask]
         break_list.append(indiv_snp_pos.tolist())
         value_list.append(indiv_values.tolist())
@@ -400,9 +381,15 @@ def read_joint_pca(pca_prefix: str, ref_pfile: str):
         eigenval = np.array([float(l.strip()) for l in f.readlines()])
 
     df_pop = pd.read_csv(ref_pfile + ".psam", delim_whitespace=True, index_col=0)
-
+    assert (
+        "SuperPop" in df_pop.columns and "Population" in df_pop.columns
+    ), f"SuperPop and Population columns are required in the reference panel {ref_pfile}.psam file"
+    
     df_pca["SUPERPOP"] = df_pop["SuperPop"].reindex(df_pca.index)
     df_pca["POP"] = df_pop["Population"].reindex(df_pca.index)
+    # make sure SAMPLE is not in SUPERPOP or POP
+    assert "SAMPLE" not in df_pca["SUPERPOP"].unique()
+    assert "SAMPLE" not in df_pca["POP"].unique()
     df_pca["SUPERPOP"] = df_pca["SUPERPOP"].fillna("SAMPLE")
     df_pca["POP"] = df_pca["POP"].fillna("SAMPLE")
 

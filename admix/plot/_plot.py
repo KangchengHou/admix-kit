@@ -91,7 +91,7 @@ def pca(
 
 
 def joint_pca(
-    df_pc, eigenval, x="PC1", y="PC2", sample_alpha=0.1, axes=None, figsize=(8.5, 4)
+    df_pc, eigenval, x="PC1", y="PC2", sample_alpha=0.1, axes=None, figsize=(8.5, 4), label_col="SUPERPOP"
 ):
     """Joint PCA plot
 
@@ -109,10 +109,10 @@ def joint_pca(
     varexp = eigenval / eigenval.sum()
 
     admix.plot.pca(
-        df_pc[df_pc.SUPERPOP != "SAMPLE"],
+        df_pc[df_pc[label_col] != "SAMPLE"],
         x=x,
         y=y,
-        label_col="SUPERPOP",
+        label_col=label_col,
         ax=axes[0],
     )
     assert set([x, y]).issubset(
@@ -129,7 +129,7 @@ def joint_pca(
         df_pc,
         x=x,
         y=y,
-        label_col="SUPERPOP",
+        label_col=label_col,
         alpha={"SAMPLE": sample_alpha},
         ax=axes[1],
     )
