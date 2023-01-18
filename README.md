@@ -17,6 +17,8 @@ cd admix-kit && pip install -e .
 
 > In some cases, `admix` may not be automatically to your `$PATH` (e.g., because of user installation mode). You need to look through the log and find where `admix` script is installed to and manually add that to your `$PATH` (e.g., type `PATH=$PATH:~/.local/bin`). 
 
+> To specify a version of admix-kit, use `git clone https://github.com/KangchengHou/admix-kit --branch v0.1`, or replace `v0.1` to other versions listed in https://github.com/KangchengHou/admix-kit/releases.
+
 ## Get started
 - [Full documentation](https://kangchenghou.github.io/admix-kit/index.html)
 - [Quick start (Python)](https://kangchenghou.github.io/admix-kit/notebooks/quickstart.html)
