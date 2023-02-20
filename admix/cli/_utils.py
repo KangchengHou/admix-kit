@@ -117,7 +117,7 @@ def get_1kg_ref(
     plink2 = admix.tools.get_dependency("plink2")
 
     # step0: download metadata
-    os.makedirs(os.path.join(dir, "metadata"))
+    os.makedirs(os.path.join(dir, "metadata"), exist_ok=True)
     admix.logger.info("Retrieving meta data...")
 
     _process_genetic_map(root_dir=dir, build=build)
