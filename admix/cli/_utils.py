@@ -11,8 +11,7 @@ from typing import Tuple
 
 def log_params(name, params):
     admix.logger.info(
-        f"Received parameters: \n{name}\n  "
-        + "\n  ".join(f"--{k}={v}" for k, v in params.items())
+        f"Received parameters: \n{name}\n  " + "\n  ".join(f"--{k}={v}" for k, v in params.items())
     )
 
 
@@ -23,9 +22,7 @@ def _process_sample_map(root_dir):
         f"{root_dir}/pgen/all_chr.psam",
         delim_whitespace=True,
     )
-    unrelated_id = pd.read_csv(
-        f"{root_dir}/pgen/king.cutoff.out.id", delim_whitespace=True
-    )
+    unrelated_id = pd.read_csv(f"{root_dir}/pgen/king.cutoff.out.id", delim_whitespace=True)
     os.makedirs(f"{root_dir}/metadata", exist_ok=True)
     sample_map[["#IID", "Population", "SuperPop"]].to_csv(
         f"{root_dir}/metadata/full_sample.tsv",
@@ -119,9 +116,6 @@ def get_1kg_ref(
     # make sure plink2 is in path
     assert shutil.which("plink2") is not None, "plink2 is not in $PATH"
 
-    # assert dir not exist
-    assert not os.path.exists(dir), f"dir='{dir}' already exists"
-
     # step0: download metadata
     os.makedirs(os.path.join(dir, "metadata"))
     admix.logger.info("Downloading meta data...")
@@ -132,6 +126,7 @@ def get_1kg_ref(
     os.makedirs(os.path.join(dir, "pgen"))
     if build == "hg38":
         cmds = [
+            f"mkdir -p {dir}/pgen &&",
             f"wget https://www.dropbox.com/s/23xlpscis1p5xud/all_hg38_ns.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
             f"wget https://www.dropbox.com/s/hy54ba9yvw665xf/all_hg38_ns_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
             f"wget https://www.dropbox.com/s/3j9zg103fi8cjfs/hg38_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
@@ -139,6 +134,7 @@ def get_1kg_ref(
         ]
     elif build == "hg19":
         cmds = [
+            f"mkdir -p {dir}/pgen &&",
             f"wget https://www.dropbox.com/s/dps1kvlq338ukz8/all_phase3_ns.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
             f"wget https://www.dropbox.com/s/uqk3gfhwsvf7bf3/all_phase3_ns_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
             f"wget https://www.dropbox.com/s/6ppo144ikdzery5/phase3_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
@@ -146,20 +142,25 @@ def get_1kg_ref(
         ]
     else:
         raise ValueError(f"Unknown build: {build}")
-    admix.logger.info("Downloading plink2 files...")
-    call_helper(" ".join(cmds))
 
-    # decompress pgen
-    admix.logger.info("Decompressing plink2 files...")
-    cmds = [
+    cmds += [
         f"plink2 --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
         f"plink2 --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
     ]
-    call_helper(" ".join(cmds))
+    # assume that ${dir}/pgen already contains raw.pgen / raw.pvar / raw.psam / king.cutoff.out.id
+    if not all(
+        [
+            os.path.exists(f"{dir}/pgen/{f}")
+            for f in ["raw.pgen", "raw.pvar", "raw.psam", "king.cutoff.out.id"]
+        ]
+    ):
+        raise FileNotFoundError(
+            f"Please download the reference genome to {dir}/pgen using the following commands:\n"
+            + "$ "
+            + " ".join(cmds)
+        )
 
-    admix.logger.info(
-        "Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names"
-    )
+    admix.logger.info("Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names")
     cmds = [
         f"plink2 --pfile {dir}/pgen/raw",
         "--allow-extra-chr",
@@ -177,9 +178,7 @@ def get_1kg_ref(
     ## remove SNPs duplicated by position
     df_pvar = dapgen.read_pvar(f"{dir}/pgen/raw2.pvar")
     dup_snps = df_pvar.index[df_pvar.duplicated(subset=["CHROM", "POS"])]
-    admix.logger.info(
-        f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions."
-    )
+    admix.logger.info(f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions.")
     np.savetxt(f"{dir}/pgen/raw2.snplist", dup_snps, fmt="%s")
     cmds = [
         f"plink2 --pfile {dir}/pgen/raw2",
@@ -190,8 +189,8 @@ def get_1kg_ref(
     call_helper(" ".join(cmds))
 
     admix.logger.info("Clean up temporary files...")
-    # remove raw*
-    for f in glob.glob(f"{dir}/pgen/raw*"):
+    # remove raw2*
+    for f in glob.glob(f"{dir}/pgen/raw2*"):
         os.remove(f)
 
     _process_sample_map(root_dir=dir)
@@ -232,9 +231,7 @@ def select_admix_indiv(
     """
     log_params("select-admixed-indiv", locals())
 
-    df_pc, eigenval = admix.io.read_joint_pca(
-        ref_pfile=ref_pfile, pca_prefix=pca_prefix
-    )
+    df_pc, eigenval = admix.io.read_joint_pca(ref_pfile=ref_pfile, pca_prefix=pca_prefix)
     pc_cols = [f"PC{i}" for i in range(1, n_pc + 1)]
     pc_col_pos = [df_pc.columns.get_loc(col) for col in pc_cols]
     pc_eigenval = eigenval[pc_col_pos]
