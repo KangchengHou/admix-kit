@@ -114,7 +114,7 @@ def get_1kg_ref(
             )
 
     # make sure plink2 is in path
-    assert shutil.which("plink2") is not None, "plink2 is not in $PATH"
+    plink2 = admix.tools.get_dependency("plink2")
 
     # step0: download metadata
     os.makedirs(os.path.join(dir, "metadata"))
@@ -144,8 +144,8 @@ def get_1kg_ref(
         raise ValueError(f"Unknown build: {build}")
 
     cmds += [
-        f"plink2 --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
-        f"plink2 --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
+        f"{plink2} --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
+        f"{plink2} --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
     ]
     # assume that ${dir}/pgen already contains raw.pgen / raw.pvar / raw.psam / king.cutoff.out.id
     if not all(
@@ -162,7 +162,7 @@ def get_1kg_ref(
 
     admix.logger.info("Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names")
     cmds = [
-        f"plink2 --pfile {dir}/pgen/raw",
+        f"{plink2} --pfile {dir}/pgen/raw",
         "--allow-extra-chr",
         "--rm-dup exclude-all",
         "--max-alleles 2",
@@ -181,7 +181,7 @@ def get_1kg_ref(
     admix.logger.info(f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions.")
     np.savetxt(f"{dir}/pgen/raw2.snplist", dup_snps, fmt="%s")
     cmds = [
-        f"plink2 --pfile {dir}/pgen/raw2",
+        f"{plink2} --pfile {dir}/pgen/raw2",
         f"--exclude {dir}/pgen/raw2.snplist",
         f"--make-pgen --out {dir}/pgen/all_chr",
         f"--memory {memory}",
