@@ -118,12 +118,12 @@ def get_1kg_ref(
 
     # step0: download metadata
     os.makedirs(os.path.join(dir, "metadata"))
-    admix.logger.info("Downloading meta data...")
+    admix.logger.info("Retrieving meta data...")
 
     _process_genetic_map(root_dir=dir, build=build)
 
     # step1: download pgen
-    os.makedirs(os.path.join(dir, "pgen"))
+    os.makedirs(os.path.join(dir, "pgen"), exist_ok=True)
     if build == "hg38":
         cmds = [
             f"mkdir -p {dir}/pgen &&",
