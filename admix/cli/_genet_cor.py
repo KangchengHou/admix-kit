@@ -187,14 +187,10 @@ def admix_grm_merge(prefix: str, out_prefix: str, n_part: int = 22) -> None:
         raise ValueError(
             f"Number of GRM files ({len(grm_prefix_list)}) is not equal to n_part ({n_part})"
         )
-    admix.logger.info(
-        f"{len(grm_prefix_list)} GRM files to be merged: {grm_prefix_list}"
-    )
+    admix.logger.info(f"{len(grm_prefix_list)} GRM files to be merged: {grm_prefix_list}")
     prior_var_list = []
     for grm_prefix in grm_prefix_list:
-        prior_var_list.append(
-            pd.read_csv(grm_prefix + ".weight.tsv", sep="\t", index_col=0)
-        )
+        prior_var_list.append(pd.read_csv(grm_prefix + ".weight.tsv", sep="\t", index_col=0))
 
     def _merge(suffix):
         total_grm = 0
@@ -416,9 +412,7 @@ def summarize_genet_cor(
         "rg_mode": dense_rg_list[dense_loglkl_list.argmax()],
         "rg_hpdi(50%)": admix.data.hdi(dense_rg_list, dense_loglkl_list, ci=0.5),
         "rg_hpdi(95%)": admix.data.hdi(dense_rg_list, dense_loglkl_list, ci=0.95),
-        "rg=1_pval": stats.chi2.sf(
-            (dense_loglkl_list.max() - dense_loglkl_list[-1]) * 2, df=1
-        ),
+        "rg=1_pval": stats.chi2.sf((dense_loglkl_list.max() - dense_loglkl_list[-1]) * 2, df=1),
     }
 
     assert (weight_file is None) == (
@@ -436,9 +430,7 @@ def summarize_genet_cor(
 
     if scale_factor is not None:
         dict_reml = admix.tools.gcta.read_reml(os.path.join(est_dir, f"{rg_str}100"))
-        est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(
-            dict_reml, scale_factor=scale_factor
-        )
+        est_hsq, est_hsq_var = admix.tools.gcta.estimate_hsq(dict_reml, scale_factor=scale_factor)
         est_hsq_stderr = np.sqrt(est_hsq_var)
         dict_summary["hsq_est"] = est_hsq
         dict_summary["hsq_stderr"] = est_hsq_stderr
@@ -462,7 +454,7 @@ def meta_analyze_genet_cor(loglkl_files):
 
     rg_list = None
     total_dense_loglik: np.ndarray = 0
-
+    total_n = 0
     for f in loglkl_files:
         df_loglkl = pd.read_csv(f, sep="\t")
         if rg_list is None:
@@ -471,15 +463,13 @@ def meta_analyze_genet_cor(loglkl_files):
         else:
             assert np.all(rg_list == df_loglkl["rg"].values)
 
-        total_dense_loglik += CubicSpline(rg_list, df_loglkl["loglkl"].values)(
-            dense_rg_list
-        )
+        total_dense_loglik += CubicSpline(rg_list, df_loglkl["loglkl"].values)(dense_rg_list)
+        # load f.replace(".loglkl.txt", ".summary.json")
+        total_n += json.load(open(f.replace(".loglkl.txt", ".summary.json")))["n"]
 
     rg_mode = dense_rg_list[total_dense_loglik.argmax()]
 
-    pval_rg_1 = stats.chi2.sf(
-        (total_dense_loglik.max() - total_dense_loglik[-1]) * 2, df=1
-    )
+    pval_rg_1 = stats.chi2.sf((total_dense_loglik.max() - total_dense_loglik[-1]) * 2, df=1)
 
     print(f"Meta-analysis results across {len(loglkl_files)} files")
     print("-" * 37)
@@ -497,6 +487,7 @@ def meta_analyze_genet_cor(loglkl_files):
             assert len(rg_hpdi) == 2
             print(f"{ci * 100:g}% HPDI = [{rg_hpdi[0]:.4g}, {rg_hpdi[1]:.4g}]")
     print(f"Null (rg = 1) p-value: {pval_rg_1:.4g}")
+    print(f"Average N={int(np.round(total_n / len(loglkl_files)))}")
 
 
 def admix_grm_rho(prefix: str, out_dir: str, rho_list=np.linspace(0, 1.0, 21)) -> None:
