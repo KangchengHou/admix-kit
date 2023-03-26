@@ -221,7 +221,7 @@ def subset_pop_indiv(
     np.savetxt(out, indiv, fmt="%s", delimiter="\n")
 
 
-def hapgen2(pfile: str, chrom: int, n_indiv: int, out: str, build: str = "hg38"):
+def hapgen2(pfile: str, n_indiv: int, out: str, build: str, chrom: int = None):
     """Run HAPGEN2 to expand population using a PLINK file."""
     log_params("hapgen2", locals())
     admix.tools.hapgen2(

@@ -15,10 +15,10 @@ from . import get_dependency, get_cache_data
 
 def hapgen2(
     pfile: str,
-    chrom: int,
     n_indiv: int,
     out_prefix: str,
-    genetic_map: str = "hg38",
+    genetic_map: str,
+    chrom: int = None,
     plink_kwargs: dict = dict(),
 ):
     """simulate genotype with HAPGEN2
@@ -27,12 +27,12 @@ def hapgen2(
     ----------
     pfile : str
         path to PLINK2 pfile
-    chrom : int
-        chromosome number, even if pfile contains 1 chromosome, it still need to be
-        specified
     genetic_map : str
         genetic map, downloaded from
         https://alkesgroup.broadinstitute.org/Eagle/downloads/tables/
+    chrom : int
+        chromosome number for the plink2 file. The file can only contain data from one chromosome,
+        if not specified, the function will try to guess the chromosome number from the plink2 file
     n_indiv : int
         Number of individuals to simulate
     plink_kwargs : dict
@@ -46,6 +46,12 @@ def hapgen2(
     ), f"{tmp_dir} should not exist, please remove it before running this function"
     os.makedirs(tmp_dir, exist_ok=False)
     tmp_data_prefix = os.path.join(tmp_dir, "hapgen2_data")
+
+    # fetch chromosome
+    if chrom is None:
+        chrom = dapgen.read_pvar(pfile + ".pvar")["CHROM"].values
+        assert len(np.unique(chrom)) == 1, "only one chromosome is allowed in the plink2 file"
+        chrom = chrom[0]
 
     ##################################
     # convert PLINK2 to legend and hap
@@ -68,10 +74,12 @@ def hapgen2(
     # simulate genotype with HAPGEN2
     ##################################
 
-    assert genetic_map in ["hg19", "hg38"]
-    df_map = pd.read_csv(
-        get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True
-    )
+    assert genetic_map in [
+        "hg19",
+        "hg38",
+    ], f"genetic map {genetic_map} not supported, only hg19 and hg38 are supported"
+
+    df_map = pd.read_csv(get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True)
     df_map = df_map[df_map.chr == chrom].drop(columns=["chr"])
     df_map.to_csv(f"{tmp_data_prefix}.genetic_map", sep="\t", index=False)
 
@@ -225,9 +233,7 @@ def admix_simu(
     chrom = None
     for pfile_path in pfile_list:
         pfile = os.path.basename(pfile_path)
-        admix.tools.plink2.run(
-            f"--pfile {pfile_path} --export hapslegend --out {tmp_dir}/{pfile}"
-        )
+        admix.tools.plink2.run(f"--pfile {pfile_path} --export hapslegend --out {tmp_dir}/{pfile}")
         # convert haps to phgeno by removing all spaces
         subprocess.check_output(
             f"cat {tmp_dir}/{pfile}.haps | tr -d ' ' > {tmp_dir}/{pfile}.phgeno",
@@ -235,9 +241,7 @@ def admix_simu(
         )
         # check all legend files are the same
         if df_snp_info is None:
-            df_snp_info = pd.read_csv(
-                f"{tmp_dir}/{pfile}.legend", delim_whitespace=True
-            )
+            df_snp_info = pd.read_csv(f"{tmp_dir}/{pfile}.legend", delim_whitespace=True)
         else:
             assert df_snp_info.equals(
                 pd.read_csv(f"{tmp_dir}/{pfile}.legend", delim_whitespace=True)
@@ -262,9 +266,7 @@ def admix_simu(
     ]
 
     admix_dat = [
-        "\t".join(
-            [str(n_indiv * 2), "ADMIX", *[f"POP{i}" for i in np.arange(1, n_pop + 1)]]
-        ),
+        "\t".join([str(n_indiv * 2), "ADMIX", *[f"POP{i}" for i in np.arange(1, n_pop + 1)]]),
         "\t".join([str(n_gen), "0", *[str(prop) for prop in admix_prop]]),
     ]
 
@@ -279,10 +281,7 @@ def admix_simu(
     df_snp_info.insert(
         2,
         "M",
-        interpolate_genetic_position(
-            chrom=chrom, pos=df_snp_info["position"], build=build
-        )
-        / 100,
+        interpolate_genetic_position(chrom=chrom, pos=df_snp_info["position"], build=build) / 100,
     )
     snp_file = os.path.join(tmp_dir, "snp_info.txt")
     df_snp_info.to_csv(snp_file, sep="\t", index=False, header=False)
