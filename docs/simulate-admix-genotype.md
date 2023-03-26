@@ -85,7 +85,6 @@ Next, we use HAPGEN2 to extend the ancestral populations. As aim to simulate 100
 for pop in CEU YRI PEL; do
     admix hapgen2 \
         --pfile data/ancestry/${pop} \
-        --chrom ${CHROM} \
         --n-indiv ${N_INDIV} \
         --out data/ancestry/${pop}.hapgen2 \
         --build ${BUILD}
