@@ -80,8 +80,8 @@ def get_1kg_ref(
     Parameters
     ----------
     dir : str
-        Directory where the reference genome is stored. The following files will be
-        downloaded and stored in this directory:
+        Directory where the reference genome is stored. The following files will be downloaded
+        and stored in this directory:
         - ${dir}/pgen: containing plink2 files
         - ${dir}/metadata: containing metadata files
     build : str
@@ -127,10 +127,9 @@ def get_1kg_ref(
     if build == "hg38":
         cmds = [
             f"mkdir -p {dir}/pgen &&",
-            f"wget https://www.dropbox.com/s/23xlpscis1p5xud/all_hg38_ns.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
-            f"wget https://www.dropbox.com/s/hy54ba9yvw665xf/all_hg38_ns_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
-            f"wget https://www.dropbox.com/s/3j9zg103fi8cjfs/hg38_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
-            f"wget https://www.dropbox.com/s/129gx0gl2v7ndg6/deg2_hg38.king.cutoff.out.id?dl=1 -O {dir}/pgen/king.cutoff.out.id",
+            f"wget https://www.dropbox.com/s/j72j6uciq5zuzii/all_hg38.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
+            f"wget https://www.dropbox.com/s/ngbo2xm5ojw9koy/all_hg38_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
+            f"wget https://www.dropbox.com/s/2e87z6nc4qexjjm/hg38_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
         ]
     elif build == "hg19":
         cmds = [
@@ -138,7 +137,6 @@ def get_1kg_ref(
             f"wget https://www.dropbox.com/s/dps1kvlq338ukz8/all_phase3_ns.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
             f"wget https://www.dropbox.com/s/uqk3gfhwsvf7bf3/all_phase3_ns_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
             f"wget https://www.dropbox.com/s/6ppo144ikdzery5/phase3_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
-            f"wget https://www.dropbox.com/s/zj8d14vv9mp6x3c/deg2_phase3.king.cutoff.out.id?dl=1 -O {dir}/pgen/king.cutoff.out.id",
         ]
     else:
         raise ValueError(f"Unknown build: {build}")
@@ -148,12 +146,7 @@ def get_1kg_ref(
         f"{plink2} --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
     ]
     # assume that ${dir}/pgen already contains raw.pgen / raw.pvar / raw.psam / king.cutoff.out.id
-    if not all(
-        [
-            os.path.exists(f"{dir}/pgen/{f}")
-            for f in ["raw.pgen", "raw.pvar", "raw.psam", "king.cutoff.out.id"]
-        ]
-    ):
+    if not all([os.path.exists(f"{dir}/pgen/{f}") for f in ["raw.pgen", "raw.pvar", "raw.psam"]]):
         raise FileNotFoundError(
             f"Please download the reference genome to {dir}/pgen using the following commands:\n"
             + "$ "
