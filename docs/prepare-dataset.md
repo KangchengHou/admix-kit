@@ -59,7 +59,7 @@ See more at [https://www.cog-genomics.org/plink/2.0/input#pgen](https://www.cog-
 ### Step 1.2 (optional): select HM3 SNPs
 Most genetic analysis (e.g., local ancestry inference) can be made more efficient by subsetting the data to HapMap3 SNPs.
 ```bash
-admix subset-hapmap3 --pfile ${imputed_pfile} --out ${hm3_pfile} --build hg38
+admix subset-hapmap3 --pfile ${imputed_pfile} --out-pfile ${hm3_pfile} --build hg38
 ```
 
 ```{note}
