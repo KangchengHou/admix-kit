@@ -305,7 +305,8 @@ def marginal(
     cov : np.ndarray, optional
         Covariate matrix, by default None. Do NOT include `1` intercept
     method : str, optional
-        methods used for association testing, by default "ATT"
+        methods used for association testing, by default "ATT", one of
+        ["ATT", "TRACTOR", "JOINT", "ADM", "SNP1", "ASE", "HET"]
     family : str, optional
         family of phenotype, by default "linear"
     fast : bool, optional
@@ -337,7 +338,7 @@ def marginal(
             )
 
     # format data
-    assert method in ["ATT", "TRACTOR", "ADM", "SNP1", "ASE", "HET"]
+    assert method in ["ATT", "TRACTOR", "JOINT", "ADM", "SNP1", "ASE", "HET"]
     if dset is not None:
         assert (geno is None) and (
             lanc is None
@@ -424,8 +425,33 @@ def marginal(
         ]
         test_vars = [i for i in range(n_anc)]
 
+    elif method == "JOINT":
+        # joint test of ancestry-specfic genotype dosage AND local ancestry
+        allele_per_anc = admix.data.allele_per_anc(
+            geno,
+            lanc,
+            n_anc=n_anc,
+        ).swapaxes(0, 1)
+        var = da.empty((n_indiv, n_snp * (2 * n_anc - 1)))
+
+        # allele per ancestor per SNP
+        for i in range(n_anc):
+            var[:, i :: (2 * n_anc - 1)] = allele_per_anc[:, :, i]
+
+        # number of ancestries per SNP
+        for i in range(n_anc - 1):
+            var[:, (i + n_anc) :: (2 * n_anc - 1)] = (
+                (lanc == i).sum(axis=2).swapaxes(0, 1)
+            )
+        var_size = 2 * n_anc - 1
+        var_names = [f"G{i + 1}" for i in range(n_anc)] + [
+            f"L{i + 1}" for i in range(n_anc - 1)
+        ]
+        # test both genotype and local ancestry
+        test_vars = [i for i in range(var_size)]
+
     elif method == "ASE":
-        # test ancestry-specfic genotype dosage, condition on local ancestry
+        # test ancestry-specfic genotype dosage, without conditioning on local ancestry
         allele_per_anc = admix.data.allele_per_anc(geno, lanc, n_anc=n_anc).swapaxes(
             0, 1
         )
