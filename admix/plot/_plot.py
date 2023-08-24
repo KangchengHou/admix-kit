@@ -98,6 +98,7 @@ def joint_pca(
     axes=None,
     figsize=(8.5, 4),
     label_col="SUPERPOP",
+    sample_label="SAMPLE",
 ):
     """Joint PCA plot
 
@@ -113,7 +114,7 @@ def joint_pca(
         fig, axes = plt.subplots(figsize=figsize, dpi=150, ncols=2)
 
     admix.plot.pca(
-        df_pc[df_pc[label_col] != "SAMPLE"],
+        df_pc[df_pc[label_col] != sample_label],
         x=x,
         y=y,
         label_col=label_col,
@@ -133,7 +134,7 @@ def joint_pca(
         x=x,
         y=y,
         label_col=label_col,
-        alpha={"SAMPLE": sample_alpha},
+        alpha={sample_label: sample_alpha},
         ax=axes[1],
     )
     axes[1].set_xlabel(xlabel)
