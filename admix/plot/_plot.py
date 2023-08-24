@@ -324,8 +324,15 @@ def lanc(
     # if dataset is provided, use it to extract lanc
     if dset is not None:
         lanc = dset.lanc.compute()
+        pos = dset.snp.POS.values
+        BP_POS = True
     else:
         assert lanc is not None, "either dataset or lanc must be provided"
+        pos = np.arange(lanc.shape[0])
+        BP_POS = False
+    # append dummy snp at the end to make plotting easier
+    pos = np.concatenate([pos, [pos[-1] + 1]])
+
     assert lanc.shape[2] == 2, "lanc must be of shape (n_snp, n_indiv, 2)"
     n_snp, n_indiv = lanc.shape[0:2]
 
@@ -345,16 +352,21 @@ def lanc(
     label = []
     row = []
 
-    # TODO: extend the label categories such that n_anc labels in df_plot
     for i_indiv in range(n_plot_indiv):
         for i_ploidy in range(2):
             a = lanc[:, i_indiv, i_ploidy]
             switch = np.where(a[1:] != a[0:-1])[0]
             switch = np.concatenate([[0], switch, [len(a)]])
             for i_switch in range(len(switch) - 1):
-                start.append(switch[i_switch])
-                stop.append(switch[i_switch + 1])
-                label.append(a[start[-1] + 1])
+                start_idx, stop_idx = switch[i_switch], switch[i_switch + 1]
+                if BP_POS:
+                    start.append(pos[start_idx] / 1e6)
+                    stop.append(pos[stop_idx] / 1e6)
+                else:
+                    start.append(start_idx)
+                    stop.append(stop_idx)
+
+                label.append(a[start_idx + 1])
                 row.append(i_indiv - 0.1 + i_ploidy * 0.2)
 
     df_plot = pd.DataFrame({"start": start, "stop": stop, "label": label, "row": row})
@@ -375,7 +387,11 @@ def lanc(
 
     ax.legend()
     ax.autoscale()
-    ax.set_xlabel("SNP index")
+
+    if BP_POS:
+        ax.set_xlabel("SNP position (Mb)")
+    else:
+        ax.set_xlabel("SNP index")
     ax.set_ylabel("Individuals")
     ax.set_yticks([])
     ax.set_yticklabels([])
