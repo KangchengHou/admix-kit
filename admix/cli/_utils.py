@@ -130,6 +130,7 @@ def get_1kg_ref(
             f"wget https://www.dropbox.com/s/j72j6uciq5zuzii/all_hg38.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
             f"wget https://www.dropbox.com/s/ngbo2xm5ojw9koy/all_hg38_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
             f"wget https://www.dropbox.com/s/2e87z6nc4qexjjm/hg38_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
+            f"wget https://www.dropbox.com/s/4zhmxpk5oclfplp/deg2_hg38.king.cutoff.out.id?dl=1 -O {dir}/pgen/king.cutoff.out.id",
         ]
     elif build == "hg19":
         cmds = [
@@ -137,6 +138,7 @@ def get_1kg_ref(
             f"wget https://www.dropbox.com/s/dps1kvlq338ukz8/all_phase3_ns.pgen.zst?dl=1 -O {dir}/pgen/raw.pgen.zst &&",
             f"wget https://www.dropbox.com/s/uqk3gfhwsvf7bf3/all_phase3_ns_noannot.pvar.zst?dl=1 -O {dir}/pgen/raw.pvar.zst &&",
             f"wget https://www.dropbox.com/s/6ppo144ikdzery5/phase3_corrected.psam?dl=1 -O {dir}/pgen/raw.psam &&",
+            f"wget https://www.dropbox.com/s/zj8d14vv9mp6x3c/deg2_phase3.king.cutoff.out.id?dl=1 -O {dir}/pgen/king.cutoff.out.id",
         ]
     else:
         raise ValueError(f"Unknown build: {build}")
