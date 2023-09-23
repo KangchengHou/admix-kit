@@ -50,7 +50,9 @@ def hapgen2(
     # fetch chromosome
     if chrom is None:
         chrom = dapgen.read_pvar(pfile + ".pvar")["CHROM"].values
-        assert len(np.unique(chrom)) == 1, "only one chromosome is allowed in the plink2 file"
+        assert (
+            len(np.unique(chrom)) == 1
+        ), "only one chromosome is allowed in the plink2 file"
         chrom = chrom[0]
 
     ##################################
@@ -79,7 +81,9 @@ def hapgen2(
         "hg38",
     ], f"genetic map {genetic_map} not supported, only hg19 and hg38 are supported"
 
-    df_map = pd.read_csv(get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True)
+    df_map = pd.read_csv(
+        get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True
+    )
     df_map = df_map[df_map.chr == chrom].drop(columns=["chr"])
     df_map.to_csv(f"{tmp_data_prefix}.genetic_map", sep="\t", index=False)
 
@@ -211,7 +215,10 @@ def admix_simu(
     ##################################
     # check input
     ##################################
-    assert build in ["hg19", "hg38"]
+    assert build in ["hg19", "hg38"], "build should be hg19 or hg38"
+    assert (
+        n_gen > 1
+    ), "n_gen should be greater than 1, otherwise admix-simu will run with errors"
     assert len(pfile_list) == len(
         admix_prop
     ), "`pfile_list`, `admix_prop` should have the same length"
@@ -233,7 +240,9 @@ def admix_simu(
     chrom = None
     for pfile_path in pfile_list:
         pfile = os.path.basename(pfile_path)
-        admix.tools.plink2.run(f"--pfile {pfile_path} --export hapslegend --out {tmp_dir}/{pfile}")
+        admix.tools.plink2.run(
+            f"--pfile {pfile_path} --export hapslegend --out {tmp_dir}/{pfile}"
+        )
         # convert haps to phgeno by removing all spaces
         subprocess.check_output(
             f"cat {tmp_dir}/{pfile}.haps | tr -d ' ' > {tmp_dir}/{pfile}.phgeno",
@@ -241,7 +250,9 @@ def admix_simu(
         )
         # check all legend files are the same
         if df_snp_info is None:
-            df_snp_info = pd.read_csv(f"{tmp_dir}/{pfile}.legend", delim_whitespace=True)
+            df_snp_info = pd.read_csv(
+                f"{tmp_dir}/{pfile}.legend", delim_whitespace=True
+            )
         else:
             assert df_snp_info.equals(
                 pd.read_csv(f"{tmp_dir}/{pfile}.legend", delim_whitespace=True)
@@ -266,7 +277,9 @@ def admix_simu(
     ]
 
     admix_dat = [
-        "\t".join([str(n_indiv * 2), "ADMIX", *[f"POP{i}" for i in np.arange(1, n_pop + 1)]]),
+        "\t".join(
+            [str(n_indiv * 2), "ADMIX", *[f"POP{i}" for i in np.arange(1, n_pop + 1)]]
+        ),
         "\t".join([str(n_gen), "0", *[str(prop) for prop in admix_prop]]),
     ]
 
@@ -281,7 +294,10 @@ def admix_simu(
     df_snp_info.insert(
         2,
         "M",
-        interpolate_genetic_position(chrom=chrom, pos=df_snp_info["position"], build=build) / 100,
+        interpolate_genetic_position(
+            chrom=chrom, pos=df_snp_info["position"], build=build
+        )
+        / 100,
     )
     snp_file = os.path.join(tmp_dir, "snp_info.txt")
     df_snp_info.to_csv(snp_file, sep="\t", index=False, header=False)
