@@ -28,7 +28,7 @@ cd admix-kit && pip install -e .
 ## Use cases
 The following manuscripts contain more motivation and details for functionalities within `admix-kit`:
 
-1. Admix-kit: An Integrated Toolkit and Pipeline for Genetic Analyses of Admixed Populations. [bioRxiv 2023](https://www.biorxiv.org/content/10.1101/2023.09.30.560263v1)
-2. Impact of cross-ancestry genetic architecture on GWASs in admixed populations. [AJHG 2023](https://www.sciencedirect.com/science/article/pii/S0002929723001581)
-3. Causal effects on complex traits are similar for common variants across segments of different continental ancestries within admixed individuals. [Nature Genetics  2023](https://www.nature.com/articles/s41588-023-01338-6)
-4. On powerful GWAS in admixed populations. [Nature Genetics 2021](https://www.nature.com/articles/s41588-021-00953-5)
+1. [Admix-kit: An Integrated Toolkit and Pipeline for Genetic Analyses of Admixed Populations](https://www.biorxiv.org/content/10.1101/2023.09.30.560263v1). bioRxiv 2023
+2. [Impact of cross-ancestry genetic architecture on GWASs in admixed populations](https://www.sciencedirect.com/science/article/pii/S0002929723001581). AJHG 2023
+3. [Causal effects on complex traits are similar for common variants across segments of different continental ancestries within admixed individuals](https://www.nature.com/articles/s41588-023-01338-6). Nature Genetics  2023
+4. [On powerful GWAS in admixed populations](https://www.nature.com/articles/s41588-021-00953-5). Nature Genetics 2021
