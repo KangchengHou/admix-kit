@@ -30,9 +30,8 @@ setup(
         "structlog",
         "fire",
         "pyreadr",
-        "pylampld @ git+https://github.com/bogdanlab/lamp-ld.git",
-        "tinygwas @ git+https://github.com/bogdanlab/tinygwas.git",
-        "dask-pgen @ git+https://github.com/KangchengHou/dask-pgen.git",
+        "tinygwas",
+        "dask-pgen",
     ],
     entry_points={"console_scripts": ["admix=admix.cli:cli"]},
     classifiers=[
