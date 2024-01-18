@@ -2,21 +2,20 @@
 ![](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-kit)
 
-This is a [python library](api.md) to facilitate analyses and methods development of genetics data from admixed populations. We also have [command line interface](cli/index.md) for main functions. We welcome [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues). 
+This package aims to facilitate analyses and methods development of genetics data from admixed populations. We welcome [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues). 
 
 
 ## Installation
 ```bash
-# Install admix-kit with Python 3.7, 3.8, 3.9
-# cmake version > 3.12 is required; use "pip install -U cmake"
 pip install admix-kit
 ```
 
 ## Get started
-- [Full documentation](https://kangchenghou.github.io/admix-kit/index.html)
+- [Python API](https://kangchenghou.github.io/admix-kit/api.html)
+- [command line interface](https://kangchenghou.github.io/admix-kit/cli/index.html)
 - [Quick start (Python)](https://kangchenghou.github.io/admix-kit/notebooks/quickstart.html)
-- [Application: Genetic correlation across local ancestry](https://kangchenghou.github.io/admix-kit/cli/genet-cor.html)
-- [Application: GWAS in admixed populations](https://kangchenghou.github.io/admix-kit/cli/assoc-test.html)
+- [Example: Genetic correlation across local ancestry](https://kangchenghou.github.io/admix-kit/cli/genet-cor.html)
+- [Example: GWAS in admixed populations](https://kangchenghou.github.io/admix-kit/cli/assoc-test.html)
 
 ## Use cases
 The following manuscripts contain more motivation and details for functionalities within `admix-kit`:
@@ -29,4 +28,4 @@ The following manuscripts contain more motivation and details for functionalitie
 
 <!-- type `PATH=$PATH:~/.local/bin`).  -->
 
-<!-- > To specify a version of admix-kit, use `git clone https://github.com/KangchengHou/admix-kit --branch v0.1`, or replace `v0.1` to other versions listed in https://github.com/KangchengHou/admix-kit/releases. --> -->
+<!-- > To specify a version of admix-kit, use `git clone https://github.com/KangchengHou/admix-kit --branch v0.1`, or replace `v0.1` to other versions listed in https://github.com/KangchengHou/admix-kit/releases. -->
