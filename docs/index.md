@@ -3,13 +3,14 @@ hide-toc: true
 ---
 
 ```{include} ../README.md
+```
 
 ```{toctree}
+:caption: Documentation
 :hidden:
-install
-notebooks/quickstart
 cli/index
 api
+notebooks/quickstart
 ```
 
 ```{toctree}

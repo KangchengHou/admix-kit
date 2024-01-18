@@ -25,6 +25,7 @@ setup(
         "dask[array]>=2021.11.2",
         "tqdm",
         "xarray",
+        "zarr",
         "statsmodels",
         "structlog",
         "fire",
