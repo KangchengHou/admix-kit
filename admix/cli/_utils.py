@@ -150,14 +150,15 @@ def get_1kg_ref(
     if not all(
         [
             os.path.exists(f"{dir}/pgen/{f}")
-            for f in ["raw.pgen.zst", "raw.pvarr.zst", "raw.psam"]
+            for f in ["raw.pgen.zst", "raw.pvar.zst", "raw.psam"]
         ]
     ):
-        raise FileNotFoundError(
+        admix.logger.info(
             f"Please download the reference genome to {dir}/pgen using the following commands:\n"
             + "$ "
             + " ".join(cmds)
         )
+        return
 
     admix.logger.info("Decompressing plink files")
     cmds = [
