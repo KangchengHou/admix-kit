@@ -146,15 +146,11 @@ def get_1kg_ref(
     else:
         raise ValueError(f"Unknown build: {build}")
 
-    cmds += [
-        f"\n{plink2} --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
-        f"{plink2} --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
-    ]
     # assume that ${dir}/pgen already contains raw.pgen / raw.pvar / raw.psam / king.cutoff.out.id
     if not all(
         [
             os.path.exists(f"{dir}/pgen/{f}")
-            for f in ["raw.pgen", "raw.pvar", "raw.psam"]
+            for f in ["raw.pgen.zst", "raw.pvarr.zst", "raw.psam"]
         ]
     ):
         raise FileNotFoundError(
@@ -162,6 +158,13 @@ def get_1kg_ref(
             + "$ "
             + " ".join(cmds)
         )
+
+    admix.logger.info("Decompressing plink files")
+    cmds = [
+        f"{plink2} --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
+        f"{plink2} --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
+    ]
+    call_helper(" ".join(cmds))
 
     admix.logger.info(
         "Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names"
