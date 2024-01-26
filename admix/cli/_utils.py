@@ -11,7 +11,8 @@ from typing import Tuple
 
 def log_params(name, params):
     admix.logger.info(
-        f"Received parameters: \n{name}\n  " + "\n  ".join(f"--{k}={v}" for k, v in params.items())
+        f"Received parameters: \n{name}\n  "
+        + "\n  ".join(f"--{k}={v}" for k, v in params.items())
     )
 
 
@@ -22,7 +23,9 @@ def _process_sample_map(root_dir):
         f"{root_dir}/pgen/all_chr.psam",
         delim_whitespace=True,
     )
-    unrelated_id = pd.read_csv(f"{root_dir}/pgen/king.cutoff.out.id", delim_whitespace=True)
+    unrelated_id = pd.read_csv(
+        f"{root_dir}/pgen/king.cutoff.out.id", delim_whitespace=True
+    )
     os.makedirs(f"{root_dir}/metadata", exist_ok=True)
     sample_map[["#IID", "Population", "SuperPop"]].to_csv(
         f"{root_dir}/metadata/full_sample.tsv",
@@ -144,18 +147,25 @@ def get_1kg_ref(
         raise ValueError(f"Unknown build: {build}")
 
     cmds += [
-        f"{plink2} --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
+        f"\n{plink2} --zst-decompress {dir}/pgen/raw.pgen.zst > {dir}/pgen/raw.pgen &&",
         f"{plink2} --zst-decompress {dir}/pgen/raw.pvar.zst > {dir}/pgen/raw.pvar",
     ]
     # assume that ${dir}/pgen already contains raw.pgen / raw.pvar / raw.psam / king.cutoff.out.id
-    if not all([os.path.exists(f"{dir}/pgen/{f}") for f in ["raw.pgen", "raw.pvar", "raw.psam"]]):
+    if not all(
+        [
+            os.path.exists(f"{dir}/pgen/{f}")
+            for f in ["raw.pgen", "raw.pvar", "raw.psam"]
+        ]
+    ):
         raise FileNotFoundError(
             f"Please download the reference genome to {dir}/pgen using the following commands:\n"
             + "$ "
             + " ".join(cmds)
         )
 
-    admix.logger.info("Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names")
+    admix.logger.info(
+        "Basic QCing: bi-allelic SNPs, MAC >= 5, chromosome 1-22, unify SNP names"
+    )
     cmds = [
         f"{plink2} --pfile {dir}/pgen/raw",
         "--allow-extra-chr",
@@ -173,7 +183,9 @@ def get_1kg_ref(
     ## remove SNPs duplicated by position
     df_pvar = dapgen.read_pvar(f"{dir}/pgen/raw2.pvar")
     dup_snps = df_pvar.index[df_pvar.duplicated(subset=["CHROM", "POS"])]
-    admix.logger.info(f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions.")
+    admix.logger.info(
+        f"Excluding {len(dup_snps)}/{df_pvar.shape[0]} SNPs duplicated by positions."
+    )
     np.savetxt(f"{dir}/pgen/raw2.snplist", dup_snps, fmt="%s")
     cmds = [
         f"{plink2} --pfile {dir}/pgen/raw2",
@@ -226,7 +238,9 @@ def select_admix_indiv(
     """
     log_params("select-admixed-indiv", locals())
 
-    df_pc, eigenval = admix.io.read_joint_pca(ref_pfile=ref_pfile, pca_prefix=pca_prefix)
+    df_pc, eigenval = admix.io.read_joint_pca(
+        ref_pfile=ref_pfile, pca_prefix=pca_prefix
+    )
     pc_cols = [f"PC{i}" for i in range(1, n_pc + 1)]
     pc_col_pos = [df_pc.columns.get_loc(col) for col in pc_cols]
     pc_eigenval = eigenval[pc_col_pos]
