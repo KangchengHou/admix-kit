@@ -1,4 +1,4 @@
-# Prepare dataset
+# Dataset preparation
 
 ## Overview
 To start genetic analysis for admixed populations with admix-kit, it is required to compile the data set into the following files.

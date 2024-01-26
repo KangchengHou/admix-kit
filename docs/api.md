@@ -1,34 +1,56 @@
 # Python API
 
-We introduce the following main functions:
-
-Import admix-tools as:
+Import admix-kit as:
 ```python
 import admix
+```
+
+## Association testing
+
+```{eval-rst}
+.. autosummary::
+   :nosignatures:
+   :toctree: _api
+
+   admix.assoc.marginal
+```
+
+## Genetic correlation across local ancestry
+
+```{eval-rst}
+.. autosummary::
+   :nosignatures:
+   :toctree: _api
+
+   admix.cli.admix_grm
+   admix.cli.admix_grm_merge
+   admix.cli.genet_cor
+```
+
+## Polygenic scoring
+```{eval-rst}
+.. autosummary::
+   :nosignatures:
+   :toctree: _api
+
+   admix.cli.calc_partial_pgs
 ```
 
 ## Data structures: `admix.Dataset`
 
 ```{eval-rst}
-.. autosummary:: 
+.. autosummary::
+   :nosignatures:
    :toctree: _api
 
    admix.Dataset
-```
-
-## Association testing: `admix.assoc`
-
-```{eval-rst}
-.. autosummary:: 
-   :toctree: _api
-
-   admix.assoc.marginal
 ```
 
 ## Simulation: `admix.simulate`
 
 ```{eval-rst}
 .. autosummary::
+   :nosignatures:
    :toctree: _api
 
     admix.simulate.admix_geno
@@ -42,6 +64,7 @@ import admix
 
 ```{eval-rst}
 .. autosummary::
+   :nosignatures:
    :toctree: _api
 
    admix.data.allele_per_anc
@@ -52,6 +75,7 @@ import admix
 
 ```{eval-rst}
 .. autosummary::
+   :nosignatures:
    :toctree: _api
 
    admix.io.read_dataset
@@ -63,6 +87,7 @@ import admix
     
 ```{eval-rst}
 .. autosummary::
+   :nosignatures:
    :toctree: _api
 
     admix.tools.plink2.lift_over
@@ -72,6 +97,7 @@ import admix
 
 ```{eval-rst}
 .. autosummary::
+   :nosignatures:
    :toctree: _api
 
     admix.plot.lanc

@@ -1,4 +1,4 @@
-# Simulate admixed genotypes
+# Admixed genotype simulation
 We describe the pipeline to simulate genotypes of admixed individuals using reference ancestral populations (such as those in 1,000 Genomes project).
 ```{note}
 `admix-kit` is required to run the pipeline. Refer to [this page](install.md) to install `admix-kit`.

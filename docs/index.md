@@ -8,6 +8,7 @@ hide-toc: true
 ```{toctree}
 :caption: Documentation
 :hidden:
+prepare-dataset
 cli/index
 api
 notebooks/quickstart
@@ -16,11 +17,11 @@ notebooks/quickstart
 ```{toctree}
 :caption: Example usage
 :hidden:
-prepare-dataset
 simulate-admix-genotype
+genet-cor
+marginal-het
 notebooks/assoc
 notebooks/dataset
-marginal-het
 notebooks/select-admixed
 ```
 

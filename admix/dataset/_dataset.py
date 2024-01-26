@@ -19,25 +19,7 @@ import warnings
 
 
 class Dataset(object):
-    """
-    Class to handle the dataset composed on genotype and local ancestry.
-
-    An admix.Dataset `dset` Support the following operations:
-
-    - dset.indiv[new_col] = new_values
-    - dset.snp[new_col] = new_values
-
-    Design principles:
-    Use admix.Dataset to take charge of `geno` and `lanc` and arrays with >= 2 dimensions
-    such as `af_per_anc`, `allele_per_anc`
-
-    Use pd.Dataframe to represent `snp` and `indiv`
-
-    References
-    ----------
-    scanpy
-
-    """
+    """Data structure to contain genotype and local ancestry."""
 
     def __init__(
         self,
@@ -66,7 +48,6 @@ class Dataset(object):
                 indiv_idx = slice(indiv_idx, indiv_idx + 1, 1)
 
             for name, idx in zip(["snp", "indiv"], [snp_idx, indiv_idx]):
-
                 if isinstance(idx, slice):
                     assert (
                         (idx.start is None)
