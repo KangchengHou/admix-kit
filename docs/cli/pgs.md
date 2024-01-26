@@ -1,6 +1,6 @@
 # Local ancestry-specific polygenic score 
 
-Calculate PGS for each local ancestry background:
+To calculate PGS for each local ancestry background:
 
 ```bash
 # the local ancestry should be called in advance and saved to <plink2_prefix>.lanc
