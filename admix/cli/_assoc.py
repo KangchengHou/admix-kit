@@ -1,6 +1,6 @@
 import admix
 import pandas as pd
-from typing import Union, List, Optional
+from typing import Union, List
 from admix import logger
 from ._utils import log_params
 
@@ -21,28 +21,28 @@ def assoc(
     Parameters
     ----------
     pfile : str
-        Prefix to the PLINK2 file (.pgen should not be added). If method that requires
-        local ancestry is specified, a matched :code:`<pfile>.lanc` file should exist.
+        Prefix to the PLINK2 file (.pgen should not be added). When using a method requiring
+        local ancestry, a matching :code:`<pfile>.lanc` file should also exist.
     pheno : str
-        Path to the phenotype file. The text file should be space delimited with header 
-        and one individual per row. 1st column: individual ID. 2nd column: phenotype 
-        values. 3rd - nth columns: covariates. NaN should be encoded as "NA" and these 
-        individuals will be removed in the analysis. 
-        Binary phenotype should be encoded as 0 and 1, and 
-        :code:`--family binary` should be used.  All 
-        columns will be used for the analysis. NaN should be encoded as "NA" and NaN 
-        will be imputed with the mean of each covariate. Categorical covariates will be 
+        Path to the phenotype file. The text file should be space delimited with header
+        and one individual per row. 1st column: individual ID. 2nd column: phenotype
+        values. 3rd - nth columns: covariates. NaN should be encoded as "NA" and these
+        individuals will be removed in the analysis.
+        Binary phenotype should be encoded as 0 and 1, and
+        :code:`--family binary` should be used.  All
+        columns will be used for the analysis. NaN should be encoded as "NA" and NaN
+        will be imputed with the mean of each covariate. Categorical covariates will be
         converted to one hot encodings internally.
     out : str
-        Path the output file. <out>.<method>.assoc will be created. 
+        Path the output file. :code:`<out>.<method>.assoc` will be created.
     method : Union[str, List[str]]
         Method to use for association analysis (default ATT). Other methods include:
         TRACTOR, ADM, SNP1, HET
     family : str
-        Family to use for association analysis (default quant). One of :code:`quant` or 
+        Family to use for association analysis (default quant). One of :code:`quant` or
         :code:`binary`.
     quantile_normalize : bool
-        Whether to quantile normalize the phenotype and every covariate. When 
+        Whether to quantile normalize the phenotype and every covariate. When
         :code:`--family binary` is used, quantile normalization will only be applied
         to covariates.
     snp_list : str
@@ -50,56 +50,6 @@ def assoc(
         list will be used for the analysis.
     fast : bool
         Whether to use fast mode (default True).
-
-    Examples
-    --------
-
-    **Basic usage**    
-
-    .. code-block:: bash
-
-        # See complete example at 
-        # https://kangchenghou.github.io/admix-kit/quickstart-cli.html
-        admix assoc \\
-            --pfile toy-admix \\
-            --pheno toy-admix.pheno \\
-            --method ATT,TRACTOR \\
-            --quantile-normalize True \\
-            --out toy-admix
-
-    **Parallel analysis**
-
-    To parallelize the analysis, use :code:`--snp-list` option to split the analysis into
-    multiple jobs with each job analyzing a subset of SNPs. :code:`--snp-list` accepts a 
-    file path containing a list of SNPs (1 SNP per line). For example, to split the
-    above job into 10 jobs, we run the following code to create snplist files:
-
-    .. code-block:: python
-
-        import admix
-        import numpy as np
-
-        DSET_PREFIX="/path/to/pfile" # e.g. "toy-admix"
-
-        dset = admix.io.read_dataset(DSET_PREFIX)
-        index_list = np.array_split(dset.snp.index, 10)
-        for i, index in enumerate(index_list):
-            np.savetxt(f"cache/{DSET_PREFIX}.{i}.snplist".format(i), index, fmt="%s")
-    
-    Then we run:
-
-    .. code-block:: bash
-
-        # note the added --snp-list line
-        # replace ${JOB_ID} with 0, 1, 2, ..., ${{N_JOB - 1}}
-        
-        admix assoc \\
-            --pfile toy-admix \\
-            --pheno toy-admix.pheno \\
-            --method ATT,TRACTOR \\
-            --quantile-normalize True \\
-            --snp-list cache/toy-admix.${JOB_ID}.snplist \\
-            --out toy-admix
     """
 
     log_params("assoc", locals())

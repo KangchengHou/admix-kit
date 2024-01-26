@@ -9,6 +9,4 @@ assoc-test
 genet-cor
 pgs
 simulate-pheno
-utility
-misc
 ```

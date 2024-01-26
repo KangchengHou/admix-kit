@@ -317,7 +317,7 @@ def calc_partial_pgs(
         path to PGS weights, containing :code:`CHROM`, :code:`SNP`, :code:`REF`,
         :code:`ALT`, :code:`WEIGHT` columns
     out : str
-        prefix of the output files. :code:`{out}.sample_pgs.tsv` and 
+        prefix of the output files. :code:`{out}.sample_pgs.tsv` and
         :code:`{out}.ref_pgs.tsv` will be written to disk.
     ref_plink_path : str
         path to reference plink files. The :code:`ref_plink_path` should be a single
@@ -327,43 +327,11 @@ def calc_partial_pgs(
     weight_col : str, optional
         column in 'weights_path' representing the weight, by default "WEIGHT"
     dset_build: str, optional
-        genome build transform for the dataset ("hg19->hg38" or "hg38->hg19"), 
-        by default None 
+        genome build transform for the dataset ("hg19->hg38" or "hg38->hg19"),
+        by default None
     weights_build: str, optional
         genome build transform for the weights ("hg19->hg38" or "hg38->hg19"),
         by default None
-
-    Examples
-    --------
-    To calculate the ancestry-specific PGS from a weight file and a PLINK2 .pgen file,
-    
-    .. code-block:: bash
-
-        # the local ancestry should be called in advance and saved to <plink2_prefix>.lanc
-        # see https://kangchenghou.github.io/admix-kit/prepare-dataset.html#step-2-local-ancestry-inference
-        # to properly format local ancestry file
-        # apply --dset-build only when the plink file are not in the same build as weight
-        admix calc-partial-pgs \\
-            --plink-path <plink2_prefix>.pgen \\
-            --weights-path <weight_tsv_path> \\
-            --dset-build 'hg38->hg19' \\
-            --out out
-
-    To also calculate reference PGS for reference populations, use the following command:
-
-    .. code-block:: bash
-
-        admix calc-partial-pgs \\
-            --plink-path <plink2_prefix>.pgen \\
-            --weights-path <weight_tsv_path> \\
-            --ref-plink-path 1kg-plink \\
-            --ref-pops 'CEU,YRI' \\
-            --dset-build 'hg38->hg19' \\
-            --out out
-
-        # to download the 1,000 Genomes reference plink files, use the following command:
-        admix get-1kg-ref --dir=1kg-ref --build=hg38
-
     """
     log_params("calc-partial-pgs", locals())
 

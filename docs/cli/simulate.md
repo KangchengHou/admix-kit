@@ -84,12 +84,3 @@ for pop in ["admix", "CEU", "YRI"]:
     df_psam["#IID"] = [f"{pop}{i}" for i in range(len(df_psam))]
     df_psam[["#IID"]].to_csv(f"{pop}.psam", index=False, header=True)
 ```
-
-
-## Simulate phenotypes
-Simulate beta first
-Then simulate environmental noise and phenotype.
-
-```{eval-rst}
-.. autofunction:: admix.cli.simulate_pheno
-```
