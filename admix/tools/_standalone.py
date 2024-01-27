@@ -355,3 +355,130 @@ def admix_simu(
 
     # hint the file path
     admix.logger.info(f"Output files are saved to {out_prefix}.*")
+
+
+def haptools_simu_admix(
+    pfile: str,
+    admix_prop: List[float],
+    pop_col: str,
+    mapdir: str,
+    n_gen: int,
+    n_indiv: int,
+    out_prefix: str,
+):
+    """Wrapper for haptools simgenotype
+
+    Parameters
+    ----------
+    pfile : str
+        list of input prefixes
+    admix_prop :
+        proportion of admixed individuals relative proportion of the admixture,
+        will be rescaled to 1.
+    n_gen : int
+        number of generations to simulate
+    n_indiv : int
+        number of individuals to simulate
+    out_prefix: str
+        output prefix
+    """
+    from bisect import bisect_left
+
+    ##################################
+    # check input
+    ##################################
+    assert (
+        n_gen > 1
+    ), "n_gen should be greater than 1, otherwise admix-simu will run with errors"
+
+    ##################################
+    # format input
+    ##################################
+    tmp_dir = out_prefix + ".tmpdata"
+    assert not os.path.exists(
+        tmp_dir
+    ), f"{tmp_dir} should not exist, please remove it before running this function"
+    os.makedirs(tmp_dir, exist_ok=False)
+
+    ##################################
+    # run haptools
+    ##################################
+
+    admix_dat = [
+        "\t".join([str(n_indiv), "ADMIX", *[pop for pop in admix_prop]]),
+        "\t".join([str(n_gen), "0", *[str(admix_prop[pop]) for pop in admix_prop]]),
+    ]
+
+    dat_file = os.path.join(tmp_dir, "admix.dat")
+    with open(dat_file, "w") as f:
+        f.writelines("\n".join(admix_dat))
+
+    # cat dat_file
+    print("\n".join(admix_dat))
+
+    sample_df = dapgen.read_psam(pfile + ".psam")
+    sample_info_file = os.path.join(tmp_dir, "sample_info.txt")
+    sample_df[[pop_col]].to_csv(sample_info_file, sep="\t", index=True, header=True)
+
+    snp_df = dapgen.read_pvar(pfile + ".pvar")
+    chrom = np.unique(snp_df["CHROM"])
+    assert len(chrom) == 1, "Only one chromosome is allowed in the plink2 file"
+    start, stop = np.min(snp_df["POS"]), np.max(snp_df["POS"])
+
+    cmds = [
+        "haptools simgenotype",
+        f"--model {dat_file}",
+        f"--mapdir {mapdir}",
+        f"--ref_vcf {pfile}.pgen",
+        f"--sample_info {sample_info_file}",
+        f"--out {tmp_dir}/admix.pgen",
+        f"--region {chrom[0]}:{start}-{stop}",
+    ]
+    cmd = " ".join(cmds)
+    admix.logger.info(cmd)
+    subprocess.check_output(cmd, shell=True)
+
+    ##################################
+    # post-processing
+    ##################################
+
+    anc_map = {pop: order for order, pop in enumerate(admix_prop)}
+
+    with open(os.path.join(tmp_dir, "admix.bp")) as f:
+        lines = f.readlines()
+
+    seps = list(np.where([line.startswith("Sample_") for line in lines])[0]) + [
+        len(lines)
+    ]
+
+    breaks = []
+    values = []
+    for i in range(len(seps) - 1):
+        haplo = lines[seps[i] + 1 : seps[i + 1]]
+
+        hap_pos = []
+        hap_values = []
+        for line in haplo:
+            anc, chrom, pos, cm = line.strip().split()
+            anc_order = anc_map[anc]
+            hap_pos.append(int(pos))
+            hap_values.append(anc_order)
+        hap_breaks = [bisect_left(snp_df.POS.values, p) for p in hap_pos]
+        breaks.append(hap_breaks)
+        values.append(hap_values)
+
+    dip_breaks, dip_values = admix.data.clean_lanc(
+        *admix.data.haplo2diplo(breaks=breaks, values=values),
+        remove_repeated_val=True,
+    )
+    lanc = admix.data.Lanc(breaks=dip_breaks, values=dip_values)
+    lanc.write(f"{out_prefix}.lanc")
+
+    for suffix in ["pgen", "pvar", "psam", "bp"]:
+        shutil.move(os.path.join(tmp_dir, f"admix.{suffix}"), f"{out_prefix}.{suffix}")
+
+    # clean up
+    shutil.rmtree(tmp_dir)
+
+    # hint the file path
+    admix.logger.info(f"Output files are saved to {out_prefix}.*")

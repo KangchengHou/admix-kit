@@ -278,6 +278,55 @@ def admix_simu(
     )
 
 
+def haptools_simu_admix(
+    pfile: str,
+    admix_prop: List[float],
+    pop_col: str,
+    mapdir: str,
+    n_gen: int,
+    n_indiv: int,
+    out: str,
+):
+    """Simulate admixture
+
+    admix haptools-simu-admix \
+        --pfile data/hm3_chrom22 \
+        --admix-prop '{"FIN": 0.5, "IBS": 0.3, "JPT": 0.2}' \
+        --pop-col Population \
+        --mapdir data/1kg-ref-hg38/metadata/genetic_map/ \
+        --n-gen 10 \
+        --n-indiv 100 \
+        --out test
+
+    Parameters
+    ----------
+    pfile_list : List[str]
+        list of pgen files, with or without .pgen extension is file
+    admix_prop : List[float]
+        list of admix proportions
+    n_gen : int
+        number of generations
+    n_indiv : int
+        number of individuals
+    build : str
+        genetic map build, e.g. hg38, hg19
+    out : str
+        output prefix
+
+    """
+    log_params("haptools-simu-admix", locals())
+    assert isinstance(admix_prop, dict)
+    admix.tools.haptools_simu_admix(
+        pfile=pfile,
+        admix_prop=admix_prop,
+        pop_col=pop_col,
+        mapdir=mapdir,
+        n_gen=n_gen,
+        n_indiv=n_indiv,
+        out_prefix=out,
+    )
+
+
 def download_dependency(
     name: str,
     **kwargs,

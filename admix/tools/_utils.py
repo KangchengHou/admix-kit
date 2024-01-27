@@ -9,7 +9,6 @@ import admix
 
 
 def get_dependency(name, download=True):
-
     """Get path to an depenency
     Find the binary in the following locations:
     - $PATH

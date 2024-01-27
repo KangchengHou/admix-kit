@@ -3,13 +3,10 @@ External tools
 """
 
 from dask.array.core import Array
-import numpy as np
-import dask.array as da
-import xarray as xr
 import dask.array as da
 from ._utils import get_dependency, get_cache_data
 from . import gcta, plink2, liftover, plink
-from ._standalone import hapgen2, admix_simu
+from ._standalone import hapgen2, admix_simu, haptools_simu_admix
 
 
 __all__ = [

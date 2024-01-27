@@ -356,7 +356,6 @@ def subset(
     snp_list: List = None,
     indiv_list: List = None,
 ):
-
     cmds = [f"--pfile {pfile}", f"--make-pgen --out {out_prefix}", "--memory 16000"]
 
     if snp_list is not None:
