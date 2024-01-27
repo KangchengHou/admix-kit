@@ -1,46 +1,30 @@
 # Admixed genotype simulation
 We describe the pipeline to simulate genotypes of admixed individuals using reference ancestral populations (such as those in 1,000 Genomes project).
-```{note}
-`admix-kit` is required to run the pipeline. Refer to [this page](install.md) to install `admix-kit`.
-```
 
 ## Overview
 In the following, we go through each part of the pipeline using an example of simulating individuals with African-European genetic ancestries using CEU, YRI as reference populations. In details, we will
 1. download 1,000 Genomes project reference.
 2. decide choices of SNP set because you may want to save time/memory to simulate only HapMap3 SNPs. Currently our pipeline only supports simulating one chromosome at a time. To extend simulations to the whole genome, users can repeat runs for 22 chromosomes (X chromosome is not supported yet).
-3. determine the proportion of ancestral populations, number of generations, and number of admixed individuals to simulate. (If you want to simulate N admixed individuals, you need to simulate N individuals using HAPGEN2 for each ancestral populations.)
+3. determine the proportion of ancestral populations, number of generations, and number of admixed individuals to simulate.
 
-```{note}
-Run in Linux environment (because HAPGEN2 can only be run in Linux). 
-```
-
-## Step 0 (optional): download software and reference data
+## Optional: download software and reference data
 We use many 3rd party software in this pipeline. You may want to download them in advance in case you don't have internet connection in running the code.
 ```bash
-for name in hapgen2 admix-simu plink2 hapmap3_snps; do
+for name in plink2 hapmap3_snps; do
     admix download-dependency --name ${name}
 done
 
 admix download-dependency --name genetic_map --build hg38
 admix download-dependency --name genetic_map --build hg19
 ```
-It is ok to skip this step. `admix-kit` will automatically download the software and reference data if you have the internet connection.
+OK to skip this step as `admix-kit` will automatically download the software and reference data if you have the internet connection.
 
-## Step 1: prepare ancestral reference population data
-We go through the following steps:
-1. download 1,000 Genomes reference data 
-2. subset HapMap3 SNPs from chromosome 22 
-3. subset CEU, YRI as ancestral populations in order to simulate admixed individuals with 20% European and 80% African ancestries (similar to African African individuals).
-
+## Simulation
 ```bash
 # genome build to use
 BUILD=hg38
-# number of admixed individuals to simulate
-N_INDIV=1000
-# chromosome 
+# chromosome to simulate
 CHROM=22
-# number of generations
-N_GEN=8
 ```
 
 ```bash
@@ -51,74 +35,46 @@ N_GEN=8
 
 admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
-mkdir -p data/ancestry
-
-# subset hapmap3 SNPs
+# subset hapmap3 SNPs in chromosome 22 to save time/memory
 admix subset-hapmap3 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
     --build ${BUILD} \
     --chrom ${CHROM} \
-    --out data/ancestry/hm3_chrom${CHROM}.snp
+    --out data/hm3_chrom${CHROM}.snp
 
-# subset individuals
-for pop in CEU YRI PEL; do
-    admix subset-pop-indiv \
-        --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
-        --pop ${pop} \
-        --out data/ancestry/${pop}.indiv
-done
+plink2 \
+    --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
+    --extract data/hm3_chrom${CHROM}.snp \
+    --make-pgen \
+    --out data/hm3_chrom${CHROM}
 
-# subset plink2
-for pop in CEU YRI PEL; do
-    plink2 --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
-        --keep data/ancestry/${pop}.indiv \
-        --extract data/ancestry/hm3_chrom${CHROM}.snp \
-        --make-pgen \
-        --out data/ancestry/${pop}
-done
-```
-
-## Step 2: Extend ancestral populations using HAPGEN2
-Next, we use HAPGEN2 to extend the ancestral populations. As aim to simulate 1000 admixed individuals, we simulate 1,000 individuals in each ancestral population.
-
-```bash
-for pop in CEU YRI PEL; do
-    admix hapgen2 \
-        --pfile data/ancestry/${pop} \
-        --n-indiv ${N_INDIV} \
-        --out data/ancestry/${pop}.hapgen2 \
-        --build ${BUILD}
-done
-```
-
-## Step 3: Simulate admixture process using `admix-simu`
-We use [admix-simu](https://github.com/williamslab/admix-simu) to simulate the admixture process of ancestral populations.
-We simulate 8 generations, with admixture proportion of 20% / 80%.
-
-### Simulation
-```bash
 # Simulate 3-way admixture
-admix admix-simu \
-    --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2', 'data/ancestry/PEL.hapgen2']" \
-    --admix-prop "[0.3,0.2,0.5]" \
-    --n-indiv ${N_INDIV} \
-    --n-gen ${N_GEN} \
-    --build ${BUILD} \
-    --out data/CEU-YRI-PEL
+admix haptools-simu-admix \
+    --pfile data/hm3_chrom${CHROM} \
+    --admix-prop '{"CEU": 0.4, "YRI": 0.1, "PEL": 0.5}' \
+    --pop-col Population \
+    --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
+    --n-gen 10 \
+    --n-indiv 10000 \
+    --out data/simulated-CEU-YRI-PEL
 
 # Simulate 2-way admixture
-admix admix-simu \
-    --pfile-list "['data/ancestry/CEU.hapgen2', 'data/ancestry/YRI.hapgen2']" \
-    --admix-prop "[0.2,0.8]" \
-    --n-indiv ${N_INDIV} \
-    --n-gen ${N_GEN} \
-    --build ${BUILD} \
-    --out data/CEU-YRI
+admix haptools-simu-admix \
+    --pfile data/hm3_chrom${CHROM} \
+    --admix-prop '{"CEU": 0.2, "YRI": 0.8}' \
+    --pop-col Population \
+    --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
+    --n-gen 10 \
+    --n-indiv 10000 \
+    --out data/simulated-CEU-YRI
 
 # you will obtain 
-# (1) plink2 phased genotype: data/{CEU-YRI-PEL|CEU-YRI}.{pgen,pvar,psam}
-# (2) local ancestry: data/{CEU-YRI-PEL|CEU-YRI}.lanc
+# (1) plink2 phased genotype: data/simulated-{CEU-YRI-PEL|CEU-YRI}.{pgen,pvar,psam}
+# (2) local ancestry: data/simulated-{CEU-YRI-PEL|CEU-YRI}.lanc
 ```
 
-### Visualization
-We perform several visualizations to verify the simulated data are reasonable. See [this page](notebooks/analyze-admix-simu-data.ipynb) for details.
+## Analysis
+
+We perform several analyses as example
+- [Computing and visualizing basic statistics](notebooks/analyze-admix-simu-data.ipynb).
+- 

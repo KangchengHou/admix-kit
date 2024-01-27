@@ -123,15 +123,10 @@ other files might be useful for better structuring your analysis. `.snp_info` co
 SNP information file, such as allele frequency, and `.indiv_info` contains individual 
 information file, such as top PCs.
 
-## Processing and analyzing an example data set
-See [kg-example.sh](https://github.com/KangchengHou/admix-kit/blob/main/docs/kg-example.sh) 
-for an example of preparing data set as well as a simple analysis: first simulate a 
-phenotype and then perform GWAS.
+## Example simulated dataset
+Download an example dataset from [here](). See [step-by-step instructions]() for simulation.
 
-## Details of file formats
-### .pgen|.psam|.pvar
-These files 
-### .lanc
+## `.lanc` file formats
 `.lanc` is a text file containing a matrix of local ancestry of shape `<n_snp> x <n_indiv> x <2 ploidy>`. 
 
 The first line contains two numbers: `<n_snp>` for number of SNPs and `<n_indiv>` for number of indivduals. Then `<n_indiv>` lines follow with each line corresponds to one individual:
@@ -160,8 +155,3 @@ for stop, anc0, anc1 in zip(break_list, anc0_list, anc1_list):
 ```
 
 Note these ranges are right-open intervals `[start, stop)` and the last position of each line always ends with `<n_snp>`. We provide helper function to convert between sparse `.lanc` format and dense matrix format.
-
-## Next steps
-With the prepared data set, you can use `admix-kit` to perform:
-- [GWAS](cli/assoc-test.md)
-- [Genetic correlation analysis](cli/genet-cor.md)
