@@ -365,6 +365,7 @@ def haptools_simu_admix(
     n_gen: int,
     n_indiv: int,
     out_prefix: str,
+    seed=1234,
 ):
     """Wrapper for haptools simgenotype
 
@@ -433,6 +434,7 @@ def haptools_simu_admix(
         f"--sample_info {sample_info_file}",
         f"--out {tmp_dir}/admix.pgen",
         f"--region {chrom[0]}:{start}-{stop}",
+        f"--seed {seed}",
     ]
     cmd = " ".join(cmds)
     admix.logger.info(cmd)
