@@ -1,0 +1,18 @@
+name: admix-kit
+channels:
+    - conda-forge
+    - bioconda
+    - defaults
+dependencies:
+    - pip
+    - matplotlib
+    - dask
+    - natsort
+    - scanpy
+    - statsmodels
+    - xarray
+    - yaml
+    - zarr
+    - pip:
+      - haptools
+      - admix-kit
