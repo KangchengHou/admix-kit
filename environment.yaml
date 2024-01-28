@@ -13,6 +13,8 @@ dependencies:
     - xarray
     - yaml
     - zarr
+    - cmake
+    - pybind11
     - pip:
       - haptools
       - admix-kit
