@@ -6,9 +6,6 @@ jobs:
   create-env:
     name: ${{ matrix.os }} 
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
 
     strategy:
       matrix:
@@ -18,7 +15,7 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v2
 
-    - name: create environment with mamba
+      - name: create environment with mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
           mamba-version: "*"
@@ -27,12 +24,11 @@ jobs:
           activate-environment: admix-kit
           environment-file: environment.yaml
 
-    - name: check solution
-      run: |
-        mamba env export
+      - name: check solution
+        run: |
+          mamba env export
     
-    - name: test samtools
-      run: |
-        which admix
-        pytest -sv
-        
+      - name: test admix-kit
+        run: |
+          which admix
+          pytest -sv
