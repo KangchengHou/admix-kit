@@ -8,15 +8,19 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
 
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - name: checkout repository
         uses: actions/checkout@v2
 
       - name: create environment with mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           mamba-version: "*"
           channels: conda-forge,bioconda,defaults
@@ -30,4 +34,5 @@ jobs:
     
       - name: test admix-kit
         run: |
+          which admix
           pytest -sv
