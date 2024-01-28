@@ -17,10 +17,12 @@ notebooks/quickstart
 ```{toctree}
 :caption: Example usage
 :hidden:
+
+notebooks/analyze-admix-simu-data
+notebooks/assoc
 simulate-admix-genotype
 genet-cor
 marginal-het
-notebooks/assoc
 notebooks/dataset
 notebooks/select-admixed
 ```

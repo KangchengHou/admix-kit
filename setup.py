@@ -32,6 +32,7 @@ setup(
         "pyreadr",
         "tinygwas",
         "dask-pgen",
+        "haptools",
     ],
     entry_points={"console_scripts": ["admix=admix.cli:cli"]},
     classifiers=[

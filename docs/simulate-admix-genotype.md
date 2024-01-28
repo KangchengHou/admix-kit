@@ -35,46 +35,48 @@ CHROM=22
 
 admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
+mkdir -p data/example_data/ # create a directory to store simulated data
+
 # subset hapmap3 SNPs in chromosome 22 to save time/memory
 admix subset-hapmap3 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
     --build ${BUILD} \
     --chrom ${CHROM} \
-    --out data/hm3_chrom${CHROM}.snp
+    --out data/example_data/hm3_chrom${CHROM}.snp
 
 plink2 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
-    --extract data/hm3_chrom${CHROM}.snp \
+    --extract data/example_data/hm3_chrom${CHROM}.snp \
     --make-pgen \
-    --out data/hm3_chrom${CHROM}
+    --out data/example_data/1kg-ref
 
 # Simulate 3-way admixture
 admix haptools-simu-admix \
-    --pfile data/hm3_chrom${CHROM} \
+    --pfile data/example_data/1kg-ref \
     --admix-prop '{"CEU": 0.4, "YRI": 0.1, "PEL": 0.5}' \
     --pop-col Population \
     --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
     --n-gen 10 \
     --n-indiv 10000 \
-    --out data/simulated-CEU-YRI-PEL
+    --out data/example_data/CEU-YRI-PEL
 
 # Simulate 2-way admixture
 admix haptools-simu-admix \
-    --pfile data/hm3_chrom${CHROM} \
+    --pfile data/example_data/1kg-ref \
     --admix-prop '{"CEU": 0.2, "YRI": 0.8}' \
     --pop-col Population \
     --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
     --n-gen 10 \
     --n-indiv 10000 \
-    --out data/simulated-CEU-YRI
+    --out data/example_data/CEU-YRI
 
 # you will obtain 
 # (1) plink2 phased genotype: data/simulated-{CEU-YRI-PEL|CEU-YRI}.{pgen,pvar,psam}
 # (2) local ancestry: data/simulated-{CEU-YRI-PEL|CEU-YRI}.lanc
 ```
 
-## Analysis
+These simulated datasets can be downloaded from [here](TODO-link).
 
-We perform several analyses as example
+We perform several analyses using these example datasets in the following notebooks:
 - [Computing and visualizing basic statistics](notebooks/analyze-admix-simu-data.ipynb).
 - 
