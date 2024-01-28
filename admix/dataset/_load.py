@@ -26,6 +26,39 @@ def get_test_data_dir() -> str:
     return test_data_path
 
 
+def download_simulated_example_data(dir=None) -> Dataset:
+    """
+    Load example data set
+
+    Returns
+    -------
+    Dataset
+    """
+    import urllib
+    import zipfile
+
+    if dir is None:
+        dir = "./"
+
+    # confirm dir/example_data does not exist
+    if os.path.exists(os.path.join(dir, "example_data")):
+        admix.logger.info(
+            f"Example data set already exists at {dir}/example_data, skip downloading"
+        )
+    else:
+        urllib.request.urlretrieve(
+            "https://github.com/KangchengHou/admix-kit/releases/download/v0.1.2/example_data.zip",
+            os.path.join(dir, "example_data.zip"),
+        )
+        with zipfile.ZipFile(os.path.join(dir, "example_data.zip"), "r") as f:
+            f.extractall(dir)
+
+        admix.logger.info(f"Example data set downloaded to {dir}/example_data")
+
+        # remove the zip file
+        os.remove(os.path.join(dir, "example_data.zip"))
+
+
 def load_toy_admix() -> Dataset:
     """
     Load toy admixed data set with African and European ancestries

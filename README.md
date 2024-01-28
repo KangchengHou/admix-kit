@@ -1,8 +1,7 @@
 # admix-kit: Toolkit for analyzing genetic data of admixed populations
 ![](https://github.com/KangchengHou/admix-tools/actions/workflows/workflow.yml/badge.svg)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kangchenghou.github.io/admix-kit)
 
-This package aims to facilitate analyses and methods development of genetics data from admixed populations. We welcome [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues). 
+This package aims to facilitate analyses and methods development of genetics data from admixed populations. We welcome [feature requests or bug reports](https://github.com/KangchengHou/admix-kit/issues).
 
 
 ## Installation

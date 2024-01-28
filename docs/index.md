@@ -17,13 +17,10 @@ api
 :caption: Example usage
 :hidden:
 
+simulate-admix-genotype
 notebooks/analyze-admix-simu-data
 notebooks/assoc
-simulate-admix-genotype
-genet-cor
-marginal-het
+notebooks/genet-cor
 notebooks/dataset
 notebooks/select-admixed
 ```
-
-<!-- notebooks/simulate-genotype -->
