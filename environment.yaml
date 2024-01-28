@@ -16,6 +16,7 @@ dependencies:
     - cmake
     - pybind11
     - Cython
+    - gcc
     - pip:
       - tinygwas
       - haptools
