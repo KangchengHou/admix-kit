@@ -3,23 +3,36 @@ name: Conda environment
 on: [push]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  create-env:
+    name: ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        os: [ubuntu-latest, macos-latest]
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install with conda
+      - name: checkout repository
+        uses: actions/checkout@v2
+
+    - name: create environment with mamba
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          mamba-version: "*"
+          channels: conda-forge,bioconda,defaults
+          auto-activate-base: false
+          activate-environment: admix-kit
+          environment-file: environment.yaml
+
+    - name: check solution
       run: |
-        python -m pip install --upgrade pip
-        conda env create --file environment.yaml
-        conda init bash
-        conda activate admix-kit
-    - name: Test with pytest
+        mamba env export
+    
+    - name: test samtools
       run: |
+        which admix
         pytest -sv
+        
