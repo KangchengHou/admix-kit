@@ -30,4 +30,4 @@ jobs:
     
       - name: test admix-kit
         run: |
-          which admix
+          pytest -sv
