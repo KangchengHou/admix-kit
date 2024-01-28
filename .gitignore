@@ -3,6 +3,8 @@
 ext-dataset/
 dask-worker-space/
 .admix_cache/
+docs/notebooks/example_data/
+docs/notebooks/example_data.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

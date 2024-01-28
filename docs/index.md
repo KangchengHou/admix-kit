@@ -11,7 +11,6 @@ hide-toc: true
 prepare-dataset
 cli/index
 api
-notebooks/quickstart
 ```
 
 ```{toctree}
