@@ -75,8 +75,10 @@ admix haptools-simu-admix \
 # (2) local ancestry: data/simulated-{CEU-YRI-PEL|CEU-YRI}.lanc
 ```
 
-These simulated datasets can be downloaded from [here](TODO-link).
+These simulated datasets can be downloaded with `admix.dataset.download_simulated_example_data()`.
 
 We perform several analyses using these example datasets in the following notebooks:
-- [Computing and visualizing basic statistics](notebooks/analyze-admix-simu-data.ipynb).
-- 
+
+- [Basic statistics and visualization](notebooks/analyze-admix-simu-data.ipynb).
+- [Association testing (GWAS)](notebooks/assoc.ipynb).
+- [Genetic correlation across local ancestry segments](notebooks/genet-cor.ipynb).

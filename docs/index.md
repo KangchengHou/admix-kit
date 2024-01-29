@@ -8,6 +8,7 @@ hide-toc: true
 ```{toctree}
 :caption: Documentation
 :hidden:
+overview
 prepare-dataset
 cli/index
 api

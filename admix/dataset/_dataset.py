@@ -195,6 +195,8 @@ class Dataset(object):
 
     def allele_per_anc(self) -> da.Array:
         """Return the allele-per-ancestry raw count matrix"""
+
+        assert "lanc" in self._xr, "Local ancestry information is not available."
         return admix.data.allele_per_anc(
             geno=self.geno, lanc=self.lanc, n_anc=self.n_anc, center=False
         )

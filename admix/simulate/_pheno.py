@@ -59,7 +59,6 @@ def quant_pheno(
 
     # simulate effect sizes
     if beta is None:
-
         if n_causal is None:
             # n_causal = n_snp if `n_causal` is not specified
             n_causal = n_snp
