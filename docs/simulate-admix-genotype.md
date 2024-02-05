@@ -21,10 +21,10 @@ OK to skip this step as `admix-kit` will automatically download the software and
 
 ## Simulation
 ```bash
-# genome build to use
-BUILD=hg38
-# chromosome to simulate
-CHROM=22
+BUILD=hg38 # genome build to use
+CHROM=22 # chromosome to simulate
+OUT_DIR="data/example_data" # output directory
+
 ```
 
 ```bash
@@ -35,40 +35,40 @@ CHROM=22
 
 admix get-1kg-ref --dir data/1kg-ref-${BUILD} --build ${BUILD}
 
-mkdir -p data/example_data/ # create a directory to store simulated data
+mkdir -p ${OUT_DIR} # create a directory to store simulated data
 
 # subset hapmap3 SNPs in chromosome 22 to save time/memory
 admix subset-hapmap3 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
     --build ${BUILD} \
     --chrom ${CHROM} \
-    --out data/example_data/hm3_chrom${CHROM}.snp
+    --out ${OUT_DIR}/hm3_chrom${CHROM}.snp
 
 plink2 \
     --pfile data/1kg-ref-${BUILD}/pgen/all_chr \
-    --extract data/example_data/hm3_chrom${CHROM}.snp \
+    --extract ${OUT_DIR}/hm3_chrom${CHROM}.snp \
     --make-pgen \
-    --out data/example_data/1kg-ref
+    --out ${OUT_DIR}/1kg-ref
 
 # Simulate 3-way admixture
 admix haptools-simu-admix \
-    --pfile data/example_data/1kg-ref \
+    --pfile ${OUT_DIR}/1kg-ref \
     --admix-prop '{"CEU": 0.4, "YRI": 0.1, "PEL": 0.5}' \
     --pop-col Population \
     --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
-    --n-gen 10 \
-    --n-indiv 10000 \
-    --out data/example_data/CEU-YRI-PEL
+    --n-gen 15 \
+    --n-indiv 1000 \
+    --out ${OUT_DIR}/CEU-YRI-PEL
 
 # Simulate 2-way admixture
 admix haptools-simu-admix \
-    --pfile data/example_data/1kg-ref \
+    --pfile ${OUT_DIR}/1kg-ref \
     --admix-prop '{"CEU": 0.2, "YRI": 0.8}' \
     --pop-col Population \
     --mapdir data/1kg-ref-${BUILD}/metadata/genetic_map/ \
     --n-gen 10 \
     --n-indiv 10000 \
-    --out data/example_data/CEU-YRI
+    --out ${OUT_DIR}/CEU-YRI
 
 # you will obtain 
 # (1) plink2 phased genotype: data/simulated-{CEU-YRI-PEL|CEU-YRI}.{pgen,pvar,psam}
@@ -82,3 +82,24 @@ We perform several analyses using these example datasets in the following notebo
 - [Basic statistics and visualization](notebooks/analyze-admix-simu-data.ipynb).
 - [Association testing (GWAS)](notebooks/assoc.ipynb).
 - [Genetic correlation across local ancestry segments](notebooks/genet-cor.ipynb).
+
+
+<!-- ## Simulate with HAPGEN2
+```
+admix subset-pop-indiv \
+    --pfile data/example_data/1kg-ref \
+    --pop ASW \
+    --out data/example_data/1kg-ref-ASW.indiv
+
+plink2 --pfile data/example_data/1kg-ref \
+    --keep data/example_data/1kg-ref-ASW.indiv \
+    --make-pgen \
+    --out data/example_data/1kg-ref-ASW
+
+admix hapgen2 \
+    --pfile data/example_data/1kg-ref-ASW \
+    --n-indiv 1000 \
+    --chrom 22 \
+    --build hg38 \
+    --out data/example_data/1kg-ref-ASW-hapgen2
+``` -->
