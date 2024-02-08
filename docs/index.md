@@ -22,6 +22,7 @@ simulate-admix-genotype
 notebooks/analyze-admix-simu-data
 notebooks/assoc
 notebooks/genet-cor
+notebooks/polygenic-scoring
 notebooks/dataset
 notebooks/select-admixed
 ```

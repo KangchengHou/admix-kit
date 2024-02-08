@@ -575,26 +575,41 @@ def calc_partial_pgs(
     ref_pop_indiv: List[List[str]] = None,
     weight_col="WEIGHT",
 ) -> pd.DataFrame:
-    """Calculate PGS for each individual
+    """Given a vector of polygenic score weights, calculate polygenic scores with regard
+    to every ancestry backgrounds for each individual.
 
     Parameters
     ----------
-    dset: admix.Dataset
-        dataset object
-    df_weights: pd.DataFrame
-        weights for each individual
-    dset_ref: admix.Dataset
-        reference dataset object, use `dapgen.align_snp` to align the SNPs between
+    dset : admix.Dataset
+        The admix.Dataset object.
+    df_weights : pd.DataFrame
+        The dataframe for polygenic score weights for each SNP, containing CHROM, POS, REF, ALT, WEIGHT, with index being SNP ID.
+        CHROM, POS, REF, ALT will be aligned with `dset.snp`.
+    dset_ref : admix.Dataset, optional
+        The reference dataset object. Use `dapgen.align_snp` to align the SNPs between
         `dset` and `dset_ref`. `CHROM` and `POS` must match, with potential flips of
         `REF` and `ALT` allele coding.
-    ref_pop: List[List[str]]
-        list of reference individual ID in `dset_ref`
+    ref_pop_indiv : List[List[str]], optional
+        The list of reference individual ID in `dset_ref`.
+    weight_col : str, optional
+        The column name for the weight in `df_weights`.
 
     Returns
     -------
     pd.DataFrame
-        PGS for each individual
-        - (n_indiv, n_anc)
+        The polygenic scores (PGS) for each individual with shape of (n_indiv, n_anc).
+
+    Raises
+    ------
+    AssertionError
+        If both `dset_ref` and `ref_pop_indiv` are None or not None.
+
+    Notes
+    -----
+    - The `dset` and `df_weights` should align, with potential allele flip.
+    - If `dset_ref` is provided, `dset` and `dset_ref` should align, with potential allele flip.
+    - The length of `ref_pop_indiv` should match with `dset.n_anc`.
+
     """
     assert (dset_ref is None) == (
         ref_pop_indiv is None
