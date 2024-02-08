@@ -3,8 +3,10 @@
 Admix-kit provides an integrated toolkit for analyzing admixed genotypes and their relationship with phenotypes. Here we provide an overview of the package.
 
 
-## Brief introduction
-`admix-kit` is designed for analyzing admixed genetic dataset. For genotype-phenotype association testing (admix assoc), we have implemented a suite of methods allowing for genetic effects heterogeneity across local ancestry backgrounds (Pasaniuc et al., 2011; Atkinson et al., 2021; Hou et al., 2021; Mester et al., 2023). These approaches can enhance statistical power by modeling LAS-genetic architecture within admixed populations. We also include functionality to estimate genetic effects concordance across local ancestries (admix genet-cor), which is crucial to understand and inform trait-specific optimal strategies for downstream analyses including polygenic score weight estimation and application (Hou et al., 2023). For polygenic scoring (admix calc-partial-pgs), we implemented calculation of partial polygenic scores, allowing scores to be computed separately for each ancestry background. Such approach can improve polygenic scoring accuracy in admixed populations  (Marnetto et al., 2020; Sun et al., 2022; Cai et al., 2021; Bitarello and Mathieson, 2020).
+## Navigate the documentation
+To help you get started, we prepare an example simulated dataset (see [admixed genotype simulation](simulate-admix-genotype.md)). We provide example workflows for [basic statistics and visualization](notebooks/analyze-admix-simu-data.ipynb), local ancestry-aware [GWAS](notebooks/assoc.ipynb), [genetic correlation estimation](notebooks/genet-cor.ipynb), and [polygenic scoring](notebooks/polygenic-scoring.ipynb). You can find details for [python API](api.md) and [command line interface](cli/index.md).
+
+Then to perform these analysis on your own dataset, follow [data preparation](prepare-dataset.md) steps. And then you can follow the example workflows with your own data.
 
 ## Analysis components
 
