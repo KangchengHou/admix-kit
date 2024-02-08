@@ -33,6 +33,3 @@ admix get-1kg-ref --dir=1kg-ref --build=hg38
 ```{eval-rst}
 .. autofunction:: admix.cli.calc_partial_pgs
 ```
-
-## Additional notes
-

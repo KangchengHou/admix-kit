@@ -21,11 +21,9 @@ conda activate admix-kit
 ```
 
 ## Get started
+- [Overview](https://kangchenghou.github.io/admix-kit/overview.html)
 - [Python API](https://kangchenghou.github.io/admix-kit/api.html)
-- [command line interface](https://kangchenghou.github.io/admix-kit/cli/index.html)
-- [Quick start (Python)](https://kangchenghou.github.io/admix-kit/notebooks/quickstart.html)
-- [Example: Genetic correlation across local ancestry](https://kangchenghou.github.io/admix-kit/cli/genet-cor.html)
-- [Example: GWAS in admixed populations](https://kangchenghou.github.io/admix-kit/cli/assoc-test.html)
+- [Command line interface](https://kangchenghou.github.io/admix-kit/cli/index.html)
 
 ## Use cases
 The following manuscripts contain more motivation and details for functionalities within `admix-kit`:

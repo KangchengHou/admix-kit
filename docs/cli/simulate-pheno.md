@@ -14,5 +14,3 @@ admix simulate-admix-pheno \
 ```{eval-rst}
 .. autofunction:: admix.cli.simulate_admix_pheno
 ```
-
-## Additional notes

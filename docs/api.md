@@ -17,6 +17,11 @@ import admix
 
 ## Genetic correlation across local ancestry
 
+```{note}
+For genetic correlation analyis, because of involvement of multiple steps, it is recommended to use the command line interface `admix genet-cor` to perform the analysis. See [here](https://kangchenghou.github.io/admix-kit/cli/genet-cor.html) for details.
+```
+
+
 ```{eval-rst}
 .. autosummary::
    :nosignatures:
@@ -33,7 +38,7 @@ import admix
    :nosignatures:
    :toctree: _api
 
-   admix.cli.calc_partial_pgs
+   admix.data.calc_partial_pgs
 ```
 
 ## Data structures: `admix.Dataset`
