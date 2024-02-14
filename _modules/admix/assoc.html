@@ -1,0 +1,942 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>admix.assoc - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/assoc.html">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/dataset.html">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for admix.assoc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">admix</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">dask.array</span> <span class="k">as</span> <span class="nn">da</span>
+<span class="kn">import</span> <span class="nn">admix</span>
+<span class="kn">from</span> <span class="nn">statsmodels.tools</span> <span class="kn">import</span> <span class="n">sm_exceptions</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">sm_exceptions</span><span class="o">.</span><span class="n">ValueWarning</span><span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;marginal&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_format_block_test</span><span class="p">(</span>
+    <span class="n">var</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">cov</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">var_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">test_vars</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">n_indiv</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n_indiv</span>
+    <span class="p">),</span> <span class="s2">&quot;Number of individuals in genotype and covariate do not match&quot;</span>
+    <span class="k">assert</span> <span class="n">pheno</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Phenotype must be a vector&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">pheno</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n_indiv</span>
+    <span class="p">),</span> <span class="s2">&quot;Number of individuals in genotype and phenotype do not match&quot;</span>
+    <span class="k">assert</span> <span class="n">var_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Variable size must be greater than 0&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">var_size</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Number of variables in var (</span><span class="si">{</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be a multiple of var_size (</span><span class="si">{</span><span class="n">var_size</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="n">n_var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">var_size</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_vars</span><span class="p">,</span> <span class="n">List</span><span class="p">):</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_vars</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">test_vars</span> <span class="o">&lt;</span> <span class="n">var_size</span><span class="p">),</span> <span class="s2">&quot;test_vars must be less than var_size&quot;</span>
+
+    <span class="c1"># fill covariates</span>
+    <span class="n">n_cov</span> <span class="o">=</span> <span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;var must be a numpy array&quot;</span>
+    <span class="k">return</span> <span class="n">var</span><span class="p">,</span> <span class="n">n_var</span><span class="p">,</span> <span class="n">n_cov</span><span class="p">,</span> <span class="n">test_vars</span>
+
+
+<span class="k">def</span> <span class="nf">_block_het_test</span><span class="p">(</span>
+    <span class="n">var</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">cov</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">var_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">test_vars</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">logistic_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span>
+<span class="p">):</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;Currently HET test is implemented through statsmodels, which can be slow. &quot;</span>
+        <span class="s2">&quot;Pass in small amount of data whenever possible.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1">## Format data</span>
+    <span class="n">var</span><span class="p">,</span> <span class="n">n_var</span><span class="p">,</span> <span class="n">n_cov</span><span class="p">,</span> <span class="n">test_vars</span> <span class="o">=</span> <span class="n">_format_block_test</span><span class="p">(</span>
+        <span class="n">var</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">var_size</span><span class="p">,</span> <span class="n">test_vars</span>
+    <span class="p">)</span>
+
+    <span class="c1"># format reduced variable matrix</span>
+    <span class="n">n_indiv</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">reduced_var_size</span> <span class="o">=</span> <span class="n">var_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_vars</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">design_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">))</span>
+    <span class="n">design_full</span><span class="p">[:,</span> <span class="n">var_size</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">]</span> <span class="o">=</span> <span class="n">cov</span>
+    <span class="n">design_reduced</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">reduced_var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">))</span>
+    <span class="n">design_reduced</span><span class="p">[:,</span> <span class="n">reduced_var_size</span> <span class="p">:</span> <span class="n">reduced_var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">]</span> <span class="o">=</span> <span class="n">cov</span>
+    <span class="n">other_vars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">test_vars</span><span class="p">])</span>
+    <span class="n">shared_param_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">other_vars</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">var_size</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">)]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># statsmodels implementation</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+        <span class="n">reg_method</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span>
+            <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="n">start_params</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+        <span class="n">reg_method</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">sm</span><span class="o">.</span><span class="n">Logit</span><span class="p">(</span>
+            <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="n">start_params</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="c1"># legacy implementation of using F-test</span>
+    <span class="c1"># ftest_mat = np.zeros([len(test_vars) - 1, design_full.shape[1]])</span>
+    <span class="c1"># for i in range(len(test_vars) - 1):</span>
+    <span class="c1">#     ftest_mat[i, test_vars[i]] = 1</span>
+    <span class="c1">#     ftest_mat[i, test_vars[i + 1]] = -1</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_var</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_var</span><span class="p">):</span>
+        <span class="n">design_full</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">var_size</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">var_size</span><span class="p">]</span>
+        <span class="n">model_full</span> <span class="o">=</span> <span class="n">reg_method</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">design_full</span><span class="p">)</span>
+
+        <span class="c1"># coefficients</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_full</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span>
+        <span class="c1"># standard errors</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_full</span><span class="o">.</span><span class="n">bse</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_full</span><span class="o">.</span><span class="n">nobs</span>
+
+        <span class="n">design_reduced</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:,</span> <span class="n">test_vars</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">var_size</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_vars</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">design_reduced</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="n">reduced_var_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:,</span> <span class="n">other_vars</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">var_size</span><span class="p">]</span>
+
+        <span class="n">model_reduced</span> <span class="o">=</span> <span class="n">reg_method</span><span class="p">(</span>
+            <span class="n">pheno</span><span class="p">,</span>
+            <span class="n">design_reduced</span><span class="p">,</span>
+            <span class="n">start_params</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">model_full</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">shared_param_index</span><span class="p">]]),</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span> <span class="ow">or</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span>
+                <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">model_reduced</span><span class="o">.</span><span class="n">llf</span> <span class="o">-</span> <span class="n">model_full</span><span class="o">.</span><span class="n">llf</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">model_full</span><span class="o">.</span><span class="n">df_model</span> <span class="o">-</span> <span class="n">model_reduced</span><span class="o">.</span><span class="n">df_model</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+
+<span class="k">def</span> <span class="nf">_block_test</span><span class="p">(</span>
+    <span class="n">var</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">cov</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">var_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">test_vars</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">logistic_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform association testing for a block of variables</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var : np.ndarray</span>
+<span class="sd">        (n_indiv, n_var x var_size) variable matrix</span>
+<span class="sd">    cov : np.ndarray</span>
+<span class="sd">        (n_indiv, n_cov) covariate matrix</span>
+<span class="sd">    pheno : np.ndarray</span>
+<span class="sd">        (n_snp) phenotype matrix</span>
+<span class="sd">    var_size : int</span>
+<span class="sd">        Number of variables for each test</span>
+<span class="sd">    test_vars : List[int]</span>
+<span class="sd">        Index of variables to test</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        (n_snp, n_test_var * 2 + 2) association testing information.</span>
+<span class="sd">        - The first n_test_var * 2 columns are the effect size (odd columns)</span>
+<span class="sd">        and standard error (even columns) for each variable.</span>
+<span class="sd">        - The last two columns are the number of individuals and p-value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">var</span><span class="p">,</span> <span class="n">n_var</span><span class="p">,</span> <span class="n">n_cov</span><span class="p">,</span> <span class="n">test_vars</span> <span class="o">=</span> <span class="n">_format_block_test</span><span class="p">(</span>
+        <span class="n">var</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">var_size</span><span class="p">,</span> <span class="n">test_vars</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fast</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">tinygwas</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">please install tinygwas:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">pip install git+https://github.com/bogdanlab/tinygwas.git#egg=tinygwas&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_var</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="n">tinygwas</span><span class="o">.</span><span class="n">linear_f_test</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">var_size</span><span class="p">,</span> <span class="n">test_vars</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="n">f_stats</span> <span class="o">=</span> <span class="n">res</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">n_indiv_test</span> <span class="o">=</span> <span class="n">res</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+            <span class="n">res</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span>
+                <span class="n">f_stats</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_vars</span><span class="p">),</span> <span class="n">n_indiv_test</span> <span class="o">-</span> <span class="n">n_cov</span> <span class="o">-</span> <span class="n">var_size</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;max_iter&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logistic_kwargs</span><span class="p">:</span>
+                <span class="n">logistic_kwargs</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+            <span class="k">if</span> <span class="s2">&quot;tol&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logistic_kwargs</span><span class="p">:</span>
+                <span class="n">logistic_kwargs</span><span class="p">[</span><span class="s2">&quot;tol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
+            <span class="n">tinygwas</span><span class="o">.</span><span class="n">logistic_lrt</span><span class="p">(</span>
+                <span class="n">var</span><span class="p">,</span>
+                <span class="n">cov</span><span class="p">,</span>
+                <span class="n">pheno</span><span class="p">,</span>
+                <span class="n">var_size</span><span class="p">,</span>
+                <span class="n">test_vars</span><span class="p">,</span>
+                <span class="n">res</span><span class="p">,</span>
+                <span class="n">logistic_kwargs</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span>
+                <span class="n">logistic_kwargs</span><span class="p">[</span><span class="s2">&quot;tol&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="c1"># convert lrt diff to pvalue</span>
+            <span class="n">res</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">res</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_vars</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown family: </span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># statsmodels implementation</span>
+        <span class="n">n_indiv</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">design</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">))</span>
+        <span class="n">design</span><span class="p">[:,</span> <span class="n">var_size</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">]</span> <span class="o">=</span> <span class="n">cov</span>
+
+        <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="n">reg_method</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span>
+                <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="n">start_params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+            <span class="n">reg_method</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">sm</span><span class="o">.</span><span class="n">Logit</span><span class="p">(</span>
+                <span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_params</span><span class="o">=</span><span class="n">start_params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+        <span class="n">reduced_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">test_vars</span><span class="p">],</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">var_size</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">+</span> <span class="n">n_cov</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="n">f_test_r_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_vars</span><span class="p">),</span> <span class="n">design</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_vars</span><span class="p">):</span>
+            <span class="n">f_test_r_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_var</span><span class="p">,</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_var</span><span class="p">):</span>
+            <span class="n">design</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">var_size</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">var_size</span><span class="p">]</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">reg_method</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+            <span class="c1"># coefficients</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span>
+            <span class="c1"># standard errors</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">var_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">bse</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">var_size</span><span class="p">]</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">nobs</span>
+            <span class="c1"># sample size</span>
+            <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+                <span class="c1"># f-test using statsmodels</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">f_test</span><span class="p">(</span><span class="n">f_test_r_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">pvalue</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">sm_exceptions</span><span class="o">.</span><span class="n">ValueWarning</span><span class="p">:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+                <span class="c1"># more than one test variables</span>
+                <span class="n">model_reduced</span> <span class="o">=</span> <span class="n">reg_method</span><span class="p">(</span>
+                    <span class="n">pheno</span><span class="p">,</span>
+                    <span class="n">design</span><span class="p">[:,</span> <span class="n">reduced_index</span><span class="p">],</span>
+                    <span class="n">start_params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">reduced_index</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="c1"># determine p-values using difference in log-likelihood</span>
+                <span class="c1"># and difference in degrees of freedom</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span>
+                    <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">model_reduced</span><span class="o">.</span><span class="n">llf</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">llf</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">df_model</span> <span class="o">-</span> <span class="n">model_reduced</span><span class="o">.</span><span class="n">df_model</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+
+<div class="viewcode-block" id="marginal"><a class="viewcode-back" href="../../_api/admix.assoc.marginal.html#admix.assoc.marginal">[docs]</a><span class="k">def</span> <span class="nf">marginal</span><span class="p">(</span>
+    <span class="n">dset</span><span class="p">:</span> <span class="n">admix</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">geno</span><span class="p">:</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lanc</span><span class="p">:</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_anc</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cov</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ATT&quot;</span><span class="p">,</span>
+    <span class="n">family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Marginal association testing for one SNP at a time</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dset : admix.Dataset</span>
+<span class="sd">        data set</span>
+<span class="sd">    geno : da.Array</span>
+<span class="sd">        genotype (n_snp, n_indiv, 2) matrix</span>
+<span class="sd">    lanc : da.Array</span>
+<span class="sd">        local ancestry (n_snp, n_indiv, 2) matrix</span>
+<span class="sd">    pheno : np.ndarray</span>
+<span class="sd">        phenotype (n_snp, )</span>
+<span class="sd">    n_anc : int</span>
+<span class="sd">        number of ancestral populations, if not specified, inferred from lanc</span>
+<span class="sd">    cov : np.ndarray, optional</span>
+<span class="sd">        Covariate matrix, by default None. Do NOT include `1` intercept</span>
+<span class="sd">    method : str, optional</span>
+<span class="sd">        methods used for association testing, by default &quot;ATT&quot;, one of</span>
+<span class="sd">        [&quot;ATT&quot;, &quot;TRACTOR&quot;, &quot;JOINT&quot;, &quot;ADM&quot;, &quot;SNP1&quot;, &quot;ASE&quot;, &quot;HET&quot;]</span>
+<span class="sd">    family : str, optional</span>
+<span class="sd">        family of phenotype, by default &quot;linear&quot;</span>
+<span class="sd">    fast : bool, optional</span>
+<span class="sd">        use fast implementation, by default True</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Association p-values for each SNP being tested</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;logistic&quot;</span><span class="p">],</span> <span class="s2">&quot;Unknown family&quot;</span>
+
+    <span class="c1"># check phenotype</span>
+    <span class="c1"># nan values are not allowed</span>
+    <span class="k">assert</span> <span class="n">pheno</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Must specify `pheno`&quot;</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">pheno</span><span class="p">)),</span> <span class="s2">&quot;pheno must not contain NaN values&quot;</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">pheno</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">pheno</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">),</span> <span class="s2">&quot;When family=&#39;logistic&#39;, pheno must be 0 or 1&quot;</span>
+
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pheno</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;logistic family is known to be unstable with small sample size (N &lt; 1,000)&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;NaN values in the returned p-values may be caused by this.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># format data</span>
+    <span class="k">assert</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ATT&quot;</span><span class="p">,</span> <span class="s2">&quot;TRACTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;JOINT&quot;</span><span class="p">,</span> <span class="s2">&quot;ADM&quot;</span><span class="p">,</span> <span class="s2">&quot;SNP1&quot;</span><span class="p">,</span> <span class="s2">&quot;ASE&quot;</span><span class="p">,</span> <span class="s2">&quot;HET&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">geno</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">lanc</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">),</span> <span class="s2">&quot;Cannot specify both `dset` and `geno`, `lanc`&quot;</span>
+        <span class="n">geno</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">geno</span>
+        <span class="n">lanc</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">lanc</span>
+        <span class="n">n_anc</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">n_anc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">geno</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">lanc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n_anc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">),</span> <span class="s2">&quot;Must specify `dset` or (`geno`, `lanc`, `n_anc`)&quot;</span>
+        <span class="c1"># convert geno and lanc to da.Array when necessary</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+            <span class="n">geno</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lanc</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+            <span class="n">lanc</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">lanc</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">geno</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">lanc</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="s2">&quot;geno and lanc must have same shape&quot;</span>
+    <span class="n">n_snp</span><span class="p">,</span> <span class="n">n_indiv</span> <span class="o">=</span> <span class="n">geno</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># process covariates</span>
+    <span class="k">if</span> <span class="n">cov</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n_indiv</span><span class="p">,</span> <span class="s2">&quot;cov must have same number of rows as pheno&quot;</span>
+        <span class="c1"># prepend a column of ones to the covariates</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">cov</span><span class="p">))</span>
+
+    <span class="k">assert</span> <span class="n">cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># impute missing values when needed</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;NaN found in covariates, impute with column mean for each covariate.&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># fill nan with column mean</span>
+        <span class="n">debug_old_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">impute_with_mean</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">debug_old_mean</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">),</span> <span class="s2">&quot;NaN imputation failed&quot;</span>
+
+    <span class="c1"># check covariates must be full rank</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="o">==</span> <span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;Covariates must be of full rank&quot;</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;ATT&quot;</span><span class="p">:</span>
+        <span class="c1"># test genotype dosage</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">geno</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var_size</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;SNP1&quot;</span><span class="p">:</span>
+        <span class="c1"># test genotype dosage, condition on local ancestry</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="n">n_anc</span><span class="p">))</span>
+        <span class="n">var</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="n">n_anc</span><span class="p">]</span> <span class="o">=</span> <span class="n">geno</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="p">::</span> <span class="n">n_anc</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">lanc</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var_size</span> <span class="o">=</span> <span class="n">n_anc</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;L</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TRACTOR&quot;</span><span class="p">:</span>
+        <span class="c1"># test ancestry-specfic genotype dosage, condition on local ancestry</span>
+        <span class="n">allele_per_anc</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">allele_per_anc</span><span class="p">(</span>
+            <span class="n">geno</span><span class="p">,</span>
+            <span class="n">lanc</span><span class="p">,</span>
+            <span class="n">n_anc</span><span class="o">=</span><span class="n">n_anc</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+
+        <span class="c1"># allele per ancestor per SNP</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span> <span class="p">::</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">allele_per_anc</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># number of ancestries per SNP</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_anc</span><span class="p">)</span> <span class="p">::</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">lanc</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">var_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;G</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;L</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;JOINT&quot;</span><span class="p">:</span>
+        <span class="c1"># joint test of ancestry-specfic genotype dosage AND local ancestry</span>
+        <span class="n">allele_per_anc</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">allele_per_anc</span><span class="p">(</span>
+            <span class="n">geno</span><span class="p">,</span>
+            <span class="n">lanc</span><span class="p">,</span>
+            <span class="n">n_anc</span><span class="o">=</span><span class="n">n_anc</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+
+        <span class="c1"># allele per ancestor per SNP</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span> <span class="p">::</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">allele_per_anc</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># number of ancestries per SNP</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_anc</span><span class="p">)</span> <span class="p">::</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">lanc</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">var_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;G</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;L</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># test both genotype and local ancestry</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_size</span><span class="p">)]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;ASE&quot;</span><span class="p">:</span>
+        <span class="c1"># test ancestry-specfic genotype dosage, without conditioning on local ancestry</span>
+        <span class="n">allele_per_anc</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">allele_per_anc</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">lanc</span><span class="p">,</span> <span class="n">n_anc</span><span class="o">=</span><span class="n">n_anc</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="n">n_anc</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span><span class="p">::</span><span class="n">n_anc</span><span class="p">]</span> <span class="o">=</span> <span class="n">allele_per_anc</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="n">var_size</span> <span class="o">=</span> <span class="n">n_anc</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;G</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;ADM&quot;</span><span class="p">:</span>
+        <span class="c1"># test local ancestry</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span> <span class="p">::</span> <span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">lanc</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">var_size</span> <span class="o">=</span> <span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;L</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;HET&quot;</span><span class="p">:</span>
+        <span class="n">allele_per_anc</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">allele_per_anc</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">lanc</span><span class="p">,</span> <span class="n">n_anc</span><span class="o">=</span><span class="n">n_anc</span><span class="p">)</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">*</span> <span class="n">n_anc</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">):</span>
+            <span class="n">var</span><span class="p">[:,</span> <span class="n">i</span><span class="p">::</span><span class="n">n_anc</span><span class="p">]</span> <span class="o">=</span> <span class="n">allele_per_anc</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="n">var_size</span> <span class="o">=</span> <span class="n">n_anc</span>
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;G</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span>
+        <span class="n">test_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_anc</span><span class="p">)]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="c1"># iterate over block of SNPs</span>
+    <span class="k">assert</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">var_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;var must have multiple of `var_size` columns&quot;</span>
+    <span class="k">assert</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">var_size</span> <span class="o">==</span> <span class="n">n_snp</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># block-by-block computation based on the chunk size of the `geno` array</span>
+    <span class="k">if</span> <span class="n">geno</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">snp_chunks</span> <span class="o">=</span> <span class="n">geno</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">lanc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">snp_chunks</span> <span class="o">=</span> <span class="n">lanc</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">snp_start</span><span class="p">,</span> <span class="n">snp_stop</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index_over_chunks</span><span class="p">(</span><span class="n">snp_chunks</span><span class="p">),</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;admix.assoc.marginal&quot;</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">snp_chunks</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;HET&quot;</span><span class="p">:</span>
+            <span class="n">test_func</span> <span class="o">=</span> <span class="n">_block_het_test</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">test_func</span> <span class="o">=</span> <span class="n">_block_test</span>
+        <span class="c1"># test each SNP in block</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">test_func</span><span class="p">(</span>
+                <span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">[:,</span> <span class="n">snp_start</span> <span class="o">*</span> <span class="n">var_size</span> <span class="p">:</span> <span class="n">snp_stop</span> <span class="o">*</span> <span class="n">var_size</span><span class="p">],</span>
+                <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span>
+                <span class="n">pheno</span><span class="o">=</span><span class="n">pheno</span><span class="p">,</span>
+                <span class="n">var_size</span><span class="o">=</span><span class="n">var_size</span><span class="p">,</span>
+                <span class="n">test_vars</span><span class="o">=</span><span class="n">test_vars</span><span class="p">,</span>
+                <span class="n">family</span><span class="o">=</span><span class="n">family</span><span class="p">,</span>
+                <span class="n">fast</span><span class="o">=</span><span class="n">fast</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># columns will be BETA1, SE1, BETA2, SE2, ... with n_anc</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">_BETA&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">_SE&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_names</span><span class="p">])</span>
+    <span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]</span>
+
+    <span class="n">df_res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">res</span><span class="p">),</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">dset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">({</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">})</span>
+    <span class="n">df_res</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_res</span><span class="o">.</span><span class="n">P</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="n">df_res</span><span class="o">.</span><span class="n">columns</span> <span class="o">!=</span> <span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">df_res</span></div>
+
+
+<span class="k">def</span> <span class="nf">marginal_simple</span><span class="p">(</span><span class="n">dset</span><span class="p">:</span> <span class="n">admix</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">pheno</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple marginal association testing for one SNP at a time</span>
+
+<span class="sd">    Useful in simulation study because this will be very fast</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dset : admix.Dataset</span>
+<span class="sd">        Dataset containing the (n_indiv, n_snp) genotype matrix, dset.geno</span>
+<span class="sd">    pheno : np.ndarray</span>
+<span class="sd">        (n_snp, n_sim) phenotype matrix</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coef : np.ndarray</span>
+<span class="sd">        (n_snp, n_sim) marginal association coefficient</span>
+<span class="sd">    coef_se: np.ndarray</span>
+<span class="sd">        (n_snp, n_sim) marginal association coefficient standard error</span>
+<span class="sd">    zscores : np.ndarray</span>
+<span class="sd">        (n_snp, n_sim) association z-scores for each SNP being tested</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    To check the consistency of results of standard methods</span>
+
+<span class="sd">    &gt;&gt;&gt; n_indiv = dset_admix.dims[&quot;indiv&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; n_cov = 1</span>
+
+<span class="sd">    &gt;&gt;&gt; geno = _impute_with_mean(dset_admix.geno.values)</span>
+<span class="sd">    &gt;&gt;&gt; geno = (geno - geno.mean(axis=0)) / geno.std(axis=0)</span>
+
+<span class="sd">    &gt;&gt;&gt; f_stats = tinygwas.linear_f_test(geno, np.ones((n_indiv, 1)), sim[&quot;pheno&quot;][:, 0], 1, [0])</span>
+<span class="sd">    &gt;&gt;&gt; p_vals = stats.f.sf(f_stats, 1, n_indiv - n_cov - 1)</span>
+<span class="sd">    &gt;&gt;&gt; zscores2 = stats.norm.ppf(p_vals / 2) * np.sign(zscores[:, 0])</span>
+
+<span class="sd">    &gt;&gt;&gt; dset = admix.Dataset({&quot;geno&quot;: ([&quot;indiv&quot;, &quot;snp&quot;], geno), &quot;pheno&quot;: ([&quot;snp&quot;, &quot;sim&quot;], pheno)})</span>
+<span class="sd">    &gt;&gt;&gt; zscores = marginal_simple(dset, pheno)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">geno</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">geno</span>
+    <span class="n">n_indiv</span><span class="p">,</span> <span class="n">n_snp</span> <span class="o">=</span> <span class="n">geno</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">n_indiv</span> <span class="o">==</span> <span class="n">pheno</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span> <span class="s2">&quot;Number of individuals in genotype and phenotype do not match&quot;</span>
+    <span class="n">n_sim</span> <span class="o">=</span> <span class="n">pheno</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># center phenotype for each simulation</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">pheno</span> <span class="o">-</span> <span class="n">pheno</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">geno</span> <span class="o">-</span> <span class="n">da</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">XtY</span><span class="p">,</span> <span class="n">snp_var</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">geno_mult_mat</span><span class="p">(</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">transpose_geno</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_snp_var</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">XtX</span> <span class="o">=</span> <span class="n">snp_var</span> <span class="o">*</span> <span class="n">n_indiv</span>
+
+    <span class="n">coef</span> <span class="o">=</span> <span class="n">XtY</span> <span class="o">/</span> <span class="n">XtX</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="n">coef_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">XtX</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="n">coef_se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coef_var</span><span class="p">)</span>
+
+    <span class="n">zscores</span> <span class="o">=</span> <span class="n">coef</span> <span class="o">/</span> <span class="n">coef_se</span>
+
+    <span class="k">return</span> <span class="n">coef</span><span class="p">,</span> <span class="n">coef_se</span><span class="p">,</span> <span class="n">zscores</span>
+
+
+<span class="c1"># def mixscore_wrapper(pheno, anc, geno, theta,</span>
+<span class="c1">#                     scores=[&quot;ADM&quot;, &quot;ATT&quot;, &quot;MIX&quot;, &quot;SNP1&quot;, &quot;SUM&quot;],</span>
+<span class="c1">#                     mixscore_path=&quot;/u/project/pasaniuc/kangchen/tractor/software/mixscore-1.3/bin/mixscore&quot;,</span>
+<span class="c1">#                     verbose=False):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     A python wrapper for mixscore</span>
+<span class="c1">#</span>
+<span class="c1">#     Args</span>
+<span class="c1">#     ----</span>
+<span class="c1">#     pheno: phenotypes</span>
+<span class="c1">#     anc: ancestry</span>
+<span class="c1">#     geno: genotype</span>
+<span class="c1">#     theta: global ancestry component</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     tmp = tempfile.TemporaryDirectory()</span>
+<span class="c1">#     tmp_dir = tmp.name</span>
+<span class="c1">#</span>
+<span class="c1">#     n_sample = len(pheno)</span>
+<span class="c1">#     n_snp = anc.shape[1]</span>
+<span class="c1">#</span>
+<span class="c1">#     write_int_mat(join(tmp_dir, &quot;pheno&quot;), pheno.reshape((1, -1)))</span>
+<span class="c1">#     write_int_mat(join(tmp_dir, &quot;anc&quot;), anc.T)</span>
+<span class="c1">#     write_int_mat(join(tmp_dir, &quot;geno&quot;), geno.T)</span>
+<span class="c1">#     np.savetxt(join(tmp_dir, &quot;theta&quot;), theta, fmt=&#39;%.6f&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#     param = {&quot;nsamples&quot;: str(n_sample),</span>
+<span class="c1">#               &quot;nsnps&quot;: str(n_snp),</span>
+<span class="c1">#               &quot;phenofile&quot;: join(tmp_dir, &quot;pheno&quot;),</span>
+<span class="c1">#               &quot;ancfile&quot;: join(tmp_dir, &quot;anc&quot;),</span>
+<span class="c1">#               &quot;genofile&quot;: join(tmp_dir, &quot;geno&quot;),</span>
+<span class="c1">#               &quot;thetafile&quot;: join(tmp_dir, &quot;theta&quot;),</span>
+<span class="c1">#               &quot;outfile&quot;: join(tmp_dir, &quot;out&quot;)}</span>
+<span class="c1">#</span>
+<span class="c1">#     with open(join(tmp_dir, &quot;param&quot;), &#39;w&#39;) as f:</span>
+<span class="c1">#         f.writelines([k + &#39;:&#39; + param[k] + &#39;\n&#39; for k in param])</span>
+<span class="c1">#</span>
+<span class="c1">#     rls_dict = {}</span>
+<span class="c1">#     for name in scores:</span>
+<span class="c1">#         if verbose:</span>
+<span class="c1">#             print(f&quot;Calculating {name}...&quot;)</span>
+<span class="c1">#</span>
+<span class="c1">#         cmd = &#39; &#39;.join([mixscore_path, name, f&quot;{tmp_dir}/param&quot;])</span>
+<span class="c1">#         subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)</span>
+<span class="c1">#         with open(param[&quot;outfile&quot;]) as f:</span>
+<span class="c1">#             out = [line.strip() for line in f.readlines()]</span>
+<span class="c1">#         rls_dict[name] = out</span>
+<span class="c1">#     tmp.cleanup()</span>
+<span class="c1">#     score_df = pd.DataFrame(rls_dict).apply(pd.to_numeric, errors=&#39;coerce&#39;)</span>
+<span class="c1">#     # convert to p-value</span>
+<span class="c1">#     for name in score_df.columns:</span>
+<span class="c1">#         score_df[name] = stats.chi2.sf(score_df[name], df=(2 if name == &quot;SUM&quot; else 1))</span>
+<span class="c1">#     return score_df</span>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

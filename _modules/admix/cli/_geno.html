@@ -1,0 +1,727 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>admix.cli._geno - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/assoc.html">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/dataset.html">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for admix.cli._geno</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span> <span class="nn">admix</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">dapgen</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">dask.array</span> <span class="k">as</span> <span class="nn">da</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="n">log_params</span>
+
+
+<span class="k">def</span> <span class="nf">_append_to_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Append a new data frame to an existing .pvar file. The index of the new data frame</span>
+<span class="sd">    is assumed to be exactly the same as the index of the existing data frame.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pvar_path : str</span>
+<span class="sd">        Path to the .pvar file.</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Data frame to append.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># if path does not exist, directly write to it</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.8g</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df_snp_info</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">df_snp_info</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;SNPs in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> and the provided data frame do not match&quot;</span>
+        <span class="c1"># no overlap of columns</span>
+        <span class="n">overlap_cols</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df_snp_info</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlap_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Overlap of columns: </span><span class="si">{</span><span class="n">overlap_cols</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">df_snp_info</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_snp_info</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df_snp_info</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.8g</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">grm</span><span class="p">(</span>
+    <span class="n">plink_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">subpopu</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">std_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span>
+    <span class="n">snp_chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="n">snp_list</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the GRM for a given PLINK file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    plink_file : str</span>
+<span class="sd">        Path to the pfile</span>
+<span class="sd">    out_prefix : str</span>
+<span class="sd">        Prefix of the output files</span>
+<span class="sd">    subpopu : str</span>
+<span class="sd">        Path to the subpopulation file</span>
+<span class="sd">    std_method : str</span>
+<span class="sd">        Method to standardize the GRM. Currently supported:</span>
+<span class="sd">        &quot;std&quot; (standardize to have mean 0 and variance 1),</span>
+<span class="sd">        &quot;allele&quot; (standardize to have mean 0 but no scaling)</span>
+<span class="sd">    snp_chunk_size : int, optional</span>
+<span class="sd">        Number of SNPs to read at a time, by default 256</span>
+<span class="sd">        This can be tuned to reduce memory usage</span>
+<span class="sd">    snp_list : str, optional</span>
+<span class="sd">        Path to a file containing a list of SNPs to use. Each line should be a SNP ID.</span>
+<span class="sd">        Only SNPs in the list will be used for the analysis. By default None</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    GRM files: {out_prefix}.[grm.bin | grm.id | grm.n] will be generated</span>
+<span class="sd">    Weight file: {out_prefix}.weight.tsv will be generated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">std_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;allele&quot;</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;Unknown std_method: </span><span class="si">{</span><span class="n">std_method</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;grm&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="n">geno</span><span class="p">,</span> <span class="n">df_snp</span><span class="p">,</span> <span class="n">df_indiv</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">read_plink</span><span class="p">(</span><span class="n">plink_file</span><span class="p">,</span> <span class="n">snp_chunk</span><span class="o">=</span><span class="n">snp_chunk_size</span><span class="p">)</span>
+    <span class="n">n_indiv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_indiv</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">subpopu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df_subpopu</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+            <span class="s2">&quot;data/subpopu.txt&quot;</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">df_subpopu</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FID&quot;</span><span class="p">,</span> <span class="s2">&quot;IID&quot;</span><span class="p">,</span> <span class="s2">&quot;POPU&quot;</span><span class="p">]</span>
+        <span class="n">df_indiv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_indiv</span><span class="p">,</span> <span class="n">df_subpopu</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;FID&quot;</span><span class="p">,</span> <span class="s2">&quot;IID&quot;</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">df_indiv</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_indiv</span>
+        <span class="p">),</span> <span class="s2">&quot;Individuals in the subpopulation file do not match the PLINK file&quot;</span>
+
+    <span class="c1"># filter for SNPs</span>
+    <span class="n">snp_subset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_snp</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">snp_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">snp_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">filter_snp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+        <span class="n">n_filter_snp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)</span>
+        <span class="n">snp_subset</span> <span class="o">=</span> <span class="n">snp_subset</span> <span class="o">&amp;</span> <span class="n">df_snp</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">snp_subset</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n_filter_snp</span><span class="p">:</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_filter_snp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">sum</span><span class="p">(</span><span class="n">snp_subset</span><span class="p">)</span><span class="si">}</span><span class="s2"> SNPs in </span><span class="si">{</span><span class="n">snp_list</span><span class="si">}</span><span class="s2"> are not in the dataset&quot;</span>
+            <span class="p">)</span>
+
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">snp_subset</span><span class="p">)</span><span class="si">}</span><span class="s2"> SNPs are used for GRM calculation&quot;</span><span class="p">)</span>
+
+    <span class="c1"># subset</span>
+    <span class="n">df_snp</span> <span class="o">=</span> <span class="n">df_snp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">snp_subset</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">geno</span> <span class="o">=</span> <span class="n">geno</span><span class="p">[</span><span class="n">snp_subset</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># calculate GRM</span>
+    <span class="k">if</span> <span class="n">subpopu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">grm</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">grm</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="n">subpopu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">std_method</span><span class="o">=</span><span class="n">std_method</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">grm</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">grm</span><span class="p">(</span>
+            <span class="n">geno</span><span class="p">,</span> <span class="n">subpopu</span><span class="o">=</span><span class="n">df_indiv</span><span class="p">[</span><span class="s2">&quot;POPU&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">std_method</span><span class="o">=</span><span class="n">std_method</span>
+        <span class="p">)</span>
+
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="n">df_indiv</span><span class="o">.</span><span class="n">FID</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">df_indiv</span><span class="o">.</span><span class="n">IID</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
+
+    <span class="c1"># write GRM</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">write_grm</span><span class="p">(</span>
+        <span class="n">out_prefix</span><span class="p">,</span>
+        <span class="n">K</span><span class="o">=</span><span class="n">grm</span><span class="p">,</span>
+        <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+        <span class="n">n_snps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_snp</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_id</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">append_snp_info</span><span class="p">(</span>
+    <span class="n">pfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">info</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LANC_FREQ&quot;</span><span class="p">,</span> <span class="s2">&quot;FREQ&quot;</span><span class="p">],</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Append information to .pvar file. Currently, 3 statistics are supported:</span>
+<span class="sd">    (1) ancestry-specific frequency (2) ancestry-specific haplotype count (3) total</span>
+<span class="sd">    allele frequency is supported. Please raise an issue if you need other statistics.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pfile : str</span>
+<span class="sd">        Path to the .pvar file.</span>
+<span class="sd">    out : str</span>
+<span class="sd">        Path to the output file. If specified, the output file will be WRITTEN to</span>
+<span class="sd">        this path. Otherwise, the output file will be appended to the &lt;pfile&gt;.snp_info</span>
+<span class="sd">        file.</span>
+<span class="sd">    info : List[str]</span>
+<span class="sd">        List of information to append. Currently supported:</span>
+
+<span class="sd">        * &quot;LANC_FREQ&quot;: ancestry-specific allele frequency of each SNP. For example, for a two-way admixture population, `LANC_FREQ1` indicates the frequency of alternate allele in the first ancestry. `LANC_NHAPLO1` will also be added, indicating the number of haplotypes in the first ancestry.</span>
+<span class="sd">        * &quot;FREQ&quot;: allele frequency of each SNP regardless of ancestry.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. code-block:: bash</span>
+<span class="sd">        </span>
+<span class="sd">        # toy-admix.snp_info will be created containing LANC_FREQ[1-n_anc], LANC_NHAPLO[1-n_anc], FREQ</span>
+<span class="sd">        admix append-snp-info \\</span>
+<span class="sd">            --pfile toy-admix \\</span>
+<span class="sd">            --out toy-admix.snp_info</span>
+<span class="sd">         </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;append-snp-info&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="n">dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="n">pfile</span><span class="p">)</span>
+
+    <span class="n">df_info</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="s2">&quot;LANC_FREQ&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+        <span class="n">af</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">af_per_anc</span><span class="p">()</span>
+        <span class="n">nhaplo</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">nhaplo_per_anc</span><span class="p">()</span>
+
+        <span class="n">df_af</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">af</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;LANC_FREQ</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">af</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">df_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_af</span><span class="p">)</span>
+
+        <span class="n">df_nhaplo</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">nhaplo</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;LANC_NHAPLO</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nhaplo</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">df_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_nhaplo</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;FREQ&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+        <span class="n">df_freq</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="n">pfile</span> <span class="o">+</span> <span class="s2">&quot;.pgen&quot;</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">df_freq</span><span class="o">.</span><span class="n">ID</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">df_freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">df_freq</span><span class="p">[</span><span class="s2">&quot;ALT_FREQS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;FREQ&quot;</span><span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">df_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_freq</span><span class="p">)</span>
+
+    <span class="n">df_info</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_info</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">pfile</span> <span class="o">+</span> <span class="s2">&quot;.snp_info&quot;</span>
+
+    <span class="n">_append_to_file</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">df_info</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">da_sum</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Summation over a dask array to get individual-level sum</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mat : da.Array</span>
+<span class="sd">        dask array to sum over</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">mat_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">indices</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">mat_sum</span> <span class="o">+=</span> <span class="n">mat</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">mat_sum</span>
+
+
+<span class="k">def</span> <span class="nf">calc_pgs</span><span class="p">(</span>
+    <span class="n">plink_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">weights_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">weight_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;WEIGHT&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate PGS from a weight file and a PLINK file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    plink_path : str</span>
+<span class="sd">        Path to plink files. Format examples:</span>
+<span class="sd">          * /path/to/chr21.pgen</span>
+<span class="sd">          * /path/to/genotype/directory</span>
+<span class="sd">          * /path/to/file_list.txt # file_list.txt contains rows of file names</span>
+<span class="sd">    weights_path : str</span>
+<span class="sd">        path to PGS weights, containing CHROM, SNP, REF, ALT, WEIGHT columns</span>
+<span class="sd">    out : str</span>
+<span class="sd">        prefix of the output files.</span>
+<span class="sd">    weight_col : str, optional</span>
+<span class="sd">        column in &#39;weights_path&#39; representing the weight, by default &quot;WEIGHT&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;calc-pgs&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="n">df_weights</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">pgen_files</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">parse_plink_path</span><span class="p">(</span><span class="n">plink_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pgen_files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">pgen_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">pgen_files</span><span class="p">]</span>
+    <span class="n">plink_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pgen</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pgen</span> <span class="ow">in</span> <span class="n">pgen_files</span><span class="p">]</span>
+
+    <span class="n">df_snp_info</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;PLINK_SNP&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;WEIGHTS_SNP&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;WEIGHTS&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">all_partial_pgs</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">all_lanc</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">indiv_list</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">all_n_snp</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">plink_prefix</span> <span class="ow">in</span> <span class="n">plink_prefix_list</span><span class="p">:</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="n">plink_prefix</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dset</span><span class="o">.</span><span class="n">n_anc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Only 2-way admixture is currently supported&quot;</span>
+        <span class="k">if</span> <span class="n">indiv_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indiv_list</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">indiv_list</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span>
+                <span class="n">dset</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Indiv list in </span><span class="si">{</span><span class="n">plink_prefix</span><span class="si">}</span><span class="s2"> does not match with previous ones.&quot;</span>
+        <span class="n">dset_idx</span><span class="p">,</span> <span class="n">wgt_idx</span><span class="p">,</span> <span class="n">flip</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">align_snp</span><span class="p">(</span>
+            <span class="n">df1</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[[</span><span class="s2">&quot;CHROM&quot;</span><span class="p">,</span> <span class="s2">&quot;POS&quot;</span><span class="p">,</span> <span class="s2">&quot;REF&quot;</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">]],</span> <span class="n">df2</span><span class="o">=</span><span class="n">df_weights</span>
+        <span class="p">)</span>
+        <span class="n">dset_subset</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">dset_idx</span><span class="p">]</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# matched SNPs=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wgt_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> for dset=</span><span class="si">{</span><span class="n">plink_prefix</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">tmp_df_weights</span> <span class="o">=</span> <span class="n">df_weights</span><span class="p">[[</span><span class="n">weight_col</span><span class="p">]]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">wgt_idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">flip</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">tmp_df_weights</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">dset_idx</span>
+
+        <span class="n">partial_pgs</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">calc_pgs</span><span class="p">(</span>
+            <span class="n">dset</span><span class="o">=</span><span class="n">dset_subset</span><span class="p">,</span> <span class="n">df_weights</span><span class="o">=</span><span class="n">tmp_df_weights</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;partial&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">df_snp_info</span><span class="p">[</span><span class="s2">&quot;PLINK_SNP&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dset_idx</span><span class="p">)</span>
+        <span class="n">df_snp_info</span><span class="p">[</span><span class="s2">&quot;WEIGHTS_SNP&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">wgt_idx</span><span class="p">)</span>
+        <span class="n">df_snp_info</span><span class="p">[</span><span class="s2">&quot;WEIGHTS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">df_weights</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">wgt_idx</span><span class="p">,</span> <span class="n">weight_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">flip</span><span class="p">)</span>
+        <span class="n">all_partial_pgs</span> <span class="o">+=</span> <span class="n">partial_pgs</span>
+        <span class="n">all_lanc</span> <span class="o">+=</span> <span class="n">da_sum</span><span class="p">(</span><span class="n">dset_subset</span><span class="o">.</span><span class="n">lanc</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">all_n_snp</span> <span class="o">+=</span> <span class="n">dset_subset</span><span class="o">.</span><span class="n">n_snp</span>
+
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df_snp_info</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="s2">&quot;.snp_info.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;indiv&quot;</span><span class="p">:</span> <span class="n">dset</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+            <span class="s2">&quot;PGS1&quot;</span><span class="p">:</span> <span class="n">all_partial_pgs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="s2">&quot;PGS2&quot;</span><span class="p">:</span> <span class="n">all_partial_pgs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="s2">&quot;PROP1&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">all_lanc</span> <span class="o">/</span> <span class="p">(</span><span class="n">all_n_snp</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="s2">&quot;PROP2&quot;</span><span class="p">:</span> <span class="n">all_lanc</span> <span class="o">/</span> <span class="p">(</span><span class="n">all_n_snp</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="s2">&quot;.pgs.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SNP information saved to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">.snp_info.tsv&quot;</span><span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PGS saved to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">.pgs.tsv&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="calc_partial_pgs"><a class="viewcode-back" href="../../../cli/pgs.html#admix.cli.calc_partial_pgs">[docs]</a><span class="k">def</span> <span class="nf">calc_partial_pgs</span><span class="p">(</span>
+    <span class="n">plink_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">weights_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">ref_plink_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ref_pops</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">weight_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;WEIGHT&quot;</span><span class="p">,</span>
+    <span class="n">ref_pop_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Population&quot;</span><span class="p">,</span>
+    <span class="n">dset_build</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">weights_build</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate PGS from a weight file and a PLINK file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    plink_path : str</span>
+<span class="sd">        Path to plink files. Some examples are:</span>
+<span class="sd">          * :code:`/path/to/chr21.pgen`</span>
+<span class="sd">          * :code:`/path/to/genotype/directory`</span>
+<span class="sd">          * :code:`/path/to/file_list.txt` containing rows of file names</span>
+<span class="sd">    weights_path : str</span>
+<span class="sd">        path to PGS weights, containing :code:`CHROM`, :code:`SNP`, :code:`REF`,</span>
+<span class="sd">        :code:`ALT`, :code:`WEIGHT` columns</span>
+<span class="sd">    out : str</span>
+<span class="sd">        prefix of the output files. :code:`{out}.sample_pgs.tsv` and</span>
+<span class="sd">        :code:`{out}.ref_pgs.tsv` will be written to disk.</span>
+<span class="sd">    ref_plink_path : str</span>
+<span class="sd">        path to reference plink files. The :code:`ref_plink_path` should be a single</span>
+<span class="sd">        plink2 file.</span>
+<span class="sd">    ref_pops: list of str</span>
+<span class="sd">        list of populations in reference plink files. For example, &quot;CEU,YRI&quot;</span>
+<span class="sd">    weight_col : str, optional</span>
+<span class="sd">        column in &#39;weights_path&#39; representing the weight, by default &quot;WEIGHT&quot;</span>
+<span class="sd">    dset_build: str, optional</span>
+<span class="sd">        genome build transform for the dataset (&quot;hg19-&gt;hg38&quot; or &quot;hg38-&gt;hg19&quot;),</span>
+<span class="sd">        by default None</span>
+<span class="sd">    weights_build: str, optional</span>
+<span class="sd">        genome build transform for the weights (&quot;hg19-&gt;hg38&quot; or &quot;hg38-&gt;hg19&quot;),</span>
+<span class="sd">        by default None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;calc-partial-pgs&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="n">CHECK_COLS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CHROM&quot;</span><span class="p">,</span> <span class="s2">&quot;POS&quot;</span><span class="p">,</span> <span class="s2">&quot;REF&quot;</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">]</span>
+    <span class="c1"># read input data &amp; basic checks</span>
+    <span class="n">pgen_files</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">parse_plink_path</span><span class="p">(</span><span class="n">plink_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pgen_files</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">pgen_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">pgen_files</span><span class="p">]</span>
+    <span class="n">plink_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pgen</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pgen</span> <span class="ow">in</span> <span class="n">pgen_files</span><span class="p">]</span>
+
+    <span class="c1"># scoring weights</span>
+    <span class="n">df_weights</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">df_weights</span> <span class="o">=</span> <span class="n">df_weights</span><span class="p">[</span><span class="n">CHECK_COLS</span> <span class="o">+</span> <span class="p">[</span><span class="n">weight_col</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">weights_build</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df_weights</span><span class="p">[</span><span class="s2">&quot;POS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">liftover</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">df_weights</span><span class="p">[[</span><span class="s2">&quot;CHROM&quot;</span><span class="p">,</span> <span class="s2">&quot;POS&quot;</span><span class="p">]],</span> <span class="n">chain</span><span class="o">=</span><span class="n">weights_build</span>
+        <span class="p">)</span>
+        <span class="n">df_weights</span> <span class="o">=</span> <span class="n">df_weights</span><span class="p">[</span><span class="n">df_weights</span><span class="o">.</span><span class="n">POS</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="p">(</span><span class="n">ref_plink_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="n">ref_pops</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s2">&quot;Either both or none of ref_plink_path and ref_pops should be provided.&quot;</span>
+
+    <span class="c1"># reference data</span>
+    <span class="n">CALC_REF</span> <span class="o">=</span> <span class="n">ref_plink_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">CALC_REF</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ref_plink_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pgen&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ref_plink_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span>
+            <span class="s2">&quot;.bed&quot;</span>
+        <span class="p">),</span> <span class="s2">&quot;Reference plink file should be a single .pgen or .bed file.&quot;</span>
+        <span class="c1"># remove .pgen or .bed from the file name</span>
+        <span class="n">ref_plink_path</span> <span class="o">=</span> <span class="n">ref_plink_path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading reference plink file from </span><span class="si">{</span><span class="n">ref_plink_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">dset_ref</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="n">ref_plink_path</span><span class="p">)</span>
+        <span class="n">ref_pop_indiv</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">pop</span><span class="p">:</span> <span class="n">dset_ref</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">dset_ref</span><span class="o">.</span><span class="n">indiv</span><span class="p">[</span><span class="n">ref_pop_col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pop</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">ref_pops</span>
+        <span class="p">}</span>
+
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Reading reference data with &quot;</span>
+            <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pop</span><span class="si">}</span><span class="s2"> #indiv=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ref_pop_indiv</span><span class="p">[</span><span class="n">pop</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">ref_pop_indiv</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">total_sample_pgs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">CALC_REF</span><span class="p">:</span>
+        <span class="n">total_ref_pgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">pop</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">ref_pops</span><span class="p">}</span>
+    <span class="c1"># iterate through each plink file</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">plink_prefix</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plink_prefix_list</span><span class="p">):</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Scoring for dataset </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">plink_prefix_list</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">plink_prefix</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="n">plink_prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dset_build</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="s2">&quot;POS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">liftover</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">_dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[[</span><span class="s2">&quot;CHROM&quot;</span><span class="p">,</span> <span class="s2">&quot;POS&quot;</span><span class="p">]],</span> <span class="n">chain</span><span class="o">=</span><span class="n">dset_build</span>
+            <span class="p">)</span>
+        <span class="n">_n_total_snp</span> <span class="o">=</span> <span class="n">_dset</span><span class="o">.</span><span class="n">n_snp</span>
+        <span class="k">assert</span> <span class="n">_dset</span><span class="o">.</span><span class="n">n_anc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Only 2-way admixture is currently supported&quot;</span>
+        <span class="c1"># align sample dset and weights</span>
+        <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">flip</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">align_snp</span><span class="p">(</span>
+            <span class="n">df1</span><span class="o">=</span><span class="n">_dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="n">CHECK_COLS</span><span class="p">],</span> <span class="n">df2</span><span class="o">=</span><span class="n">df_weights</span><span class="p">[</span><span class="n">CHECK_COLS</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">_dset</span> <span class="o">=</span> <span class="n">_dset</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
+        <span class="n">_df_weights</span> <span class="o">=</span> <span class="n">df_weights</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx2</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">_df_weights</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">idx1</span>
+
+        <span class="k">if</span> <span class="n">CALC_REF</span><span class="p">:</span>
+            <span class="c1"># align sample dset and reference dset</span>
+            <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">flip</span> <span class="o">=</span> <span class="n">dapgen</span><span class="o">.</span><span class="n">align_snp</span><span class="p">(</span>
+                <span class="n">df1</span><span class="o">=</span><span class="n">_dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="n">CHECK_COLS</span><span class="p">],</span>
+                <span class="n">df2</span><span class="o">=</span><span class="n">dset_ref</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="n">CHECK_COLS</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">_dset</span> <span class="o">=</span> <span class="n">_dset</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
+            <span class="n">_df_weights</span> <span class="o">=</span> <span class="n">_df_weights</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="c1"># original code: _dset_ref = dset_ref[idx2]</span>
+            <span class="c1"># directly call admix.Dataset for potential unsorted scenarios:</span>
+            <span class="n">_dset_ref</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
+                <span class="n">dset_ref</span><span class="o">=</span><span class="n">dset_ref</span><span class="p">,</span>
+                <span class="n">snp_idx</span><span class="o">=</span><span class="n">dset_ref</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_indexer</span><span class="p">(</span><span class="n">idx2</span><span class="p">),</span>
+                <span class="n">indiv_idx</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">enforce_order</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;matched #SNPs=</span><span class="si">{</span><span class="n">_dset</span><span class="o">.</span><span class="n">n_snp</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">_n_total_snp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">CALC_REF</span><span class="p">:</span>
+            <span class="n">sample_pgs</span><span class="p">,</span> <span class="n">ref_pgs</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">calc_partial_pgs</span><span class="p">(</span>
+                <span class="n">dset</span><span class="o">=</span><span class="n">_dset</span><span class="p">,</span>
+                <span class="n">df_weights</span><span class="o">=</span><span class="n">_df_weights</span><span class="p">,</span>
+                <span class="n">dset_ref</span><span class="o">=</span><span class="n">_dset_ref</span><span class="p">,</span>
+                <span class="n">ref_pop_indiv</span><span class="o">=</span><span class="p">[</span><span class="n">ref_pop_indiv</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span> <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">ref_pops</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">total_sample_pgs</span> <span class="o">+=</span> <span class="n">sample_pgs</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ref_pops</span><span class="p">):</span>
+                <span class="n">total_ref_pgs</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ref_pgs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sample_pgs</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">calc_partial_pgs</span><span class="p">(</span><span class="n">dset</span><span class="o">=</span><span class="n">_dset</span><span class="p">,</span> <span class="n">df_weights</span><span class="o">=</span><span class="n">_df_weights</span><span class="p">)</span>
+            <span class="n">total_sample_pgs</span> <span class="o">+=</span> <span class="n">sample_pgs</span>
+
+    <span class="n">total_sample_pgs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="s2">&quot;.sample_pgs.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample PGS saved to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">.sample_pgs.tsv&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">CALC_REF</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pop</span> <span class="ow">in</span> <span class="n">ref_pops</span><span class="p">:</span>
+            <span class="n">total_ref_pgs</span><span class="p">[</span><span class="n">pop</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;.ref_pgs_</span><span class="si">{</span><span class="n">pop</span><span class="si">}</span><span class="s2">.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference PGS saved to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">.ref_pgs_</span><span class="si">{</span><span class="n">pop</span><span class="si">}</span><span class="s2">.tsv&quot;</span><span class="p">)</span></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

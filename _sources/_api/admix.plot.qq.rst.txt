@@ -1,0 +1,6 @@
+﻿admix.plot.qq
+=============
+
+.. currentmodule:: admix.plot
+
+.. autofunction:: qq

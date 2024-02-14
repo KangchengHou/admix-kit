@@ -1,0 +1,43 @@
+﻿admix.Dataset
+=============
+
+.. currentmodule:: admix
+
+.. autoclass:: Dataset
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Dataset.__init__
+      ~Dataset.af_per_anc
+      ~Dataset.allele_per_anc
+      ~Dataset.append_indiv_info
+      ~Dataset.append_snp_info
+      ~Dataset.nhaplo_per_anc
+      ~Dataset.persist
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Dataset.data
+      ~Dataset.geno
+      ~Dataset.indiv
+      ~Dataset.lanc
+      ~Dataset.n_anc
+      ~Dataset.n_indiv
+      ~Dataset.n_snp
+      ~Dataset.snp
+      ~Dataset.uns
+      ~Dataset.xr
+   
+   

@@ -1,0 +1,6 @@
+﻿admix.plot.admixture
+====================
+
+.. currentmodule:: admix.plot
+
+.. autofunction:: admixture

@@ -1,0 +1,905 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>admix.cli._genet_cor - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/assoc.html">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/dataset.html">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for admix.cli._genet_cor</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">admix</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">natsort</span> <span class="kn">import</span> <span class="n">natsorted</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="n">log_params</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">CubicSpline</span>
+
+
+<span class="k">def</span> <span class="nf">_write_admix_grm</span><span class="p">(</span>
+    <span class="n">dict_grm</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">df_weight</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+    <span class="n">df_id</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">out_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;write admix grm</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dict_grm : Dict[str, np.ndarray]</span>
+<span class="sd">        name -&gt; grm matrix</span>
+<span class="sd">    df_weight : pd.Series</span>
+<span class="sd">        snp weights</span>
+<span class="sd">    n_snp : int</span>
+<span class="sd">        number of snps</span>
+<span class="sd">    df_id: pd.DataFrame</span>
+<span class="sd">        list of individuals</span>
+<span class="sd">    out_prefix: str</span>
+<span class="sd">        prefix of the output file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dict_grm</span><span class="p">:</span>
+        <span class="n">grm</span> <span class="o">=</span> <span class="n">dict_grm</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">write_grm</span><span class="p">(</span>
+            <span class="n">out_prefix</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span>
+            <span class="n">K</span><span class="o">=</span><span class="n">grm</span><span class="p">,</span>
+            <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+            <span class="n">n_snps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_weight</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_id</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+    <span class="c1"># write weight</span>
+    <span class="n">df_weight</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_prefix</span> <span class="o">+</span> <span class="s2">&quot;.weight.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Implementing genetic correlation related functions</span>
+<div class="viewcode-block" id="admix_grm"><a class="viewcode-back" href="../../../cli/genet-cor.html#admix.cli.admix_grm">[docs]</a><span class="k">def</span> <span class="nf">admix_grm</span><span class="p">(</span>
+    <span class="n">pfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">maf_cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="n">her_model</span><span class="o">=</span><span class="s2">&quot;mafukb&quot;</span><span class="p">,</span>
+    <span class="n">freq_cols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;LANC_FREQ1&quot;</span><span class="p">,</span> <span class="s2">&quot;LANC_FREQ2&quot;</span><span class="p">],</span>
+    <span class="n">snp_chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="n">snp_list</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">write_raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the admix GRM for a given pfile</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pfile : str</span>
+<span class="sd">        Path to the pfile</span>
+<span class="sd">    out_prefix : str</span>
+<span class="sd">        Prefix of the output files</span>
+<span class="sd">    maf_cutoff : float, optional</span>
+<span class="sd">        MAF cutoff for the admixed individuals, by default 0.005</span>
+<span class="sd">    her_model : str, optional</span>
+<span class="sd">        Heritability model, by default &quot;mafukb&quot;</span>
+<span class="sd">        one of &quot;uniform&quot;, &quot;gcta&quot;, &quot;ldak&quot;, &quot;mafukb&quot;</span>
+<span class="sd">    freq_cols : List[str], optional</span>
+<span class="sd">        Columns of the pfile to use as frequency, by default [&quot;LANC_FREQ1&quot;, &quot;LANC_FREQ2&quot;]</span>
+<span class="sd">        to perform the ancestry-specific MAF cutoffs</span>
+<span class="sd">    snp_chunk_size : int, optional</span>
+<span class="sd">        Number of SNPs to read at a time, by default 256</span>
+<span class="sd">        This can be tuned to reduce memory usage</span>
+<span class="sd">    snp_list : str, optional</span>
+<span class="sd">        Path to a file containing a list of SNPs to use. Each line should be a SNP ID.</span>
+<span class="sd">        Only SNPs in the list will be used for the analysis. By default None</span>
+<span class="sd">    write_raw: bool, optional</span>
+<span class="sd">        Whether to write the raw GRM, G1, G2, G12, by default False</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated</span>
+<span class="sd">    Weight file: {out_prefix}.weight.tsv will be generated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;admix-grm&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;freq_cols must be a list of length 2&quot;</span>
+    <span class="n">dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="n">pfile</span><span class="o">=</span><span class="n">pfile</span><span class="p">,</span> <span class="n">snp_chunk</span><span class="o">=</span><span class="n">snp_chunk_size</span><span class="p">)</span>
+
+    <span class="c1"># filter for SNPs</span>
+    <span class="k">if</span> <span class="n">snp_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">snp_list</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">filter_snp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+        <span class="n">n_filter_snp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)</span>
+        <span class="n">filter_snp_list</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n_filter_snp</span><span class="p">:</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_filter_snp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">filter_snp_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> SNPs in </span><span class="si">{</span><span class="n">snp_list</span><span class="si">}</span><span class="s2"> are not in the dataset&quot;</span>
+            <span class="p">)</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">filter_snp_list</span><span class="p">]</span>
+
+    <span class="n">snp_subset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="n">freq_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="n">maf_cutoff</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">maf_cutoff</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="n">freq_cols</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="n">maf_cutoff</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">maf_cutoff</span><span class="p">)</span>
+    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">dset</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">snp_subset</span><span class="p">]</span>
+
+    <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="p">[</span><span class="s2">&quot;PRIOR_VAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">calc_snp_prior_var</span><span class="p">(</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="p">,</span> <span class="n">her_model</span><span class="o">=</span><span class="n">her_model</span><span class="p">)</span>
+
+    <span class="n">K1</span><span class="p">,</span> <span class="n">K2</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">admix_grm_equal_var</span><span class="p">(</span>
+        <span class="n">geno</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">geno</span><span class="p">,</span>
+        <span class="n">lanc</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">lanc</span><span class="p">,</span>
+        <span class="n">snp_prior_var</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">PRIOR_VAR</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="n">n_anc</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">n_anc</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">df_weight</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">PRIOR_VAR</span>
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="n">dset</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">dset</span><span class="o">.</span><span class="n">indiv</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
+    <span class="n">_write_admix_grm</span><span class="p">(</span>
+        <span class="n">dict_grm</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;K1&quot;</span><span class="p">:</span> <span class="n">K1</span><span class="p">,</span> <span class="s2">&quot;K2&quot;</span><span class="p">:</span> <span class="n">K2</span><span class="p">},</span>
+        <span class="n">df_weight</span><span class="o">=</span><span class="n">df_weight</span><span class="p">,</span>
+        <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+        <span class="n">out_prefix</span><span class="o">=</span><span class="n">out_prefix</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">write_raw</span><span class="p">:</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">G12</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">admix_grm</span><span class="p">(</span>
+            <span class="n">geno</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">geno</span><span class="p">,</span>
+            <span class="n">lanc</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">lanc</span><span class="p">,</span>
+            <span class="n">snp_prior_var</span><span class="o">=</span><span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">PRIOR_VAR</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">mat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s2">&quot;G1&quot;</span><span class="p">,</span> <span class="s2">&quot;G2&quot;</span><span class="p">,</span> <span class="s2">&quot;G12&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">G12</span><span class="p">]):</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">write_grm</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_prefix</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">K</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span>
+                <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+                <span class="n">n_snps</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_weight</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_id</span><span class="p">)),</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="admix_grm_merge"><a class="viewcode-back" href="../../../cli/genet-cor.html#admix.cli.admix_grm_merge">[docs]</a><span class="k">def</span> <span class="nf">admix_grm_merge</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_part</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">22</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge multiple GRM matrices</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prefix : str</span>
+<span class="sd">        Prefix of the GRM files, any files with the pattern of &lt;prefix&gt;.*</span>
+<span class="sd">        will be merged</span>
+<span class="sd">    out_prefix : str</span>
+<span class="sd">        Prefix of the output file</span>
+<span class="sd">    n_part : int, optional</span>
+<span class="sd">        Number of partitions, by default 22</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    GRM files: {out_prefix}.[K1, K2].[grm.bin | grm.id | grm.n] will be generated</span>
+<span class="sd">    Weight file: {out_prefix}.weight.tsv will be generated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;admix-grm-merge&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="c1"># search for files with the pattern of &lt;prefix&gt;.&lt;suffix&gt;.K1.grm.bin and &lt;prefix&gt;.&lt;suffix&gt;.K2.grm.bin</span>
+    <span class="n">K1_grm_prefix_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;.K1.grm.bin&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">*.K1.grm.bin&quot;</span><span class="p">))</span>
+    <span class="p">]</span>
+    <span class="n">K2_grm_prefix_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;.K2.grm.bin&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">*.K2.grm.bin&quot;</span><span class="p">))</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">K1_grm_prefix_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">K2_grm_prefix_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">K1_grm_prefix_list</span> <span class="o">==</span> <span class="n">K2_grm_prefix_list</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s2">&quot;GRM files .K1 and .K2 are not matched, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;K1_grm_list=</span><span class="si">{</span><span class="n">K1_grm_prefix_list</span><span class="si">}</span><span class="s2">, K2_grm_list=</span><span class="si">{</span><span class="n">K2_grm_prefix_list</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="n">grm_prefix_list</span> <span class="o">=</span> <span class="n">natsorted</span><span class="p">(</span><span class="n">K1_grm_prefix_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">grm_prefix_list</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_part</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Number of GRM files (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">grm_prefix_list</span><span class="p">)</span><span class="si">}</span><span class="s2">) is not equal to n_part (</span><span class="si">{</span><span class="n">n_part</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">grm_prefix_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> GRM files to be merged: </span><span class="si">{</span><span class="n">grm_prefix_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">prior_var_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">grm_prefix</span> <span class="ow">in</span> <span class="n">grm_prefix_list</span><span class="p">:</span>
+        <span class="n">prior_var_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">grm_prefix</span> <span class="o">+</span> <span class="s2">&quot;.weight.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_merge</span><span class="p">(</span><span class="n">suffix</span><span class="p">):</span>
+        <span class="n">total_grm</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_df_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">grm_prefix</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grm_prefix_list</span><span class="p">):</span>
+            <span class="n">prior_var</span> <span class="o">=</span> <span class="n">prior_var_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">prior_var</span><span class="p">[</span><span class="s2">&quot;PRIOR_VAR&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+            <span class="n">grm</span><span class="p">,</span> <span class="n">df_id</span><span class="p">,</span> <span class="n">n_snps</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_grm</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grm_prefix</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_df_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">total_df_id</span> <span class="o">=</span> <span class="n">df_id</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
+                    <span class="n">total_df_id</span> <span class="o">==</span> <span class="n">df_id</span>
+                <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;df_id of </span><span class="si">{</span><span class="n">grm_prefix</span><span class="si">}</span><span class="s2"> is not matched does not match with already loaded ones&quot;</span>
+            <span class="n">total_grm</span> <span class="o">+=</span> <span class="n">grm</span> <span class="o">*</span> <span class="n">weight</span>
+
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">n_snps</span> <span class="o">==</span> <span class="n">prior_var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">total_grm</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">total_grm</span><span class="p">,</span> <span class="n">df_id</span>
+
+    <span class="n">K1</span><span class="p">,</span> <span class="n">df_id1</span> <span class="o">=</span> <span class="n">_merge</span><span class="p">(</span><span class="s2">&quot;K1&quot;</span><span class="p">)</span>
+    <span class="n">K2</span><span class="p">,</span> <span class="n">df_id2</span> <span class="o">=</span> <span class="n">_merge</span><span class="p">(</span><span class="s2">&quot;K2&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">df_id1</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_id2</span><span class="p">)</span>
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">df_id1</span>
+    <span class="n">df_weight</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">prior_var_list</span><span class="p">)</span>
+
+    <span class="n">_write_admix_grm</span><span class="p">(</span>
+        <span class="n">dict_grm</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;K1&quot;</span><span class="p">:</span> <span class="n">K1</span><span class="p">,</span> <span class="s2">&quot;K2&quot;</span><span class="p">:</span> <span class="n">K2</span><span class="p">},</span>
+        <span class="n">df_weight</span><span class="o">=</span><span class="n">df_weight</span><span class="p">,</span>
+        <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+        <span class="n">out_prefix</span><span class="o">=</span><span class="n">out_prefix</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="genet_cor"><a class="viewcode-back" href="../../../cli/genet-cor.html#admix.cli.genet_cor">[docs]</a><span class="k">def</span> <span class="nf">genet_cor</span><span class="p">(</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">grm_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">rg_grid</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
+    <span class="n">quantile_normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">n_thread</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate genetic correlation</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pheno : str</span>
+<span class="sd">        phenotype file, the 1st column contains ID, 2nd column contains phenotype, and</span>
+<span class="sd">        the rest of columns are covariates.</span>
+<span class="sd">    grm_prefix : str</span>
+<span class="sd">        folder containing K1, K2 GRM files</span>
+<span class="sd">    out_dir : str</span>
+<span class="sd">        folder to store the output files</span>
+<span class="sd">    rg_grid : list, optional</span>
+<span class="sd">        List of rg values to grid search, by default np.linspace(0, 1.0, 21)</span>
+<span class="sd">    quantile_normalize: bool</span>
+<span class="sd">        whether to perform quantile normalization for both phenotype and each column of covariates</span>
+<span class="sd">    n_thread : int, optional</span>
+<span class="sd">        number of threads, by default 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;genet-cor&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="c1">## compile phenotype and covariates</span>
+    <span class="n">df_pheno</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">df_pheno</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="c1"># subset for individuals with non-nan value in df_trait</span>
+    <span class="n">trait_col</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">covar_cols</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># filter out individuals with missing phenotype</span>
+    <span class="n">df_pheno</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[</span><span class="n">df_pheno</span><span class="p">[</span><span class="n">trait_col</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+
+    <span class="n">df_trait</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[[</span><span class="n">trait_col</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[</span><span class="n">covar_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">convert_dummy</span><span class="p">(</span><span class="n">df_covar</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">quantile_normalize</span><span class="p">:</span>
+        <span class="c1"># perform quantile normalization</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df_trait</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">quantile_normalize</span><span class="p">(</span><span class="n">df_trait</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df_covar</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df_covar</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">quantile_normalize</span><span class="p">(</span><span class="n">df_covar</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+    <span class="c1"># fill na with column mean</span>
+    <span class="n">df_covar</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">df_covar</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;FID&quot;</span><span class="p">:</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s2">&quot;IID&quot;</span><span class="p">:</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">},</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">df_trait</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_id</span><span class="p">,</span> <span class="n">df_trait</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_id</span><span class="p">,</span> <span class="n">df_covar</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">## load grm</span>
+    <span class="n">K1</span><span class="p">,</span> <span class="n">df_id1</span><span class="p">,</span> <span class="n">n_snps1</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_grm</span><span class="p">(</span><span class="n">grm_prefix</span> <span class="o">+</span> <span class="s2">&quot;.K1&quot;</span><span class="p">)</span>
+    <span class="n">K2</span><span class="p">,</span> <span class="n">df_id2</span><span class="p">,</span> <span class="n">n_snps2</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_grm</span><span class="p">(</span><span class="n">grm_prefix</span> <span class="o">+</span> <span class="s2">&quot;.K2&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">df_id1</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_id2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">n_snps1</span><span class="p">,</span> <span class="n">n_snps2</span><span class="p">)</span>
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">df_id1</span>
+    <span class="n">n_snps</span> <span class="o">=</span> <span class="n">n_snps1</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rg</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">rg_grid</span><span class="p">):</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">K1</span> <span class="o">+</span> <span class="n">K2</span> <span class="o">*</span> <span class="n">rg</span>
+
+        <span class="n">grm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;rg</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">rg</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">write_grm</span><span class="p">(</span>
+            <span class="n">grm</span><span class="p">,</span>
+            <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span>
+            <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+            <span class="n">n_snps</span><span class="o">=</span><span class="n">n_snps</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">reml</span><span class="p">(</span>
+            <span class="n">grm_path</span><span class="o">=</span><span class="n">grm</span><span class="p">,</span>
+            <span class="n">df_pheno</span><span class="o">=</span><span class="n">df_trait</span><span class="p">,</span>
+            <span class="n">df_covar</span><span class="o">=</span><span class="n">df_covar</span><span class="p">,</span>
+            <span class="n">out_prefix</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;rg</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">rg</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">n_thread</span><span class="o">=</span><span class="n">n_thread</span><span class="p">,</span>
+            <span class="n">est_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="c1"># remove &lt;grm&gt;.grm.* files</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">grm</span> <span class="o">+</span> <span class="s2">&quot;.grm.*&quot;</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">summarize_genet_cor</span><span class="p">(</span>
+    <span class="n">est_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">weight_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">freq_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scale_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">freq_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;FREQ&quot;</span><span class="p">,</span>
+    <span class="n">index_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;snp&quot;</span><span class="p">,</span>
+    <span class="n">rg_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rg&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Summarize the results of genetic correlation analysis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    est_dir : str</span>
+<span class="sd">        Estimation directory, containing rho&lt;rho&gt;.hsq, rho&lt;rho&gt;.log</span>
+<span class="sd">    out_prefix : str</span>
+<span class="sd">        output prefix</span>
+<span class="sd">    weight_file: str</span>
+<span class="sd">        weight_file specifying the prior variance file (&lt;grm_prefix&gt;.weight.tsv),</span>
+<span class="sd">    freq_file: str</span>
+<span class="sd">        frequency file (dataset *.snp_info files)</span>
+<span class="sd">    scale_factor: float</span>
+<span class="sd">        rather calculating the scale factor from `weight_file` and `freq_file` from</span>
+<span class="sd">        scratch, specify the scale factor. This scale factor be pre-computed from</span>
+<span class="sd">        admix.tools.gcta.calculate_hsq_scale</span>
+<span class="sd">    freq_col: str</span>
+<span class="sd">        column name for frequency in freq_file</span>
+<span class="sd">    index_col: str</span>
+<span class="sd">        column name for index in freq_file</span>
+<span class="sd">    rg_str : str</span>
+<span class="sd">        string name for rg, by default &quot;rg&quot;, or &quot;rho&quot; (for legacy)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Log-likelihood curve for different rho: &lt;out_prefix&gt;.loglkl.txt</span>
+<span class="sd">    Summarization file: &lt;out_prefix&gt;.summary.json. This file contains</span>
+<span class="sd">        - poterior mode</span>
+<span class="sd">        - highest posterior density interval (50% / 95%)</span>
+<span class="sd">        - heritability (if grm_prefix is provided)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If `weight_file` and `freq_file` are provided, heritability at rg = 1</span>
+<span class="sd">    (using rho100.hsq) will be estimated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;summarize-genet-cor&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="n">rg_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">rg_str</span><span class="p">)</span> <span class="p">:])</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">est_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rg_str</span><span class="si">}</span><span class="s2">*.hsq&quot;</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rg=</span><span class="si">{</span><span class="n">rg_list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># read log-likelihood curve</span>
+    <span class="n">n_indiv</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">loglkl_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rg</span> <span class="ow">in</span> <span class="n">rg_list</span><span class="p">:</span>
+        <span class="n">dict_reml</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_reml</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">est_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rg_str</span><span class="si">}{</span><span class="n">rg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">n_indiv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_indiv</span> <span class="o">=</span> <span class="n">dict_reml</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">n_indiv</span> <span class="o">==</span> <span class="n">dict_reml</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;n_indiv=</span><span class="si">{</span><span class="n">dict_reml</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> from r=</span><span class="si">{</span><span class="n">rg</span><span class="si">}</span><span class="s2"> different from previous one </span><span class="si">{</span><span class="n">n_indiv</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">loglkl_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_reml</span><span class="p">[</span><span class="s2">&quot;loglik&quot;</span><span class="p">])</span>
+
+    <span class="c1"># interpolate</span>
+    <span class="n">rg_list</span> <span class="o">=</span> <span class="n">rg_list</span> <span class="o">/</span> <span class="mi">100</span>
+
+    <span class="c1"># write raw estimation file</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;rg&quot;</span><span class="p">:</span> <span class="n">rg_list</span><span class="p">,</span> <span class="s2">&quot;loglkl&quot;</span><span class="p">:</span> <span class="n">loglkl_list</span><span class="p">})</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">out_prefix</span> <span class="o">+</span> <span class="s2">&quot;.loglkl.txt&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Log-likehood curves written to </span><span class="si">{</span><span class="n">out_prefix</span><span class="si">}</span><span class="s2">.loglkl.txt&quot;</span><span class="p">)</span>
+
+    <span class="c1"># summarize results</span>
+    <span class="k">assert</span> <span class="n">rg_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;r=1 (r.hsq) should be included&quot;</span>
+    <span class="n">dense_rg_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">rg_list</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">rg_list</span><span class="p">),</span> <span class="mi">1001</span><span class="p">)</span>
+    <span class="n">dense_loglkl_list</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span><span class="n">rg_list</span><span class="p">,</span> <span class="n">loglkl_list</span><span class="p">)(</span><span class="n">dense_rg_list</span><span class="p">)</span>
+
+    <span class="n">dict_summary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">n_indiv</span><span class="p">,</span>
+        <span class="s2">&quot;rg_mode&quot;</span><span class="p">:</span> <span class="n">dense_rg_list</span><span class="p">[</span><span class="n">dense_loglkl_list</span><span class="o">.</span><span class="n">argmax</span><span class="p">()],</span>
+        <span class="s2">&quot;rg_hpdi(50%)&quot;</span><span class="p">:</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">hdi</span><span class="p">(</span><span class="n">dense_rg_list</span><span class="p">,</span> <span class="n">dense_loglkl_list</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="s2">&quot;rg_hpdi(95%)&quot;</span><span class="p">:</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">hdi</span><span class="p">(</span><span class="n">dense_rg_list</span><span class="p">,</span> <span class="n">dense_loglkl_list</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mf">0.95</span><span class="p">),</span>
+        <span class="s2">&quot;rg=1_pval&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">((</span><span class="n">dense_loglkl_list</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dense_loglkl_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">assert</span> <span class="p">(</span><span class="n">weight_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="n">freq_file</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s2">&quot;weight_file and freq_file should be provided together&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">weight_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">freq_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">calculate_hsq_scale</span><span class="p">(</span>
+            <span class="n">weight_file</span><span class="o">=</span><span class="n">weight_file</span><span class="p">,</span>
+            <span class="n">freq_file</span><span class="o">=</span><span class="n">freq_file</span><span class="p">,</span>
+            <span class="n">freq_col</span><span class="o">=</span><span class="n">freq_col</span><span class="p">,</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computed hsq scale factor = </span><span class="si">{</span><span class="n">scale_factor</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dict_reml</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_reml</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">est_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rg_str</span><span class="si">}</span><span class="s2">100&quot;</span><span class="p">))</span>
+        <span class="n">est_hsq</span><span class="p">,</span> <span class="n">est_hsq_var</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">estimate_hsq</span><span class="p">(</span><span class="n">dict_reml</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
+        <span class="n">est_hsq_stderr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">est_hsq_var</span><span class="p">)</span>
+        <span class="n">dict_summary</span><span class="p">[</span><span class="s2">&quot;hsq_est&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">est_hsq</span>
+        <span class="n">dict_summary</span><span class="p">[</span><span class="s2">&quot;hsq_stderr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">est_hsq_stderr</span>
+
+    <span class="c1"># write summary</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_prefix</span> <span class="o">+</span> <span class="s2">&quot;.summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dict_summary</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Summary written to </span><span class="si">{</span><span class="n">out_prefix</span><span class="si">}</span><span class="s2">.summary.json&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">meta_analyze_genet_cor</span><span class="p">(</span><span class="n">loglkl_files</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Meta-analyze the results of genetic correlation analysis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    loglkl_files : str</span>
+<span class="sd">        file patterns of log-likelihood curve files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">loglkl_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">loglkl_files</span><span class="p">)</span>
+
+    <span class="n">rg_list</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">total_dense_loglik</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">loglkl_files</span><span class="p">:</span>
+        <span class="n">df_loglkl</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rg_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rg_list</span> <span class="o">=</span> <span class="n">df_loglkl</span><span class="p">[</span><span class="s2">&quot;rg&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">dense_rg_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">rg_list</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">rg_list</span><span class="p">),</span> <span class="mi">1001</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">rg_list</span> <span class="o">==</span> <span class="n">df_loglkl</span><span class="p">[</span><span class="s2">&quot;rg&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="n">total_dense_loglik</span> <span class="o">+=</span> <span class="n">CubicSpline</span><span class="p">(</span><span class="n">rg_list</span><span class="p">,</span> <span class="n">df_loglkl</span><span class="p">[</span><span class="s2">&quot;loglkl&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)(</span><span class="n">dense_rg_list</span><span class="p">)</span>
+        <span class="c1"># load f.replace(&quot;.loglkl.txt&quot;, &quot;.summary.json&quot;)</span>
+        <span class="n">total_n</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.loglkl.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;.summary.json&quot;</span><span class="p">)))[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span>
+
+    <span class="n">rg_mode</span> <span class="o">=</span> <span class="n">dense_rg_list</span><span class="p">[</span><span class="n">total_dense_loglik</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+
+    <span class="n">pval_rg_1</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">((</span><span class="n">total_dense_loglik</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">total_dense_loglik</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Meta-analysis results across </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">loglkl_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">37</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rg mode  = </span><span class="si">{</span><span class="n">rg_mode</span><span class="si">:</span><span class="s2">4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ci</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">]:</span>
+        <span class="n">rg_hpdi</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">hdi</span><span class="p">(</span><span class="n">dense_rg_list</span><span class="p">,</span> <span class="n">total_dense_loglik</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="n">ci</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rg_hpdi</span><span class="p">,</span> <span class="n">List</span><span class="p">):</span>
+            <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rg_hpdi</span><span class="p">]</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Multiple intervals for ci=</span><span class="si">{</span><span class="n">ci</span><span class="si">}</span><span class="s2">, indicating some issues of model fit.&quot;</span>
+                <span class="s2">&quot; Please inspect log-liklihood curves for each trait.&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ci</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">% HPDI = </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">rg_hpdi</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ci</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">% HPDI = [</span><span class="si">{</span><span class="n">rg_hpdi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">rg_hpdi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Null (rg = 1) p-value: </span><span class="si">{</span><span class="n">pval_rg_1</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average N=</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">total_n</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">loglkl_files</span><span class="p">)))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">admix_grm_rho</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rho_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">21</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRECATED. Will be removed in future versions.</span>
+
+<span class="sd">    Build the GRM for a given rho list</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prefix : str</span>
+<span class="sd">        Prefix of the GRM files, with .K1.grm.bin and .K2.grm.bin</span>
+<span class="sd">    out_dir : str</span>
+<span class="sd">        folder to store the output files</span>
+<span class="sd">    rho_list : list, optional</span>
+<span class="sd">        List of rho values, by default np.linspace(0, 1.0, 21)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;admix-grm-rho&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="n">K1</span><span class="p">,</span> <span class="n">df_id1</span><span class="p">,</span> <span class="n">n_snps1</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_grm</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.K1&quot;</span><span class="p">)</span>
+    <span class="n">K2</span><span class="p">,</span> <span class="n">df_id2</span><span class="p">,</span> <span class="n">n_snps2</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">read_grm</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;.K2&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">df_id1</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_id2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">n_snps1</span><span class="p">,</span> <span class="n">n_snps2</span><span class="p">)</span>
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">df_id1</span>
+    <span class="n">n_snps</span> <span class="o">=</span> <span class="n">n_snps1</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rho</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">rho_list</span><span class="p">):</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">K1</span> <span class="o">+</span> <span class="n">K2</span> <span class="o">*</span> <span class="n">rho</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;rho</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">rho</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">write_grm</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span>
+            <span class="n">df_id</span><span class="o">=</span><span class="n">df_id</span><span class="p">,</span>
+            <span class="n">n_snps</span><span class="o">=</span><span class="n">n_snps</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">estimate_genetic_cor</span><span class="p">(</span>
+    <span class="n">pheno</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">grm_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">grm_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">quantile_normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">n_thread</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRECATED. Will be removed in future versions.</span>
+<span class="sd">    Estimate genetic correlation from a set of GRM files (with different rho values)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pheno : str</span>
+<span class="sd">        phenotype file, the 1st column contains ID, 2nd column contains phenotype, and</span>
+<span class="sd">        the rest of columns are covariates.</span>
+<span class="sd">    out_dir : str</span>
+<span class="sd">        folder to store the output files</span>
+<span class="sd">    grm_dir : str</span>
+<span class="sd">        folder containing GRM files</span>
+
+<span class="sd">    quantile_normalize: bool</span>
+<span class="sd">        whether to perform quantile normalization for both phenotype and each column of covariates</span>
+<span class="sd">    n_thread : int, optional</span>
+<span class="sd">        number of threads, by default 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_params</span><span class="p">(</span><span class="s2">&quot;estimate-genetic-cor&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+
+    <span class="c1"># either grm_dir or grm_prefix must be specified</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">grm_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="n">grm_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Either grm_dir or grm_prefix must be specified&quot;</span>
+
+    <span class="c1"># compile phenotype and covariates</span>
+    <span class="n">df_pheno</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">df_pheno</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="c1"># subset for individuals with non-nan value in df_trait</span>
+    <span class="n">trait_col</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">covar_cols</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># filter out individuals with missing phenotype</span>
+    <span class="n">df_pheno</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[</span><span class="n">df_pheno</span><span class="p">[</span><span class="n">trait_col</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+
+    <span class="n">df_trait</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[[</span><span class="n">trait_col</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">df_pheno</span><span class="p">[</span><span class="n">covar_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">convert_dummy</span><span class="p">(</span><span class="n">df_covar</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">quantile_normalize</span><span class="p">:</span>
+        <span class="c1"># perform quantile normalization</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df_trait</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">quantile_normalize</span><span class="p">(</span><span class="n">df_trait</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df_covar</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df_covar</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">quantile_normalize</span><span class="p">(</span><span class="n">df_covar</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+    <span class="c1"># fill na with column mean</span>
+    <span class="n">df_covar</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">df_covar</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">df_id</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;FID&quot;</span><span class="p">:</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s2">&quot;IID&quot;</span><span class="p">:</span> <span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">},</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">df_trait</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">df_trait</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_id</span><span class="p">,</span> <span class="n">df_trait</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_covar</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_id</span><span class="p">,</span> <span class="n">df_covar</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">grm_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># fit different rho</span>
+        <span class="n">grm_prefix_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;.grm.bin&quot;</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">grm_dir</span><span class="p">,</span> <span class="s2">&quot;*.grm.bin&quot;</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">grm_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">grm_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">grm_prefix</span><span class="p">)</span>
+        <span class="n">grm_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">grm_prefix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="k">for</span> <span class="n">grm_prefix</span> <span class="ow">in</span> <span class="n">grm_prefix_list</span><span class="p">:</span>
+        <span class="n">grm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">grm_dir</span><span class="p">,</span> <span class="n">grm_prefix</span><span class="p">)</span>
+        <span class="n">out_prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">grm_prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_prefix</span> <span class="o">+</span> <span class="s2">&quot;.hsq&quot;</span><span class="p">):</span>
+            <span class="n">admix</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">gcta</span><span class="o">.</span><span class="n">reml</span><span class="p">(</span>
+                <span class="n">grm_path</span><span class="o">=</span><span class="n">grm</span><span class="p">,</span>
+                <span class="n">df_pheno</span><span class="o">=</span><span class="n">df_trait</span><span class="p">,</span>
+                <span class="n">df_covar</span><span class="o">=</span><span class="n">df_covar</span><span class="p">,</span>
+                <span class="n">out_prefix</span><span class="o">=</span><span class="n">out_prefix</span><span class="p">,</span>
+                <span class="n">n_thread</span><span class="o">=</span><span class="n">n_thread</span><span class="p">,</span>
+                <span class="n">est_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

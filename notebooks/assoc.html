@@ -1,0 +1,759 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Genetic correlation across local ancestry segments" href="genet-cor.html" /><link rel="prev" title="Basic statistics and visualization" href="analyze-admix-simu-data.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>Association testing (GWAS) - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/kangchenghou/admix-kit/edit/main/docs/notebooks/assoc.ipynb" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="Association-testing-(GWAS)">
+<h1>Association testing (GWAS)<a class="headerlink" href="#Association-testing-(GWAS)" title="Permalink to this heading">#</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> lab_black
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">admix</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="s2">&quot;example_data/CEU-YRI&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dset</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 15357 x 10000, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">af_per_anc</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">af_per_anc</span><span class="p">()</span>  <span class="c1"># calculate allele frequency by ancestry</span>
+<span class="n">snp_list</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">snp</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="mf">0.01</span> <span class="o">&lt;</span> <span class="n">af_per_anc</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">af_per_anc</span> <span class="o">&lt;</span> <span class="mf">0.99</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)][</span>
+    <span class="mi">0</span><span class="p">:</span><span class="mi">1000</span>
+<span class="p">]</span>
+<span class="n">dset</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="n">snp_list</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># filter by allele frequency between 1%-99%.</span>
+
+<span class="c1"># simulate binary phenotypes</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">quant_pheno</span><span class="p">(</span><span class="n">dset</span><span class="p">,</span> <span class="n">n_causal</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">hsq</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">cor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">beta</span><span class="p">,</span> <span class="n">pheno_g</span><span class="p">,</span> <span class="n">pheno</span> <span class="o">=</span> <span class="n">sim</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span> <span class="n">sim</span><span class="p">[</span><span class="s2">&quot;pheno_g&quot;</span><span class="p">],</span> <span class="n">sim</span><span class="p">[</span><span class="s2">&quot;pheno&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (n_snp, n_anc, n_sim)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pheno_g</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (n_indiv, n_sim)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pheno</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (n_indiv, n_sim)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.data.af_per_anc: 100%|███████████████████████████████████████████████████████████████████████████████| 15/15 [00:10&lt;00:00,  1.38it/s]
+admix.simulate.quant_pheno: 100%|████████████████████████████████████████████████████████████████████████████| 2/2 [00:01&lt;00:00,  1.72it/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(1000, 2, 10)
+(10000, 10)
+(10000, 10)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dset</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 1000 x 10000, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_i</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">sim_pheno</span> <span class="o">=</span> <span class="n">pheno</span><span class="p">[:,</span> <span class="n">sim_i</span><span class="p">]</span>
+<span class="n">sim_beta</span> <span class="o">=</span> <span class="n">beta</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">sim_i</span><span class="p">]</span>
+<span class="n">assoc_df</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">assoc</span><span class="o">.</span><span class="n">marginal</span><span class="p">(</span>
+    <span class="n">dset</span><span class="o">=</span><span class="n">dset</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="o">=</span><span class="n">sim_pheno</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;ATT&quot;</span><span class="p">,</span>
+    <span class="n">family</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.assoc.marginal: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00&lt;00:00,  2.32it/s]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">assoc_df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>G_BETA</th>
+      <th>G_SE</th>
+      <th>N</th>
+      <th>P</th>
+    </tr>
+    <tr>
+      <th>snp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>22:16406147:A:G</th>
+      <td>-0.020341</td>
+      <td>0.028045</td>
+      <td>10000</td>
+      <td>4.682764e-01</td>
+    </tr>
+    <tr>
+      <th>22:16551808:T:C</th>
+      <td>-0.015835</td>
+      <td>0.014218</td>
+      <td>10000</td>
+      <td>2.654258e-01</td>
+    </tr>
+    <tr>
+      <th>22:16573830:T:C</th>
+      <td>-0.019458</td>
+      <td>0.030027</td>
+      <td>10000</td>
+      <td>5.169898e-01</td>
+    </tr>
+    <tr>
+      <th>22:16575525:T:C</th>
+      <td>-0.005990</td>
+      <td>0.014806</td>
+      <td>10000</td>
+      <td>6.857933e-01</td>
+    </tr>
+    <tr>
+      <th>22:16576248:G:T</th>
+      <td>-0.017495</td>
+      <td>0.017168</td>
+      <td>10000</td>
+      <td>3.081942e-01</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>22:19743069:G:A</th>
+      <td>0.092459</td>
+      <td>0.016553</td>
+      <td>10000</td>
+      <td>2.388196e-08</td>
+    </tr>
+    <tr>
+      <th>22:19746288:G:A</th>
+      <td>-0.019776</td>
+      <td>0.019905</td>
+      <td>10000</td>
+      <td>3.204777e-01</td>
+    </tr>
+    <tr>
+      <th>22:19748331:T:C</th>
+      <td>-0.022343</td>
+      <td>0.014272</td>
+      <td>10000</td>
+      <td>1.174854e-01</td>
+    </tr>
+    <tr>
+      <th>22:19748480:T:C</th>
+      <td>-0.015623</td>
+      <td>0.014340</td>
+      <td>10000</td>
+      <td>2.759813e-01</td>
+    </tr>
+    <tr>
+      <th>22:19750087:T:C</th>
+      <td>-0.031673</td>
+      <td>0.020432</td>
+      <td>10000</td>
+      <td>1.211368e-01</td>
+    </tr>
+  </tbody>
+</table>
+<p>1000 rows × 4 columns</p>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dset</span><span class="o">.</span><span class="n">n_snp</span><span class="p">),</span> <span class="n">sim_beta</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\beta$&quot;</span><span class="p">)</span>
+
+<span class="n">admix</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">manhattan</span><span class="p">(</span><span class="n">assoc_df</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_assoc_8_0.png" src="../_images/notebooks_assoc_8_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># pick one simulation</span>
+<span class="n">pval_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;TRACTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;ATT&quot;</span><span class="p">,</span> <span class="s2">&quot;ASE&quot;</span><span class="p">]:</span>
+    <span class="n">pval_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">assoc</span><span class="o">.</span><span class="n">marginal</span><span class="p">(</span>
+        <span class="n">dset</span><span class="o">=</span><span class="n">dset</span><span class="p">,</span>
+        <span class="n">pheno</span><span class="o">=</span><span class="n">sim_pheno</span><span class="p">,</span>
+        <span class="n">family</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">P</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.assoc.marginal: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:04&lt;00:00,  2.22s/it]
+admix.assoc.marginal: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00&lt;00:00,  3.30it/s]
+admix.assoc.marginal: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:02&lt;00:00,  1.50s/it]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">admix</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">compare_pval</span><span class="p">(</span>
+    <span class="n">pval_dict</span><span class="p">[</span><span class="s2">&quot;ATT&quot;</span><span class="p">],</span> <span class="n">pval_dict</span><span class="p">[</span><span class="s2">&quot;TRACTOR&quot;</span><span class="p">],</span> <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;ATT&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Tractor&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">admix</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">compare_pval</span><span class="p">(</span>
+    <span class="n">pval_dict</span><span class="p">[</span><span class="s2">&quot;ATT&quot;</span><span class="p">],</span> <span class="n">pval_dict</span><span class="p">[</span><span class="s2">&quot;ASE&quot;</span><span class="p">],</span> <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;ATT&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;ASE&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_assoc_10_0.png" src="../_images/notebooks_assoc_10_0.png" />
+</div>
+</div>
+<section id="HET-test">
+<h2>HET test<a class="headerlink" href="#HET-test" title="Permalink to this heading">#</a></h2>
+<p>HET tests the null hypothesis for coefficients for a set of variables are identical. In the case of two-way admixed populations. It tests the null of <span class="math notranslate nohighlight">\(H_0: \beta_{s,1} = \beta_{s,2}\)</span> for each SNP <span class="math notranslate nohighlight">\(s\)</span>.</p>
+<p>In the following, although we simulate phenotype with no heterogeneity by ancestry, we still get an inflated p-value distribution. This is because the LD induce partial heterogeneity in the effect sizes.</p>
+<p>Currently HET test is not implemented with cpp so one can expect slower performance. It is recommended to perform HET test in a small subset of variants after LD clumping.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># &lt;out&gt;.clumped will be created</span>
+plink<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bfile<span class="w"> </span>&lt;bfile&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--clump<span class="w"> </span>&lt;out&gt;.assoc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--clump-p1<span class="w"> </span>5e-8<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--clump-p2<span class="w"> </span>1e-4<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--clump-r2<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--clump-kb<span class="w"> </span><span class="m">10000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--memory<span class="w"> </span><span class="m">20000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span>&lt;out&gt;
+
+<span class="c1"># get list of clumped SNPs</span>
+awk<span class="w"> </span><span class="s1">&#39;(NF &gt; 0) &amp;&amp; (NR &gt; 1) {print $3 }&#39;</span><span class="w"> </span>&lt;out&gt;.clumped<span class="w"> </span>&gt;<span class="w"> </span>&lt;out&gt;.clumped.snp_list
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">het_df</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">assoc</span><span class="o">.</span><span class="n">marginal</span><span class="p">(</span>
+    <span class="n">dset</span><span class="o">=</span><span class="n">dset</span><span class="p">,</span>
+    <span class="n">pheno</span><span class="o">=</span><span class="n">sim_pheno</span><span class="p">,</span>
+    <span class="n">family</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;HET&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.assoc.marginal:   0%|                                                                                          | 0/2 [00:00&lt;?, ?it/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-01-27 20:05:42 [info     ] Currently HET test is implemented through statsmodels, which can be slow. Pass in small amount of data whenever possible.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.assoc.marginal:  50%|█████████████████████████████████████████                                         | 1/2 [00:04&lt;00:04,  4.67s/it]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-01-27 20:05:47 [info     ] Currently HET test is implemented through statsmodels, which can be slow. Pass in small amount of data whenever possible.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.assoc.marginal: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:06&lt;00:00,  3.11s/it]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">admix</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">qq</span><span class="p">(</span><span class="n">het_df</span><span class="o">.</span><span class="n">P</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bootstrap_ci</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+lambda GC: 2.22 [1.85, 2.54]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_assoc_13_1.png" src="../_images/notebooks_assoc_13_1.png" />
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="genet-cor.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Genetic correlation across local ancestry segments</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="analyze-admix-simu-data.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Basic statistics and visualization</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Association testing (GWAS)</a><ul>
+<li><a class="reference internal" href="#HET-test">HET test</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

@@ -1,0 +1,6 @@
+﻿admix.plot.manhattan
+====================
+
+.. currentmodule:: admix.plot
+
+.. autofunction:: manhattan

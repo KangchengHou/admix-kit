@@ -1,0 +1,6 @@
+﻿admix.data.calc\_partial\_pgs
+=============================
+
+.. currentmodule:: admix.data
+
+.. autofunction:: calc_partial_pgs

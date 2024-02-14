@@ -1,0 +1,6 @@
+﻿admix.simulate.admix\_geno
+==========================
+
+.. currentmodule:: admix.simulate
+
+.. autofunction:: admix_geno

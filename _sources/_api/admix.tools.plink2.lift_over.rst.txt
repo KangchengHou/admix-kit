@@ -1,0 +1,6 @@
+﻿admix.tools.plink2.lift\_over
+=============================
+
+.. currentmodule:: admix.tools.plink2
+
+.. autofunction:: lift_over

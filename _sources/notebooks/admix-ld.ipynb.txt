@@ -1,0 +1,275 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Ancestry-specific tagging in admixed individuals\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import admix\n",
+    "import os\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Simulate admixed individuals with African-European admixed ancestries"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# specify reference data sets\n",
+    "dset_dir = admix.dataset.get_test_data_dir()\n",
+    "ref_dset = admix.io.read_dataset(os.path.join(dset_dir, \"toy-all\"))\n",
+    "ref_dset_list = [\n",
+    "    ref_dset[:, (ref_dset.indiv.SuperPop == pop).values] for pop in [\"EUR\", \"AFR\"]\n",
+    "]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# simulate 8 generations\n",
+    "n_indiv = 5000\n",
+    "\n",
+    "mosaic_size = admix.simulate.calculate_mosaic_size(\n",
+    "    ref_dset.snp, \"hg38\", chrom=22, n_gen=8\n",
+    ")\n",
+    "\n",
+    "np.random.seed(1234)\n",
+    "dset = admix.simulate.admix_geno(\n",
+    "    geno_list=[dset.geno for dset in ref_dset_list],\n",
+    "    df_snp=ref_dset_list[0].snp,\n",
+    "    n_indiv=n_indiv,\n",
+    "    anc_props=[0.5, 0.5],\n",
+    "    mosaic_size=mosaic_size,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(figsize=(4, 3), dpi=150)\n",
+    "admix.plot.lanc(dset, ax=ax)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "dset.snp[[\"EUR_FREQ\", \"AFR_FREQ\"]] = dset.af_per_anc()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "dset = dset[\n",
+    "    (\n",
+    "        (dset.snp.EUR_FREQ.between(0.01, 0.99))\n",
+    "        & (dset.snp.AFR_FREQ.between(0.01, 0.99))\n",
+    "    ).values\n",
+    "]\n",
+    "display(dset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Math expression for ancestry-specific tagging\n",
+    "We first assume the phenotype has a single causal variant $s$, and phenotype can be modeled as\n",
+    "$$\n",
+    "\\mathbf{y} = \\mathbf{g}_{s,1} \\boldsymbol{\\beta}_{s, 1} + \\mathbf{g}_{s,2} \\boldsymbol{\\beta}_{s,2} + \\boldsymbol{\\epsilon},\n",
+    "$$\n",
+    "where $\\mathbf{g}_{s,\\cdot}$ denote the genotype for each local ancestry, and $\\boldsymbol{\\beta}_{s,\\cdot}$ denote the allelic effect sizes for each local ancestry. The above equation can be rewritten for notation convenience, as\n",
+    "\n",
+    "$$\n",
+    "\\mathbf{y} = \\mathbf{G}_s \\boldsymbol{\\beta}_s + \\boldsymbol{\\epsilon},\n",
+    "$$\n",
+    "\n",
+    "where we denote \n",
+    "$$\n",
+    "\\mathbf{G}_s:= \\left[\n",
+    "    \\begin{smallmatrix}\n",
+    "        \\vert     & \\vert     \\\\\n",
+    "        \\mathbf{g}_{s, 1} & \\mathbf{g}_{s, 2} \\\\\n",
+    "        \\vert     & \\vert\n",
+    "    \\end{smallmatrix}\n",
+    "    \\right] \\in \\mathbb{R}^{N \\times 2}\n",
+    "$$ and\n",
+    "$$\n",
+    "\\boldsymbol{\\beta}_s =\n",
+    "\\begin{bmatrix}\n",
+    "    \\beta_{s, 1} \\\\\n",
+    "    \\beta_{s, 2}\n",
+    "\\end{bmatrix} \\in \\mathbb{R}^{2 \\times 1}.\n",
+    "$$\n",
+    "    \n",
+    "Now we consider another tagging variant $t$, we ask what would be the ancestry-specific marginal effects evaluated at the tagging variant $t$ if the causal effects are the same across ancestries at variant $s$?\n",
+    "\n",
+    "Based on linear regression, the estimated effects at $t$ are\n",
+    "$$\n",
+    "    \\widehat{\\boldsymbol{\\beta}_t} = (\\mathbf{G}_t^\\top \\mathbf{G}_t)^{-1} \\mathbf{G}_t^\\top \\mathbf{y}.\n",
+    "$$\n",
+    "And the expectation of estimated effects are\n",
+    "$$\n",
+    "\\mathbb{E}[\\widehat{\\boldsymbol{\\beta}_t}] = (\\mathbf{G}_t^\\top \\mathbf{G}_t)^{-1} \\mathbf{G}_t^\\top \\mathbf{G}_s \\boldsymbol{\\beta}_s\n",
+    "$$\n",
+    "Because by assumption, $\\boldsymbol{\\beta}_{s,1} = \\boldsymbol{\\beta}_{s,2} = \\beta_s$, the above expectation can be simplified as\n",
+    "$$\n",
+    "\\mathbb{E}[\\widehat{\\boldsymbol{\\beta}_t}] = (\\mathbf{G}_t^\\top \\mathbf{G}_t)^{-1} \\mathbf{G}_t^\\top \\mathbf{g}_s \\beta_s\n",
+    "$$\n",
+    "Therefore, $(\\mathbf{G}_t^\\top \\mathbf{G}_t)^{-1} \\mathbf{G}_t^\\top \\mathbf{g}_s$ is the key quantity here."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Implementation\n",
+    "The following code `admix_tagging` calculate this quantity"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def admix_tagging(admix_ld, s: int, t: int):\n",
+    "    \"\"\"\n",
+    "    Assuming the causal SNP s, calculate the tagging from SNP s to SNP t\n",
+    "\n",
+    "    Parameters\n",
+    "    ----------\n",
+    "    admix_ld: Dict\n",
+    "        calculated by admix.data.admix_ld\n",
+    "    s: int\n",
+    "        source SNP\n",
+    "    t: int\n",
+    "        target SNP\n",
+    "    \"\"\"\n",
+    "\n",
+    "    def GG(admix_ld, s, t):\n",
+    "        ld1, ld2, ld12 = admix_ld[\"11\"], admix_ld[\"22\"], admix_ld[\"12\"]\n",
+    "        return np.array([[ld1[s, t], ld12[s, t]], [ld12[t, s], ld2[s, t]]])\n",
+    "\n",
+    "    GtGt = GG(admix_ld, t, t)\n",
+    "    GtGs = GG(admix_ld, t, s)\n",
+    "    tag = np.linalg.inv(GtGt) @ GtGs @ np.ones(2)[:, None]\n",
+    "    return tag.flatten()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(admix.data.admix_ld.__doc__)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# precompute once\n",
+    "# you can optionally control for some covariates\n",
+    "admix_ld = admix.data.admix_ld(dset, cov=None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# causal SNP 1, tagging SNP 0\n",
+    "admix_tagging(admix_ld, s=1, t=0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we calculate the ancestry-specific taggability for every target SNP $i$ from potential causal SNP $i + 1$."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "res = []\n",
+    "for i in range(dset.n_snp - 1):\n",
+    "    res.append(admix_tagging(admix_ld, s=i, t=i + 1))\n",
+    "res = np.vstack(res)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(figsize=(3, 3), dpi=150)\n",
+    "ax.scatter(res[:, 0], res[:, 1], s=3, alpha=0.2)\n",
+    "lim = max(abs(res.max()), abs(res.min()))\n",
+    "ax.set_xlim(-lim, lim)\n",
+    "ax.set_ylim(-lim, lim)\n",
+    "ax.plot((-lim, lim), (-lim, lim), \"k--\")\n",
+    "ax.set_xlabel(\"Tag for ancestry 1\")\n",
+    "ax.set_ylabel(\"Tag for ancestry 2\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

@@ -1,0 +1,1055 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Selecting admixed individuals" href="select-admixed.html" /><link rel="prev" title="Polygenic scoring for each local ancestry background" href="polygenic-scoring.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>admix.Dataset - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assoc.html">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/kangchenghou/admix-kit/edit/main/docs/notebooks/dataset.ipynb" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="admix.Dataset">
+<h1>admix.Dataset<a class="headerlink" href="#admix.Dataset" title="Permalink to this heading">#</a></h1>
+<p>We introduce the central data stuctures used in this package.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dset.geno</span></code>: genotype (<code class="docutils literal notranslate"><span class="pre">n_snp</span></code>, <code class="docutils literal notranslate"><span class="pre">n_indiv</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ploidy</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dset.lanc</span></code>: local ancestry (<code class="docutils literal notranslate"><span class="pre">n_snp</span></code>, <code class="docutils literal notranslate"><span class="pre">n_indiv</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ploidy</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dset.snp</span></code>: information about SNPs (<code class="docutils literal notranslate"><span class="pre">n_snp</span></code>, <code class="docutils literal notranslate"><span class="pre">n_snp_feature</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dset.indiv</span></code>: information about individuals (<code class="docutils literal notranslate"><span class="pre">n_indiv</span></code>, <code class="docutils literal notranslate"><span class="pre">n_indiv_feature</span></code>)</p></li>
+</ul>
+<p>Central in python API is the admix.Dataset class, which support various convenient operations for manipulating large on-disk data sets.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">admix</span>
+
+<span class="c1"># load example data</span>
+<span class="n">dset</span> <span class="o">=</span> <span class="n">admix</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="s2">&quot;example_data/CEU-YRI&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># overview of data set</span>
+<span class="n">dset</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 15357 x 10000, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># SNP attributes, CHROM (chromosomes), POS (positions), REF (reference allele), ALT (alternative allele), etc.</span>
+<span class="c1"># we have also precomputed FREQ1, FREQ2 as ancestry-specific allele frequencies</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">snp</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CHROM</th>
+      <th>POS</th>
+      <th>REF</th>
+      <th>ALT</th>
+      <th>QUAL</th>
+      <th>FILTER</th>
+      <th>INFO</th>
+    </tr>
+    <tr>
+      <th>snp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>22:16406147:A:G</th>
+      <td>22</td>
+      <td>16406147</td>
+      <td>A</td>
+      <td>G</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:16551808:T:C</th>
+      <td>22</td>
+      <td>16551808</td>
+      <td>T</td>
+      <td>C</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:16573830:T:C</th>
+      <td>22</td>
+      <td>16573830</td>
+      <td>T</td>
+      <td>C</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:16575525:T:C</th>
+      <td>22</td>
+      <td>16575525</td>
+      <td>T</td>
+      <td>C</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:16576248:G:T</th>
+      <td>22</td>
+      <td>16576248</td>
+      <td>G</td>
+      <td>T</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>22:50739662:G:A</th>
+      <td>22</td>
+      <td>50739662</td>
+      <td>G</td>
+      <td>A</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:50743331:A:G</th>
+      <td>22</td>
+      <td>50743331</td>
+      <td>A</td>
+      <td>G</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:50772964:T:C</th>
+      <td>22</td>
+      <td>50772964</td>
+      <td>T</td>
+      <td>C</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:50774447:A:C</th>
+      <td>22</td>
+      <td>50774447</td>
+      <td>A</td>
+      <td>C</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+    <tr>
+      <th>22:50780578:G:A</th>
+      <td>22</td>
+      <td>50780578</td>
+      <td>G</td>
+      <td>A</td>
+      <td>.</td>
+      <td>.</td>
+      <td>.</td>
+    </tr>
+  </tbody>
+</table>
+<p>15357 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># individual attributes</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">indiv</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+    </tr>
+    <tr>
+      <th>indiv</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Sample_1</th>
+    </tr>
+    <tr>
+      <th>Sample_2</th>
+    </tr>
+    <tr>
+      <th>Sample_3</th>
+    </tr>
+    <tr>
+      <th>Sample_4</th>
+    </tr>
+    <tr>
+      <th>Sample_5</th>
+    </tr>
+    <tr>
+      <th>...</th>
+    </tr>
+    <tr>
+      <th>Sample_9996</th>
+    </tr>
+    <tr>
+      <th>Sample_9997</th>
+    </tr>
+    <tr>
+      <th>Sample_9998</th>
+    </tr>
+    <tr>
+      <th>Sample_9999</th>
+    </tr>
+    <tr>
+      <th>Sample_10000</th>
+    </tr>
+  </tbody>
+</table>
+<p>10000 rows × 0 columns</p>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># phased genotype (n_snp, n_indiv, 2)</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">geno</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+    <tr>
+        <td>
+            <table style="border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <td> </td>
+                        <th> Array </th>
+                        <th> Chunk </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <th> Bytes </th>
+                        <td> 1.14 GiB </td>
+                        <td> 78.12 MiB </td>
+                    </tr>
+
+                    <tr>
+                        <th> Shape </th>
+                        <td> (15357, 10000, 2) </td>
+                        <td> (1024, 10000, 2) </td>
+                    </tr>
+                    <tr>
+                        <th> Dask graph </th>
+                        <td colspan="2"> 15 chunks in 31 graph layers </td>
+                    </tr>
+                    <tr>
+                        <th> Data type </th>
+                        <td colspan="2"> float32 numpy.ndarray </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+        <svg width="156" height="198" style="stroke:rgb(0,0,0);stroke-width:1" >
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="10" y1="78" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="10" y2="78" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="14" y2="82" />
+  <line x1="19" y1="9" x2="19" y2="87" />
+  <line x1="24" y1="14" x2="24" y2="92" />
+  <line x1="28" y1="18" x2="28" y2="96" />
+  <line x1="33" y1="23" x2="33" y2="101" />
+  <line x1="38" y1="28" x2="38" y2="106" />
+  <line x1="42" y1="32" x2="42" y2="111" />
+  <line x1="47" y1="37" x2="47" y2="115" />
+  <line x1="52" y1="42" x2="52" y2="120" />
+  <line x1="57" y1="47" x2="57" y2="125" />
+  <line x1="61" y1="51" x2="61" y2="129" />
+  <line x1="66" y1="56" x2="66" y2="134" />
+  <line x1="71" y1="61" x2="71" y2="139" />
+  <line x1="75" y1="65" x2="75" y2="144" />
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 80.58823529411765,70.58823529411765 80.58823529411765,148.72849706399458 10.0,78.14026176987693" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="35" y2="0" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="40" y2="4" />
+  <line x1="19" y1="9" x2="44" y2="9" />
+  <line x1="24" y1="14" x2="49" y2="14" />
+  <line x1="28" y1="18" x2="54" y2="18" />
+  <line x1="33" y1="23" x2="58" y2="23" />
+  <line x1="38" y1="28" x2="63" y2="28" />
+  <line x1="42" y1="32" x2="68" y2="32" />
+  <line x1="47" y1="37" x2="73" y2="37" />
+  <line x1="52" y1="42" x2="77" y2="42" />
+  <line x1="57" y1="47" x2="82" y2="47" />
+  <line x1="61" y1="51" x2="87" y2="51" />
+  <line x1="66" y1="56" x2="91" y2="56" />
+  <line x1="71" y1="61" x2="96" y2="61" />
+  <line x1="75" y1="65" x2="101" y2="65" />
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="35" y1="0" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 35.41261651458248,0.0 106.00085180870013,70.58823529411765 80.58823529411765,70.58823529411765" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+  <line x1="80" y1="148" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+  <line x1="106" y1="70" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="80.58823529411765,70.58823529411765 106.00085180870013,70.58823529411765 106.00085180870013,148.72849706399458 80.58823529411765,148.72849706399458" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Text -->
+  <text x="93.294544" y="168.728497" font-size="1.0rem" font-weight="100" text-anchor="middle" >2</text>
+  <text x="126.000852" y="109.658366" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(-90,126.000852,109.658366)">10000</text>
+  <text x="35.294118" y="133.434379" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(45,35.294118,133.434379)">15357</text>
+</svg>
+        </td>
+    </tr>
+</table></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># local ancestry (n_snp, n_indiv, 2)</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">lanc</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+    <tr>
+        <td>
+            <table style="border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <td> </td>
+                        <th> Array </th>
+                        <th> Chunk </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <th> Bytes </th>
+                        <td> 292.91 MiB </td>
+                        <td> 19.53 MiB </td>
+                    </tr>
+
+                    <tr>
+                        <th> Shape </th>
+                        <td> (15357, 10000, 2) </td>
+                        <td> (1024, 10000, 2) </td>
+                    </tr>
+                    <tr>
+                        <th> Dask graph </th>
+                        <td colspan="2"> 15 chunks in 31 graph layers </td>
+                    </tr>
+                    <tr>
+                        <th> Data type </th>
+                        <td colspan="2"> int8 numpy.ndarray </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+        <svg width="156" height="198" style="stroke:rgb(0,0,0);stroke-width:1" >
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="10" y1="78" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="10" y2="78" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="14" y2="82" />
+  <line x1="19" y1="9" x2="19" y2="87" />
+  <line x1="24" y1="14" x2="24" y2="92" />
+  <line x1="28" y1="18" x2="28" y2="96" />
+  <line x1="33" y1="23" x2="33" y2="101" />
+  <line x1="38" y1="28" x2="38" y2="106" />
+  <line x1="42" y1="32" x2="42" y2="111" />
+  <line x1="47" y1="37" x2="47" y2="115" />
+  <line x1="52" y1="42" x2="52" y2="120" />
+  <line x1="57" y1="47" x2="57" y2="125" />
+  <line x1="61" y1="51" x2="61" y2="129" />
+  <line x1="66" y1="56" x2="66" y2="134" />
+  <line x1="71" y1="61" x2="71" y2="139" />
+  <line x1="75" y1="65" x2="75" y2="144" />
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 80.58823529411765,70.58823529411765 80.58823529411765,148.72849706399458 10.0,78.14026176987693" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="35" y2="0" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="40" y2="4" />
+  <line x1="19" y1="9" x2="44" y2="9" />
+  <line x1="24" y1="14" x2="49" y2="14" />
+  <line x1="28" y1="18" x2="54" y2="18" />
+  <line x1="33" y1="23" x2="58" y2="23" />
+  <line x1="38" y1="28" x2="63" y2="28" />
+  <line x1="42" y1="32" x2="68" y2="32" />
+  <line x1="47" y1="37" x2="73" y2="37" />
+  <line x1="52" y1="42" x2="77" y2="42" />
+  <line x1="57" y1="47" x2="82" y2="47" />
+  <line x1="61" y1="51" x2="87" y2="51" />
+  <line x1="66" y1="56" x2="91" y2="56" />
+  <line x1="71" y1="61" x2="96" y2="61" />
+  <line x1="75" y1="65" x2="101" y2="65" />
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="35" y1="0" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 35.41261651458248,0.0 106.00085180870013,70.58823529411765 80.58823529411765,70.58823529411765" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+  <line x1="80" y1="148" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+  <line x1="106" y1="70" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="80.58823529411765,70.58823529411765 106.00085180870013,70.58823529411765 106.00085180870013,148.72849706399458 80.58823529411765,148.72849706399458" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Text -->
+  <text x="93.294544" y="168.728497" font-size="1.0rem" font-weight="100" text-anchor="middle" >2</text>
+  <text x="126.000852" y="109.658366" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(-90,126.000852,109.658366)">10000</text>
+  <text x="35.294118" y="133.434379" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(45,35.294118,133.434379)">15357</text>
+</svg>
+        </td>
+    </tr>
+</table></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># subset the first 50 SNPs</span>
+<span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="p">:]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 50 x 10000, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># subset the first 50 individuals</span>
+<span class="n">dset</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 15357 x 50, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># subset the first 50 SNPs and first 50 individuals</span>
+<span class="n">dset</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+admix.Dataset object with n_snp x n_indiv = 50 x 50, n_anc=2
+        snp: &#39;CHROM&#39;, &#39;POS&#39;, &#39;REF&#39;, &#39;ALT&#39;, &#39;QUAL&#39;, &#39;FILTER&#39;, &#39;INFO&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># calculate allele per ancestry backgrounds</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">allele_per_anc</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+    <tr>
+        <td>
+            <table style="border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <td> </td>
+                        <th> Array </th>
+                        <th> Chunk </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <th> Bytes </th>
+                        <td> 2.29 GiB </td>
+                        <td> 156.25 MiB </td>
+                    </tr>
+
+                    <tr>
+                        <th> Shape </th>
+                        <td> (15357, 10000, 2) </td>
+                        <td> (1024, 10000, 2) </td>
+                    </tr>
+                    <tr>
+                        <th> Dask graph </th>
+                        <td colspan="2"> 15 chunks in 63 graph layers </td>
+                    </tr>
+                    <tr>
+                        <th> Data type </th>
+                        <td colspan="2"> float64 numpy.ndarray </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+        <svg width="156" height="198" style="stroke:rgb(0,0,0);stroke-width:1" >
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="10" y1="78" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="10" y2="78" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="14" y2="82" />
+  <line x1="19" y1="9" x2="19" y2="87" />
+  <line x1="24" y1="14" x2="24" y2="92" />
+  <line x1="28" y1="18" x2="28" y2="96" />
+  <line x1="33" y1="23" x2="33" y2="101" />
+  <line x1="38" y1="28" x2="38" y2="106" />
+  <line x1="42" y1="32" x2="42" y2="111" />
+  <line x1="47" y1="37" x2="47" y2="115" />
+  <line x1="52" y1="42" x2="52" y2="120" />
+  <line x1="57" y1="47" x2="57" y2="125" />
+  <line x1="61" y1="51" x2="61" y2="129" />
+  <line x1="66" y1="56" x2="66" y2="134" />
+  <line x1="71" y1="61" x2="71" y2="139" />
+  <line x1="75" y1="65" x2="75" y2="144" />
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 80.58823529411765,70.58823529411765 80.58823529411765,148.72849706399458 10.0,78.14026176987693" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="10" y1="0" x2="35" y2="0" style="stroke-width:2" />
+  <line x1="14" y1="4" x2="40" y2="4" />
+  <line x1="19" y1="9" x2="44" y2="9" />
+  <line x1="24" y1="14" x2="49" y2="14" />
+  <line x1="28" y1="18" x2="54" y2="18" />
+  <line x1="33" y1="23" x2="58" y2="23" />
+  <line x1="38" y1="28" x2="63" y2="28" />
+  <line x1="42" y1="32" x2="68" y2="32" />
+  <line x1="47" y1="37" x2="73" y2="37" />
+  <line x1="52" y1="42" x2="77" y2="42" />
+  <line x1="57" y1="47" x2="82" y2="47" />
+  <line x1="61" y1="51" x2="87" y2="51" />
+  <line x1="66" y1="56" x2="91" y2="56" />
+  <line x1="71" y1="61" x2="96" y2="61" />
+  <line x1="75" y1="65" x2="101" y2="65" />
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="10" y1="0" x2="80" y2="70" style="stroke-width:2" />
+  <line x1="35" y1="0" x2="106" y2="70" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="10.0,0.0 35.41261651458248,0.0 106.00085180870013,70.58823529411765 80.58823529411765,70.58823529411765" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Horizontal lines -->
+  <line x1="80" y1="70" x2="106" y2="70" style="stroke-width:2" />
+  <line x1="80" y1="148" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Vertical lines -->
+  <line x1="80" y1="70" x2="80" y2="148" style="stroke-width:2" />
+  <line x1="106" y1="70" x2="106" y2="148" style="stroke-width:2" />
+
+  <!-- Colored Rectangle -->
+  <polygon points="80.58823529411765,70.58823529411765 106.00085180870013,70.58823529411765 106.00085180870013,148.72849706399458 80.58823529411765,148.72849706399458" style="fill:#ECB172A0;stroke-width:0"/>
+
+  <!-- Text -->
+  <text x="93.294544" y="168.728497" font-size="1.0rem" font-weight="100" text-anchor="middle" >2</text>
+  <text x="126.000852" y="109.658366" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(-90,126.000852,109.658366)">10000</text>
+  <text x="35.294118" y="133.434379" font-size="1.0rem" font-weight="100" text-anchor="middle" transform="rotate(45,35.294118,133.434379)">15357</text>
+</svg>
+        </td>
+    </tr>
+</table></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># calculate allele frequencies per ancestry backgrounds</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">af_per_anc</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+admix.data.af_per_anc: 100%|███████████████████████████████████████████████████████████████████████████████| 15/15 [00:11&lt;00:00,  1.35it/s]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([[0.28433613, 0.01600149],
+       [0.44607595, 0.46056075],
+       [0.25962513, 0.01133815],
+       ...,
+       [0.1228952 , 0.01448099],
+       [0.34757477, 0.55327383],
+       [0.17893943, 0.36445915]])
+</pre></div></div>
+</div>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="select-admixed.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Selecting admixed individuals</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="polygenic-scoring.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Polygenic scoring for each local ancestry background</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

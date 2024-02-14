@@ -1,0 +1,6 @@
+﻿admix.simulate.quant\_pheno\_1pop
+=================================
+
+.. currentmodule:: admix.simulate
+
+.. autofunction:: quant_pheno_1pop

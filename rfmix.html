@@ -1,0 +1,463 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>Guideline to use RFmix for local ancestry inference - admix-kit docs</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">admix-kit docs</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">admix-kit docs</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prepare-dataset.html">Dataset preparation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="cli/index.html">Command line interface</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Command line interface</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli/assoc-test.html">Association testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli/genet-cor.html">Genetic correlation estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli/pgs.html">Local ancestry-specific polygenic score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli/simulate-pheno.html">Phenotype simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">Python API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Python API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.assoc.marginal.html">admix.assoc.marginal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.cli.admix_grm.html">admix.cli.admix_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.cli.admix_grm_merge.html">admix.cli.admix_grm_merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.cli.genet_cor.html">admix.cli.genet_cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.data.calc_partial_pgs.html">admix.data.calc_partial_pgs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.Dataset.html">admix.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.simulate.admix_geno.html">admix.simulate.admix_geno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.simulate.quant_pheno.html">admix.simulate.quant_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.simulate.binary_pheno.html">admix.simulate.binary_pheno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.simulate.quant_pheno_1pop.html">admix.simulate.quant_pheno_1pop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.simulate.quant_pheno_grm.html">admix.simulate.quant_pheno_grm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.data.allele_per_anc.html">admix.data.allele_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.data.af_per_anc.html">admix.data.af_per_anc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.io.read_dataset.html">admix.io.read_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.io.read_lanc.html">admix.io.read_lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.io.read_rfmix.html">admix.io.read_rfmix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.tools.plink2.lift_over.html">admix.tools.plink2.lift_over</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.plot.lanc.html">admix.plot.lanc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.plot.admixture.html">admix.plot.admixture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.plot.manhattan.html">admix.plot.manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/admix.plot.qq.html">admix.plot.qq</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="simulate-admix-genotype.html">Admixed genotype simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/analyze-admix-simu-data.html">Basic statistics and visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/assoc.html">Association testing (GWAS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/genet-cor.html">Genetic correlation across local ancestry segments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/polygenic-scoring.html">Polygenic scoring for each local ancestry background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/dataset.html">admix.Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/select-admixed.html">Selecting admixed individuals</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/kangchenghou/admix-kit/edit/main/docs/rfmix.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section class="tex2jax_ignore mathjax_ignore" id="guideline-to-use-rfmix-for-local-ancestry-inference">
+<h1>Guideline to use RFmix for local ancestry inference<a class="headerlink" href="#guideline-to-use-rfmix-for-local-ancestry-inference" title="Permalink to this heading">#</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This guideline assume you have <strong>phased</strong> genotype in PLINK2 pgen format of your own dataset.
+PLINK2 can convert many other formats to pgen format <a class="reference external" href="https://www.cog-genomics.org/plink/2.0/input">(see here)</a>.
+If you need help, <a class="reference external" href="https://github.com/KangchengHou/admix-kit/issues">raise an issue</a> so we can help
+update this guideline to adapt to your data.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note on converting UK Biobank version 2 phased haplotype data (contributed by Jordan Rossen from HSPH):</p>
+<p>When converting UK Biobank version 2 phased haplotype data bgen format using plink2, for chromosomes 1-20, the ref-first flag should be used (<code class="docutils literal notranslate"><span class="pre">--bgen</span> <span class="pre">ref-first</span></code>) and for chromosomes 21-22, the ref-last flag should be used (<code class="docutils literal notranslate"><span class="pre">--bgen</span> <span class="pre">ref-last</span></code>). This is because the allele encoding is switched for chromosomes 21 and 22, specifically in the phased haplotype data (this is not an issue in the UK Biobank imputed data). This issue has been previously noted on the <a class="reference external" href="https://www.jiscmail.ac.uk/cgi-bin/webadmin?A0=UKB-GENETICS">UK Biobank mailing list</a> (registration is needed).</p>
+</div>
+<section id="step-1-download-and-process-reference-data">
+<h2>Step 1: download and process reference data<a class="headerlink" href="#step-1-download-and-process-reference-data" title="Permalink to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>admix<span class="w"> </span>get-1kg-ref<span class="w"> </span>--dir<span class="o">=</span>/path/to/1kg<span class="w"> </span>--build<span class="w"> </span>hg38
+<span class="c1"># or --build hg19</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This script will (1) download plink2 pgen files for 1,000 genomes project (2) perform
+basic QCs (3) download metadata of sample map and genetic maps. This will take a while to process (~2hrs).
+You can also <a class="reference internal" href="download-1kg-detail.html"><span class="std std-doc">read more details</span></a> behind the scene.</p>
+</div>
+<p>As RFmix takes reference dataset in vcf format, we convert pgen format to vcf format</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># convert plink2 to vcf</span>
+<span class="nv">root_dir</span><span class="o">=</span>/path/to/1kg/
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="si">${</span><span class="nv">root_dir</span><span class="si">}</span>/vcf/
+<span class="k">for</span><span class="w"> </span>chrom<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..22<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>plink2<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pfile<span class="w"> </span><span class="si">${</span><span class="nv">root_dir</span><span class="si">}</span>/pgen/all_chr<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--export<span class="w"> </span>vcf<span class="w"> </span>bgz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--chr<span class="w"> </span><span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">root_dir</span><span class="si">}</span>/vcf/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>tabix<span class="w"> </span>-p<span class="w"> </span>vcf<span class="w"> </span><span class="si">${</span><span class="nv">root_dir</span><span class="si">}</span>/vcf/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span>.vcf.gz
+<span class="k">done</span>
+</pre></div>
+</div>
+</section>
+<section id="step-1-5-optional-subset-admixed-individuals-using-joint-pca-with-1kg-reference">
+<h2>Step 1.5 (optional) subset admixed individuals using joint PCA with 1KG reference<a class="headerlink" href="#step-1-5-optional-subset-admixed-individuals-using-joint-pca-with-1kg-reference" title="Permalink to this heading">#</a></h2>
+<p>We first merge the 1kg data and sample data into a single file and perform a joint PCA.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">ref_pfile</span><span class="o">=</span>/path/to/1kg/all_chr<span class="w">    </span><span class="c1"># path to 1kg pgen file (all chromosomes)</span>
+<span class="nv">sample_pfile</span><span class="o">=</span>/path/to/sample/all_chr<span class="w"> </span><span class="c1"># path to sample pgen file (all chromosomes)</span>
+<span class="nv">out_dir</span><span class="o">=</span>/path/to/joint-pca<span class="w">    </span><span class="c1"># path to output directory</span>
+
+<span class="c1"># merge 1kg dataset and sample dataset</span>
+admix<span class="w"> </span>pfile-merge-indiv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pfile1<span class="w"> </span><span class="si">${</span><span class="nv">ref_pfile</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pfile2<span class="w"> </span><span class="si">${</span><span class="nv">sample_pfile</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged
+
+<span class="c1"># perform PCA (you may want to remove the &#39;approx&#39; modifier if you don&#39;t have many samples in your data set (&lt;5,000 individuals))</span>
+plink2<span class="w"> </span>--bfile<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pca<span class="w"> </span>approx<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged_pca
+</pre></div>
+</div>
+<p>Then we plot the joint PCA results.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>admix<span class="w"> </span>plot-joint-pca<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ref-pfile<span class="w"> </span><span class="si">${</span><span class="nv">ref_pfile</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pca-prefix<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged_pca<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged_pca
+</pre></div>
+</div>
+<p>And we select admixed individuals based on PC.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>admix<span class="w"> </span><span class="k">select</span>-admix-indiv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ref-pfile<span class="w"> </span><span class="si">${</span><span class="nv">ref_pfile</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pca-prefix<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/merged_pca<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--superpop1<span class="w"> </span>EUR<span class="w"> </span>--superpop2<span class="w"> </span>AFR<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--exclude-pop2<span class="w"> </span>ASW,ACB<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/selected_admix
+</pre></div>
+</div>
+<p>And create new plink2 files</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span>chrom<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>seq<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">22</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>plink2<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--pfile<span class="w"> </span>/path/to/sample/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--keep<span class="w"> </span><span class="si">${</span><span class="nv">out_dir</span><span class="si">}</span>/selected_admix.indiv<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--make-pgen<span class="w"> </span>--out<span class="w"> </span>/path/to/sample/admix/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--maf<span class="w"> </span><span class="m">0</span>.005<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--memory<span class="w"> </span><span class="m">24000</span>
+<span class="k">done</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-run-rfmix">
+<h2>Step 2: run RFmix<a class="headerlink" href="#step-2-run-rfmix" title="Permalink to this heading">#</a></h2>
+<section id="step-2-1-download-and-compile-rfmix">
+<h3>Step 2.1: download and compile RFmix<a class="headerlink" href="#step-2-1-download-and-compile-rfmix" title="Permalink to this heading">#</a></h3>
+<p>Follow <code class="docutils literal notranslate"><span class="pre">https://github.com/slowkoni/rfmix#building-rfmix</span></code> to build the rfmix executables.</p>
+</section>
+<section id="step-2-2-run-rfmix">
+<h3>Step 2.2: run RFmix<a class="headerlink" href="#step-2-2-run-rfmix" title="Permalink to this heading">#</a></h3>
+<p>Now we will run RFmix to infer local ancestry for your genotype file (see how to prepare the genotype file in <a class="reference internal" href="prepare-dataset.html"><span class="std std-doc">Prepare dataset section</span></a>).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">## Specify constants</span>
+<span class="nv">chrom</span><span class="o">=</span>XX<span class="w"> </span><span class="c1"># this script should be ran 1 chromosome at a time</span>
+<span class="nv">REF_DIR</span><span class="o">=</span>/path/to/1kg/<span class="w"> </span><span class="c1"># see step 1, set it to the root directory containing metadata/ pgen/ vcf/</span>
+<span class="nv">RFMIX</span><span class="o">=</span>/path/to/rfmix_exe<span class="w"> </span><span class="c1"># see above to download and compile rfmix executables</span>
+
+<span class="nv">pfile</span><span class="o">=</span>/path/to/your-plink2-file<span class="w"> </span><span class="c1"># see &quot;Prepare dataset&quot; section</span>
+<span class="nv">out_prefix</span><span class="o">=</span>/path/to/output/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="c1"># output prefix</span>
+
+<span class="c1">## convert pfile to vcf because RFmix takes vcf as input</span>
+plink2<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pfile<span class="w"> </span><span class="si">${</span><span class="nv">pfile</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--chr<span class="w"> </span><span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-chr<span class="w"> </span><span class="m">26</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--export<span class="w"> </span>vcf<span class="w"> </span>bgz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.tmp
+
+tabix<span class="w"> </span>-p<span class="w"> </span>vcf<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.tmp.vcf.gz
+
+<span class="c1">## Filter reference samples</span>
+<span class="c1"># extract 1st column (sample name) and 2nd column (populations)</span>
+<span class="c1"># Here, we use CEU, YRI, PEL for reference populations for Latino populations</span>
+<span class="c1"># NOTE: it is up to your choice what reference populations to use</span>
+<span class="c1"># e.g., For local ancestry inference of European-African admixed individuals, we </span>
+<span class="c1"># recommend using CEU, YRI only.</span>
+awk<span class="w"> </span><span class="s1">&#39;$2==&quot;CEU&quot; || $2==&quot;YRI&quot; || $2==&quot;PEL&quot; {print $1 &quot;\t&quot; $2}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="si">${</span><span class="nv">REF_DIR</span><span class="si">}</span>/metadata/unrelated_sample.tsv<span class="w"> </span>&gt;<span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.tmp.sample_map.tsv
+
+<span class="c1">## run RFmix</span>
+<span class="si">${</span><span class="nv">RFMIX</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-f<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.tmp.vcf.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-r<span class="w"> </span><span class="si">${</span><span class="nv">REF_DIR</span><span class="si">}</span>/vcf/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span>.vcf.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-m<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.tmp.sample_map.tsv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-g<span class="w"> </span><span class="si">${</span><span class="nv">REF_DIR</span><span class="si">}</span>/metadata/genetic_map/chr<span class="si">${</span><span class="nv">chrom</span><span class="si">}</span>.tsv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--chromosome<span class="o">=</span><span class="si">${</span><span class="nv">chrom</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>
+
+<span class="c1">## Remove temporary files</span>
+<span class="c1"># .sis file corresponds to XX</span>
+<span class="c1"># .fb file corresponds to XX</span>
+rm<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>*tmp*
+rm<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.sis.tsv
+rm<span class="w"> </span><span class="si">${</span><span class="nv">out_prefix</span><span class="si">}</span>.fb.tsv
+</pre></div>
+</div>
+<p>After you finish this step, you can proceed to the rest of <a class="reference internal" href="prepare-dataset.html"><span class="std std-doc">preparing the dataset</span></a>.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Kangcheng Hou
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/kangchenghou/admix-kit" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Guideline to use RFmix for local ancestry inference</a><ul>
+<li><a class="reference internal" href="#step-1-download-and-process-reference-data">Step 1: download and process reference data</a></li>
+<li><a class="reference internal" href="#step-1-5-optional-subset-admixed-individuals-using-joint-pca-with-1kg-reference">Step 1.5 (optional) subset admixed individuals using joint PCA with 1KG reference</a></li>
+<li><a class="reference internal" href="#step-2-run-rfmix">Step 2: run RFmix</a><ul>
+<li><a class="reference internal" href="#step-2-1-download-and-compile-rfmix">Step 2.1: download and compile RFmix</a></li>
+<li><a class="reference internal" href="#step-2-2-run-rfmix">Step 2.2: run RFmix</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/tabs.js?v=3ee01567"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

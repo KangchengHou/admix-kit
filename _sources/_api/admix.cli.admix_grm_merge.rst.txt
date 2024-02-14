@@ -1,0 +1,6 @@
+﻿admix.cli.admix\_grm\_merge
+===========================
+
+.. currentmodule:: admix.cli
+
+.. autofunction:: admix_grm_merge
