@@ -7,10 +7,10 @@ This package aims to facilitate analyses and methods development of genetics dat
 ## Installation
 
 ```bash
-pip install admix-kit
+pip install -U admix-kit
 ```
 
-If you wish to create separate environment to avoid potential conflicts with other packages, you can use `conda`:
+Use `conda` ff you wish to create separate environment to avoid potential conflicts with other packages with:
 
 ```bash
 git clone https://github.com/KangchengHou/admix-kit
