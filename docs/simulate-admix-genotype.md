@@ -17,7 +17,10 @@ done
 admix download-dependency --name genetic_map --build hg38
 admix download-dependency --name genetic_map --build hg19
 ```
-OK to skip this step as `admix-kit` will automatically download the software and reference data if you have the internet connection.
+
+```{note}
+It is to skip this step as `admix-kit` will automatically download the software and reference data if you have the internet connection.
+```
 
 ## Simulation
 ```bash
