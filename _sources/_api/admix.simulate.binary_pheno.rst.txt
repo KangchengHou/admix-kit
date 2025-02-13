@@ -1,0 +1,6 @@
+﻿admix.simulate.binary\_pheno
+============================
+
+.. currentmodule:: admix.simulate
+
+.. autofunction:: binary_pheno

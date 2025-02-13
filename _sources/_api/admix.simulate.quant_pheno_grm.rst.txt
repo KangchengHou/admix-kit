@@ -1,0 +1,6 @@
+﻿admix.simulate.quant\_pheno\_grm
+================================
+
+.. currentmodule:: admix.simulate
+
+.. autofunction:: quant_pheno_grm

@@ -1,0 +1,6 @@
+﻿admix.io.read\_lanc
+===================
+
+.. currentmodule:: admix.io
+
+.. autofunction:: read_lanc

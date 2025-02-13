@@ -1,0 +1,6 @@
+﻿admix.cli.genet\_cor
+====================
+
+.. currentmodule:: admix.cli
+
+.. autofunction:: genet_cor

@@ -1,0 +1,6 @@
+﻿admix.data.af\_per\_anc
+=======================
+
+.. currentmodule:: admix.data
+
+.. autofunction:: af_per_anc

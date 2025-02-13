@@ -1,0 +1,6 @@
+﻿admix.io.read\_rfmix
+====================
+
+.. currentmodule:: admix.io
+
+.. autofunction:: read_rfmix
