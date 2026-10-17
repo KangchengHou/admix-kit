@@ -75,10 +75,10 @@ def test_linear_nan():
 
     # set some of the 3rd SNP of geno to NaN
     geno_with_nan = geno.copy()
-    geno_with_nan[3, 0, 1] = np.NaN
-    geno_with_nan[3, 2, 0] = np.NaN
-    geno_with_nan[5, 0, 0] = np.NaN
-    geno_with_nan[5, 2, 0] = np.NaN
+    geno_with_nan[3, 0, 1] = np.nan
+    geno_with_nan[3, 2, 0] = np.nan
+    geno_with_nan[5, 0, 0] = np.nan
+    geno_with_nan[5, 2, 0] = np.nan
     pval_att_fast = admix.assoc.marginal(
         geno=geno_with_nan,
         lanc=lanc,
@@ -112,12 +112,12 @@ def test_linear_nan():
             np.random.choice(dset.n_snp, size=2, replace=False),
             np.random.choice(dset.n_indiv, size=2, replace=False),
             0,
-        ] = np.NaN
+        ] = np.nan
         geno_with_nan[
             np.random.choice(dset.n_snp, size=2, replace=False),
             np.random.choice(dset.n_indiv, size=2, replace=False),
             1,
-        ] = np.NaN
+        ] = np.nan
 
         pval_tractor_slow = admix.assoc.marginal(
             geno=geno_with_nan,

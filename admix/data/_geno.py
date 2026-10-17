@@ -402,7 +402,7 @@ def af_per_anc(
     Calculate allele frequency per ancestry
 
     If at one particular SNP locus, no SNP from one particular ancestry can be found
-    the corresponding entries will be filled with np.NaN.
+    the corresponding entries will be filled with np.nan.
 
     Parameters
     ----------

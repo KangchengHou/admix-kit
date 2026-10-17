@@ -44,7 +44,12 @@ def get_dependency(name, download=True):
 
             if name == "plink2":
                 if platform == "darwin":
-                    url = "https://s3.amazonaws.com/plink2-assets/alpha2/plink2_mac.zip"
+                    import platform as _platform
+
+                    if _platform.machine() == "arm64":
+                        url = "https://s3.amazonaws.com/plink2-assets/alpha7/plink2_mac_arm64_20261015.zip"
+                    else:
+                        url = "https://s3.amazonaws.com/plink2-assets/alpha7/plink2_mac_20261015.zip"
                 elif platform == "linux":
                     url = "https://s3.amazonaws.com/plink2-assets/alpha5/plink2_linux_x86_64_20240105.zip"
                 else:
