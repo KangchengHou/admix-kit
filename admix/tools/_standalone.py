@@ -383,7 +383,7 @@ def haptools_simu_admix(
     out_prefix: str
         output prefix
     """
-    from bisect import bisect_left
+    from bisect import bisect_right
 
     ##################################
     # check input
@@ -465,7 +465,7 @@ def haptools_simu_admix(
             anc_order = anc_map[anc]
             hap_pos.append(int(pos))
             hap_values.append(anc_order)
-        hap_breaks = [bisect_left(snp_df.POS.values, p) for p in hap_pos]
+        hap_breaks = [bisect_right(snp_df.POS.values, p) for p in hap_pos]
         breaks.append(hap_breaks)
         values.append(hap_values)
 
