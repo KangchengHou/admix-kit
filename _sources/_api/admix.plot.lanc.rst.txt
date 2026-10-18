@@ -1,0 +1,6 @@
+﻿admix.plot.lanc
+===============
+
+.. currentmodule:: admix.plot
+
+.. autofunction:: lanc

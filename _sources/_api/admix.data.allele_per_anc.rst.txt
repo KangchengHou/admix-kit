@@ -1,0 +1,6 @@
+﻿admix.data.allele\_per\_anc
+===========================
+
+.. currentmodule:: admix.data
+
+.. autofunction:: allele_per_anc

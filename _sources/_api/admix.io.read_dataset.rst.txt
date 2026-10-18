@@ -1,0 +1,6 @@
+﻿admix.io.read\_dataset
+======================
+
+.. currentmodule:: admix.io
+
+.. autofunction:: read_dataset

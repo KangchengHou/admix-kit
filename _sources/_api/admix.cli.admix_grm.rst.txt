@@ -1,0 +1,6 @@
+﻿admix.cli.admix\_grm
+====================
+
+.. currentmodule:: admix.cli
+
+.. autofunction:: admix_grm

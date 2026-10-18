@@ -1,0 +1,6 @@
+﻿admix.assoc.marginal
+====================
+
+.. currentmodule:: admix.assoc
+
+.. autofunction:: marginal
