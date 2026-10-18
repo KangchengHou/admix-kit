@@ -8,6 +8,40 @@ import os
 import admix
 
 
+def _download(url: str, dest: str, name: str):
+    """Download `url` to `dest`, with an actionable error message on failure"""
+    try:
+        urllib.request.urlretrieve(url, dest)
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to download {name} from {url} ({e}). Please install {name} "
+            f"manually and add it to $PATH, or place the executable at "
+            f"{join(get_cache_dir(), 'bin', name)}"
+        ) from e
+
+
+def _latest_plink2_url(build: str):
+    """Find the current download URL of a plink2 build (e.g., 'plink2_mac_arm64')
+    from the plink2 website; dated download links are removed over time"""
+    import re
+
+    try:
+        html = (
+            urllib.request.urlopen("https://www.cog-genomics.org/plink/2.0/", timeout=30)
+            .read()
+            .decode()
+        )
+    except Exception:
+        return None
+    urls = re.findall(
+        r"https://s3\.amazonaws\.com/plink2-assets/[\w/]*" + build + r"_\d+\.zip", html
+    )
+    # prefer the stable (alpha) builds over development builds
+    stable_urls = [u for u in urls if "/alpha" in u]
+    urls = stable_urls if len(stable_urls) > 0 else urls
+    return urls[0] if len(urls) > 0 else None
+
+
 def get_dependency(name, download=True):
     """Get path to an depenency
     Find the binary in the following locations:
@@ -47,20 +81,30 @@ def get_dependency(name, download=True):
                     import platform as _platform
 
                     if _platform.machine() == "arm64":
+                        build = "plink2_mac_arm64"
                         url = "https://s3.amazonaws.com/plink2-assets/alpha7/plink2_mac_arm64_20261015.zip"
                     else:
+                        build = "plink2_mac"
                         url = "https://s3.amazonaws.com/plink2-assets/alpha7/plink2_mac_20261015.zip"
                 elif platform == "linux":
+                    build = "plink2_linux_x86_64"
                     url = "https://s3.amazonaws.com/plink2-assets/alpha5/plink2_linux_x86_64_20240105.zip"
                 else:
                     raise ValueError(f"Unsupported platform {platform}")
 
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "file.zip",
-                        )
+                        try:
+                            _download(url, "file.zip", name)
+                        except RuntimeError:
+                            # the pinned build may have been removed, use the latest
+                            latest_url = _latest_plink2_url(build)
+                            if latest_url is None:
+                                raise
+                            admix.logger.info(
+                                f"Download from {url} failed, try {latest_url}"
+                            )
+                            _download(latest_url, "file.zip", name)
                         subprocess.check_call(f"unzip file.zip -d dir", shell=True)
                         subprocess.check_call(
                             f"mv dir/plink2 {cache_bin_path}", shell=True
@@ -78,10 +122,7 @@ def get_dependency(name, download=True):
 
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "file.zip",
-                        )
+                        _download(url, "file.zip", name)
                         subprocess.check_call(f"unzip file.zip -d dir", shell=True)
                         subprocess.check_call(
                             f"mv dir/plink {cache_bin_path}", shell=True
@@ -99,10 +140,7 @@ def get_dependency(name, download=True):
                 )
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "file.zip",
-                        )
+                        _download(url, "file.zip", name)
                         subprocess.check_call(f"unzip file.zip -d dir", shell=True)
                         subprocess.check_call(
                             f"mv dir/{platform_wildcard}/gcta64 {cache_bin_path}",
@@ -123,10 +161,7 @@ def get_dependency(name, download=True):
 
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "liftOver",
-                        )
+                        _download(url, "liftOver", name)
                         subprocess.check_call(f"chmod +x liftOver", shell=True)
                         subprocess.check_call(
                             f"mv liftOver {cache_bin_path}", shell=True
@@ -142,10 +177,7 @@ def get_dependency(name, download=True):
                     raise ValueError(f"Unsupported platform {platform}")
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "file.tar.gz",
-                        )
+                        _download(url, "file.tar.gz", name)
                         subprocess.check_call(f"tar -xvf file.tar.gz", shell=True)
 
                         subprocess.check_call(
@@ -160,10 +192,7 @@ def get_dependency(name, download=True):
                     raise ValueError(f"Unsupported platform {platform}")
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with cd(tmp_dir):
-                        urllib.request.urlretrieve(
-                            url,
-                            "master.zip",
-                        )
+                        _download(url, "master.zip", name)
                         subprocess.check_call(f"unzip master.zip -d dir", shell=True)
                         # make
                         subprocess.check_call(

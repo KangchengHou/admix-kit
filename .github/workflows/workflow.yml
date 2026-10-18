@@ -11,6 +11,11 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v4
+    - name: Cache downloaded tools
+      uses: actions/cache@v4
+      with:
+        path: .admix_cache
+        key: admix-cache-${{ runner.os }}-${{ hashFiles('admix/tools/_utils.py') }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:

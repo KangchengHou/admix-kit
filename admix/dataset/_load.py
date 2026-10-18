@@ -13,6 +13,13 @@ from ._dataset import Dataset
 import admix
 
 
+def _open_zarr_zip(path: str) -> xr.Dataset:
+    """Open a zipped zarr store, compatible with zarr 2 and zarr 3"""
+    import zarr
+
+    return xr.open_zarr(zarr.storage.ZipStore(path, mode="r"))
+
+
 def get_test_data_dir() -> str:
     """
     Get toy dataset directory
@@ -92,9 +99,9 @@ def load_toy() -> List[Dataset]:
 
     module_path = dirname(__file__)
     test_data_path = join(module_path, "../../tests/test-data")
-    dset_eur = xr.open_zarr(join(test_data_path, "eur.zip"))
-    dset_afr = xr.open_zarr(join(test_data_path, "afr.zip"))
-    dset_admix = xr.open_zarr(join(test_data_path, "admix.zip"))
+    dset_eur = _open_zarr_zip(join(test_data_path, "eur.zip"))
+    dset_afr = _open_zarr_zip(join(test_data_path, "afr.zip"))
+    dset_admix = _open_zarr_zip(join(test_data_path, "admix.zip"))
 
     dset_list = [
         Dataset(
@@ -413,7 +420,7 @@ def load_lab_dataset(name: str, chrom: int = None, region: str = None) -> xr.Dat
         ]
         root_dir = "/u/project/pasaniuc/pasaniucdata/admixture/dataset"
         assert os.path.isdir(root_dir), f"check that you have access to {root_dir}"
-        dset = xr.open_zarr(join(root_dir, name + ".zip"))
+        dset = _open_zarr_zip(join(root_dir, name + ".zip"))
     elif name == "ukb_eur_afr_hm3":
         assert region is None, "region must not be specified when loading hm3 data"
         dset = load_ukb_eur_afr_hm3(chrom=chrom)
