@@ -165,8 +165,8 @@ def qq(pval, label=None, ax=None, bootstrap_ci=False):
     ax.scatter(-np.log10(expected_pval), -np.log10(pval), s=2, label=label)
     lim = max(-np.log10(expected_pval))
     ax.plot([0, lim], [0, lim], "r--")
-    ax.set_xlabel("Expected -$\log_{10}(p)$")
-    ax.set_ylabel("Observed -$\log_{10}(p)$")
+    ax.set_xlabel(r"Expected -$\log_{10}(p)$")
+    ax.set_ylabel(r"Observed -$\log_{10}(p)$")
     if bootstrap_ci == True:
         lgc, lgc_ci = lambda_gc(pval, bootstrap_ci=True)
     else:
@@ -261,7 +261,7 @@ def manhattan(
         ax.set_xticklabels(xticklabels, rotation=90, fontsize=8)
         ax.set_xlabel("Chromosome")
 
-    ax.set_ylabel("-$\log_{10}(P)$")
+    ax.set_ylabel(r"-$\log_{10}(P)$")
     if axh_y is not None:
         ax.axhline(y=axh_y, color="r", ls="--")
 

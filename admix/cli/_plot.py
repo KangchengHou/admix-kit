@@ -38,7 +38,7 @@ from ._utils import log_params
 #     mpl.style.use("classic")
 
 #     df_psam = dapgen.read_psam(pfile + ".psam")
-#     df_pca = pd.read_csv(pca, delim_whitespace=True, index_col=0)
+#     df_pca = pd.read_csv(pca, sep=r"\s+", index_col=0)
 #     assert np.all(df_psam.index == df_pca.index)
 
 #     df_plot = pd.merge(df_psam, df_pca, left_index=True, right_index=True)

@@ -80,7 +80,7 @@ def grm(
 
     if subpopu is not None:
         df_subpopu = pd.read_csv(
-            "data/subpopu.txt", delim_whitespace=True, header=None, dtype=str
+            "data/subpopu.txt", sep=r"\s+", header=None, dtype=str
         )
         df_subpopu.columns = ["FID", "IID", "POPU"]
         df_indiv = pd.merge(df_indiv, df_subpopu, on=["FID", "IID"])

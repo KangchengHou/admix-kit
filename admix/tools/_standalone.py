@@ -82,12 +82,12 @@ def hapgen2(
     ], f"genetic map {genetic_map} not supported, only hg19 and hg38 are supported"
 
     df_map = pd.read_csv(
-        get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True
+        get_cache_data("genetic_map", build=genetic_map), sep=r"\s+"
     )
     df_map = df_map[df_map.chr == chrom].drop(columns=["chr"])
     df_map.to_csv(f"{tmp_data_prefix}.genetic_map", sep="\t", index=False)
 
-    df_legend = pd.read_csv(f"{tmp_data_prefix}.legend", delim_whitespace=True, nrows=1)
+    df_legend = pd.read_csv(f"{tmp_data_prefix}.legend", sep=r"\s+", nrows=1)
     dl = df_legend["position"][0]
 
     hapgen2 = get_dependency("hapgen2")
@@ -152,7 +152,7 @@ def interpolate_genetic_position(chrom: int, pos: np.ndarray, build: str) -> np.
     from scipy.interpolate import interp1d
 
     df_map = pd.read_csv(
-        admix.tools.get_cache_data("genetic_map", build=build), delim_whitespace=True
+        admix.tools.get_cache_data("genetic_map", build=build), sep=r"\s+"
     )
     df_map = df_map[df_map["chr"] == chrom]
     assert np.all(np.sort(df_map["position"]) == df_map["position"])
@@ -251,11 +251,11 @@ def admix_simu(
         # check all legend files are the same
         if df_snp_info is None:
             df_snp_info = pd.read_csv(
-                f"{tmp_dir}/{pfile}.legend", delim_whitespace=True
+                f"{tmp_dir}/{pfile}.legend", sep=r"\s+"
             )
         else:
             assert df_snp_info.equals(
-                pd.read_csv(f"{tmp_dir}/{pfile}.legend", delim_whitespace=True)
+                pd.read_csv(f"{tmp_dir}/{pfile}.legend", sep=r"\s+")
             ), f"SNP information in {pfile} are not the same as in {pfile_list[0]}"
 
         # check all chromosomes are the same and only one chromosome

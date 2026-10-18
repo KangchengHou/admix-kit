@@ -21,10 +21,10 @@ def _process_sample_map(root_dir):
 
     sample_map = pd.read_csv(
         f"{root_dir}/pgen/all_chr.psam",
-        delim_whitespace=True,
+        sep=r"\s+",
     )
     unrelated_id = pd.read_csv(
-        f"{root_dir}/pgen/king.cutoff.out.id", delim_whitespace=True
+        f"{root_dir}/pgen/king.cutoff.out.id", sep=r"\s+"
     )
     os.makedirs(f"{root_dir}/metadata", exist_ok=True)
     sample_map[["#IID", "Population", "SuperPop"]].to_csv(
@@ -84,7 +84,7 @@ def _process_genetic_map(root_dir, build):
 
         raw_map = pd.read_csv(
             raw_map_path,
-            delim_whitespace=True,
+            sep=r"\s+",
         )
 
         os.makedirs(f"{root_dir}/metadata/genetic_map", exist_ok=True)
@@ -204,7 +204,7 @@ def get_1kg_ref(
         "--nonfounders",
         "--snps-only",
         "--chr 1-22",
-        "--set-all-var-ids @:#:\$r:\$a",
+        r"--set-all-var-ids @:#:\$r:\$a",
         f"--make-pgen --out {dir}/pgen/raw2",
         f"--memory {memory}",
     ]

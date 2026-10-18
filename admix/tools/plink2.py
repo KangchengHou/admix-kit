@@ -334,10 +334,10 @@ def merge_indiv(pfile1: str, pfile2: str, out_prefix: str):
 
     # Step 3: unify SNP ID
     admix.tools.plink2.run(
-        f"--pfile {out_prefix}-tmp.1 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.1.fixid"
+        rf"--pfile {out_prefix}-tmp.1 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.1.fixid"
     )
     admix.tools.plink2.run(
-        f"--pfile {out_prefix}-tmp.2 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.2.fixid"
+        rf"--pfile {out_prefix}-tmp.2 --set-all-var-ids @:#:\$r:\$a --make-bed --out {out_prefix}-tmp.2.fixid"
     )
 
     # Step 4: make final merged bfile

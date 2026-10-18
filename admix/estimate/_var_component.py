@@ -226,7 +226,7 @@ def HE_reg(
                     )
                     df_rls = pd.read_csv(
                         "result.HEreg",
-                        delim_whitespace=True,
+                        sep=r"\s+",
                         skiprows=1,
                         nrows=n_grm,
                     )
@@ -305,7 +305,7 @@ def REML(grm_list: List, pheno: np.ndarray, cov: np.ndarray):
 
                 df_rls = pd.read_csv(
                     "result.hsq",
-                    delim_whitespace=True,
+                    sep=r"\s+",
                     nrows=n_grm,
                 )
                 rls_list.append(df_rls)

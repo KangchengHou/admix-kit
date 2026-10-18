@@ -297,7 +297,7 @@ def load_ukb_eur_afr_hm3(
         # raw phenotype
         df_pheno = pd.read_csv(
             join(PHENO_DIR, f"admix.{trait}.pheno"),
-            delim_whitespace=True,
+            sep=r"\s+",
             low_memory=False,
         )
 
@@ -308,7 +308,7 @@ def load_ukb_eur_afr_hm3(
         # residual phenotype
         df_pheno = pd.read_csv(
             join(PHENO_DIR, f"admix.{trait}.residual_pheno"),
-            delim_whitespace=True,
+            sep=r"\s+",
             low_memory=False,
         )
 
@@ -321,7 +321,7 @@ def load_ukb_eur_afr_hm3(
 
     df_covar = pd.read_csv(
         join(PHENO_DIR, f"admix.covar"),
-        delim_whitespace=True,
+        sep=r"\s+",
         low_memory=False,
     )
 

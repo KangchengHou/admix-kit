@@ -387,7 +387,7 @@ def read_joint_pca(pca_prefix: str, ref_pfile: str):
         eigenvalues
     """
     df_pca = (
-        pd.read_csv(f"{pca_prefix}.eigenvec", delim_whitespace=True)
+        pd.read_csv(f"{pca_prefix}.eigenvec", sep=r"\s+")
         .set_index("IID")
         .drop(columns=["#FID"])
     )
@@ -395,7 +395,7 @@ def read_joint_pca(pca_prefix: str, ref_pfile: str):
     with open(f"{pca_prefix}.eigenval") as f:
         eigenval = np.array([float(l.strip()) for l in f.readlines()])
 
-    df_pop = pd.read_csv(ref_pfile + ".psam", delim_whitespace=True, index_col=0)
+    df_pop = pd.read_csv(ref_pfile + ".psam", sep=r"\s+", index_col=0)
     assert (
         "SuperPop" in df_pop.columns and "Population" in df_pop.columns
     ), f"SuperPop and Population columns are required in the reference panel {ref_pfile}.psam file"

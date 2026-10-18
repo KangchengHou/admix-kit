@@ -132,10 +132,10 @@ def process_sample_map(build):
 
     sample_map = pd.read_csv(
         f"{ROOT_DIR}/pgen/{build}.psam",
-        delim_whitespace=True,
+        sep=r"\s+",
     )
     unrelated_id = pd.read_csv(
-        f"{ROOT_DIR}/pgen/{build}.king.cutoff.out.id", delim_whitespace=True
+        f"{ROOT_DIR}/pgen/{build}.king.cutoff.out.id", sep=r"\s+"
     )
     os.makedirs(f"{ROOT_DIR}/metadata", exist_ok=True)
     sample_map[["#IID", "Population", "SuperPop"]].to_csv(
@@ -165,7 +165,7 @@ def _process_genetic_map(root_dir, build):
 
     raw_map = pd.read_csv(
         raw_map_path,
-        delim_whitespace=True,
+        sep=r"\s+",
     )
 
     os.makedirs(f"{root_dir}/metadata/genetic_map", exist_ok=True)

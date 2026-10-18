@@ -35,7 +35,7 @@ def calculate_mosaic_size(
 
     # number of centimorgans
     df_map = pd.read_csv(
-        get_cache_data("genetic_map", build=genetic_map), delim_whitespace=True
+        get_cache_data("genetic_map", build=genetic_map), sep=r"\s+"
     )
     df_map = df_map[df_map.chr == chrom].drop(columns=["chr"])
     # find the closest SNP to df_snp.POS[0] and df_snp.POS[-1]

@@ -98,6 +98,9 @@ def _normalize_index(
         return indexer
     elif isinstance(indexer, str):
         return index.get_loc(indexer)  # int
+    elif isinstance(indexer, (pd.api.extensions.ExtensionArray, pd.Series)):
+        # e.g., pandas >= 3 returns StringArray from string Index.values
+        return _normalize_index(np.asarray(indexer), index)
     elif isinstance(indexer, (Sequence, np.ndarray, pd.Index, np.matrix)):
         if hasattr(indexer, "shape") and (
             (indexer.shape == (index.shape[0], 1))

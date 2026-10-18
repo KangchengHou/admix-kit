@@ -58,7 +58,7 @@ def assoc(
     # TODO: infer block size using memory use in dask-pgen read
     dset = admix.io.read_dataset(pfile)
     admix.logger.info(f"{dset.n_snp} SNPs and {dset.n_indiv} individuals are loaded")
-    df_pheno = pd.read_csv(pheno, delim_whitespace=True, index_col=0, low_memory=False)
+    df_pheno = pd.read_csv(pheno, sep=r"\s+", index_col=0, low_memory=False)
     df_pheno.index = df_pheno.index.astype(str)
     pheno_col = df_pheno.columns[0]
     covar_cols = df_pheno.columns[1:]

@@ -271,7 +271,7 @@ def calculate_hsq_scale(
             [
                 pd.read_csv(
                     f,
-                    delim_whitespace=True,
+                    sep=r"\s+",
                 )
                 for f in freq_file_list
             ]

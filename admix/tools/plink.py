@@ -49,7 +49,7 @@ def read_bim(bim: Union[str, List[str]]):
                 pd.read_csv(
                     b,
                     header=None,
-                    delim_whitespace=True,
+                    sep=r"\s+",
                     names=["CHR", "SNP", "CM", "POS", "A1", "A2"],
                 )
                 for b in bim
@@ -59,7 +59,7 @@ def read_bim(bim: Union[str, List[str]]):
         return pd.read_csv(
             bim,
             header=None,
-            delim_whitespace=True,
+            sep=r"\s+",
             names=["CHR", "SNP", "CM", "POS", "A1", "A2"],
         )
     else:
@@ -70,7 +70,7 @@ def read_fam(fam: str):
     return pd.read_csv(
         fam,
         header=None,
-        delim_whitespace=True,
+        sep=r"\s+",
         usecols=[0, 1],
         names=["FID", "IID"],
     ).astype(str)
