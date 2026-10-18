@@ -9,4 +9,6 @@ assoc-test
 genet-cor
 pgs
 simulate-pheno
+simulate
+misc
 ```

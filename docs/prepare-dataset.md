@@ -100,7 +100,7 @@ Otherwise, you can use the tool you like.
 ```
 
 
-We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc)) which is a compact format for storing local ancestry. To convert the RFmix local ancestry into .lanc format, use the following command. This command can be applied to both imputed and hm3 data.
+We provide helper function to convert the local ancestry results into .lanc format ([see more details below](#lanc-file-formats)) which is a compact format for storing local ancestry. To convert the RFmix local ancestry into .lanc format, use the following command. This command can be applied to both imputed and hm3 data.
 
 ```bash
 admix lanc-convert \
@@ -124,7 +124,7 @@ SNP information file, such as allele frequency, and `.indiv_info` contains indiv
 information file, such as top PCs.
 
 ## Example simulated dataset
-Download an example dataset from [here](). See [step-by-step instructions]() for simulation.
+Download an example dataset with `admix.dataset.download_simulated_example_data()`. See [step-by-step instructions](simulate-admix-genotype.md) for simulation.
 
 ## `.lanc` file formats
 `.lanc` is a text file containing a matrix of local ancestry of shape `<n_snp> x <n_indiv> x <2 ploidy>`. 

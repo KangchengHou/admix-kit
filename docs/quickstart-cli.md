@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Quick start (CLI)
 
 We go through the basic function of `admix-kit` using the toy data we prepared.

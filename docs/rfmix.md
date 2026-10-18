@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Guideline to use RFmix for local ancestry inference
 
 ```{warning}

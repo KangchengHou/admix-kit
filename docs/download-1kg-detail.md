@@ -1,4 +1,8 @@
-## Details of downloading 1kg reference panel
+---
+orphan: true
+---
+
+# Details of downloading 1kg reference panel
 
 ```{warning}
 This provide more details behind `admix get-1kg-ref --dir=/path/to/1kg-reference`. However,
@@ -18,7 +22,7 @@ If you want to skip the details, just save the following 3 steps as 3 separate s
 And run each of them, you will get the 1,000 Genomes project reference panel ready.
 ```
 
-### Step 1.1: download 1,000 Genomes reference panel
+## Step 1.1: download 1,000 Genomes reference panel
 
 We download the 1,000 Genomes reference panel from [PLINK2 website](https://www.cog-genomics.org/plink/2.0/resources).
 ````{tab} hg38
@@ -87,7 +91,7 @@ cd ../../
 ```
 ````
 
-### Step 1.2: divide by chromosome to VCF files
+## Step 1.2: divide by chromosome to VCF files
 This is to export pgen format to VCF files as input to RFmix.
 
 ```bash
@@ -105,7 +109,7 @@ for chrom in {1..22}; do
 done
 ```
 
-### Step 1.3: download and process sample map and genetic map
+## Step 1.3: download and process sample map and genetic map
 In this step, we download the information for individual in 1,000 Genomes (population information) and
 genetic map information.
 ```python

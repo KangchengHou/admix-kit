@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Estimating genetic correlation
 
 We use an example to go through the pipeline.
@@ -50,7 +54,7 @@ admix admix-grm \
     --out-prefix ${out_dir}/admix-grm/grm
 ```
 
-#### Step 4: Estimate genetic correlation
+## Step 4: Estimate genetic correlation
 ```bash
 cor=0.9
 i=0
