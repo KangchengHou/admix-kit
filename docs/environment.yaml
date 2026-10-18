@@ -14,7 +14,6 @@ dependencies:
   - mypy
   - nbsphinx
   - nomkl
-  - nose
   - numba
   - numpy
   - numpydoc
@@ -24,12 +23,12 @@ dependencies:
   - pytest
   - pytest-cov
   - pytest-mock
-  - python=3.8
+  - python=3.12
   - sortedcontainers
   - scikit-learn>=0.23.1
   - scipy
   - sparse
-  - sphinx==4.5
+  - sphinx
   - sphinx-gallery
   - tornado
   - toolz
