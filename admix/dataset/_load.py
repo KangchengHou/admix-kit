@@ -54,7 +54,7 @@ def download_simulated_example_data(dir=None) -> Dataset:
         )
     else:
         urllib.request.urlretrieve(
-            "https://github.com/KangchengHou/admix-kit/releases/download/v0.1.2/example_data.zip",
+            "https://github.com/KangchengHou/admix-kit/releases/download/v0.1.5/example_data.zip",
             os.path.join(dir, "example_data.zip"),
         )
         with zipfile.ZipFile(os.path.join(dir, "example_data.zip"), "r") as f:
